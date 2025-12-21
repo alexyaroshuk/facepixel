@@ -45,6 +45,8 @@ post_install do |installer|
       ]
       # Force iOS 16.0 for all pods to satisfy google_mlkit_commons
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
+      # Exclude 32-bit architectures as required by ML Kit
+      config.build_settings['EXCLUDED_ARCHS[sdk=*]'] = 'armv7'
     end
   end
 end
