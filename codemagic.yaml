@@ -25,6 +25,7 @@ workflows:
       - name: Install CocoaPods dependencies
         script: |
           cd ios
+          rm -rf Pods Podfile.lock
           pod install --repo-update
 
       - name: Build iOS archive (no code signing)
