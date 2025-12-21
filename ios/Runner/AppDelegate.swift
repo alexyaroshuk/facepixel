@@ -2,6 +2,7 @@ import Flutter
 import UIKit
 import MLKitFaceDetection
 import MLKitVision
+import AVFoundation
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -78,8 +79,41 @@ import MLKitVision
       return
     }
 
-    // Create VisionImage from pixel buffer
-    let visionImage = VisionImage(buffer: buffer)
+    // Create CMSampleBuffer from CVPixelBuffer
+    var formatDesc: CMVideoFormatDescription?
+    CMVideoFormatDescriptionCreateForImageBuffer(
+      allocator: kCFAllocatorDefault,
+      imageBuffer: buffer,
+      formatDescriptionOut: &formatDesc
+    )
+
+    guard let formatDescription = formatDesc else {
+      result(["success": false])
+      return
+    }
+
+    var sampleBuffer: CMSampleBuffer?
+    var timingInfo = CMSampleTimingInfo(
+      duration: CMTime(value: 1, timescale: 30),
+      presentationTimeStamp: CMTime.zero,
+      decodeTimeStamp: CMTime.invalid
+    )
+
+    CMSampleBufferCreateReadyWithImageBuffer(
+      allocator: kCFAllocatorDefault,
+      imageBuffer: buffer,
+      formatDescription: formatDescription,
+      sampleTiming: &timingInfo,
+      sampleBufferOut: &sampleBuffer
+    )
+
+    guard let smplBuffer = sampleBuffer else {
+      result(["success": false])
+      return
+    }
+
+    // Create VisionImage from CMSampleBuffer
+    let visionImage = VisionImage(buffer: smplBuffer)
     visionImage.orientation = getImageOrientation(from: rotation)
 
     // Detect faces
