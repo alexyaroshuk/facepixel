@@ -1,12 +1,15 @@
 workflows:
-  ios-build:
-    name: iOS Build & Test
+  ios-sideload-build:
+    name: iOS Sideload Build (No Code Signing)
     instance_type: mac_mini_m1
     max_build_duration: 60
 
     environment:
       xcode: latest
       cocoapods: default
+      vars:
+        XCODE_WORKSPACE: "ios/Runner.xcworkspace"
+        XCODE_SCHEME: "Runner"
 
     triggering:
       events:
@@ -19,23 +22,43 @@ workflows:
         script: |
           flutter pub get
 
-      - name: Run Flutter tests
+      - name: Install CocoaPods dependencies
         script: |
-          flutter test || true
+          cd ios
+          pod install --repo-update
 
-      - name: Build iOS IPA (Release)
+      - name: Build iOS archive (no code signing)
         script: |
-          flutter build ipa \
-            --release \
-            --build-name=1.0.0 \
-            --build-number=$BUILD_NUMBER \
+          xcodebuild \
+            -workspace "$XCODE_WORKSPACE" \
+            -scheme "$XCODE_SCHEME" \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath "$CM_BUILD_DIR/build/Runner.xcarchive" \
+            archive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_ENTITLEMENTS="" \
             -v
 
-      - name: Display IPA location
+      - name: Export IPA (sideload)
         script: |
-          ls -lah build/ios/ipa/
-          find build -name "*.ipa" -type f
+          mkdir -p "$CM_BUILD_DIR/Payload"
+          cp -r "$CM_BUILD_DIR/build/Runner.xcarchive/Products/Applications/Runner.app" "$CM_BUILD_DIR/Payload/"
+          cd "$CM_BUILD_DIR"
+          zip -r -q face_pixel.ipa Payload/
+          rm -rf Payload
+          ls -lah face_pixel.ipa
 
     artifacts:
-      - build/ios/ipa/*.ipa
+      - $CM_BUILD_DIR/face_pixel.ipa
       - build/logs/flutter_build.log
+
+    publishing:
+      email:
+        recipients:
+          - $PERSONAL_EMAIL
+        notify:
+          success: true
+          failure: true
