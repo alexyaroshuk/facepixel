@@ -54,11 +54,3 @@ workflows:
     artifacts:
       - $CM_BUILD_DIR/face_pixel.ipa
       - build/logs/flutter_build.log
-
-    publishing:
-      email:
-        recipients:
-          - $PERSONAL_EMAIL
-        notify:
-          success: true
-          failure: true
