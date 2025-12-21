@@ -43,6 +43,8 @@ post_install do |installer|
         '$(inherited)',
         'PERMISSION_CAMERA=1',
       ]
+      # Force iOS 15.0 for all pods to satisfy google_mlkit_commons
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
     end
   end
 end
