@@ -1,0 +1,17 @@
+Launching lib\main.dart on Windows in debug mode...
+√ Built build\windows\x64\runner\Debug\flutter_application_1.exe
+Connecting to VM Service at ws://127.0.0.1:62806/9MwWPKt8zMU=/ws
+Connected to the VM Service.
+[ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: MissingPluginException(No implementation found for method availableCameras on channel plugins.flutter.io/camera)
+#0      MethodChannel._invokeMethod (package:flutter/src/services/platform_channel.dart:365:7)
+platform_channel.dart:365
+<asynchronous suspension>
+#1      MethodChannel.invokeListMethod (package:flutter/src/services/platform_channel.dart:553:35)
+platform_channel.dart:553
+<asynchronous suspension>
+#2      MethodChannelCamera.availableCameras (package:camera_platform_interface/src/method_channel/method_channel_camera.dart:68:52)
+method_channel_camera.dart:68
+<asynchronous suspension>
+#3      main (package:flutter_application_1/main.dart:9:19)
+main.dart:9
+<asynchronous suspension>

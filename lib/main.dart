@@ -1,0 +1,761 @@
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:camera/camera.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final cameras = await availableCameras();
+  runApp(MyApp(cameras: cameras));
+}
+
+class MyApp extends StatelessWidget {
+  final List<CameraDescription> cameras;
+
+  const MyApp({super.key, required this.cameras});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Face Pixelation',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+      ),
+      home: MyHomePage(cameras: cameras),
+    );
+  }
+}
+
+class MyHomePage extends StatefulWidget {
+  final List<CameraDescription> cameras;
+
+  const MyHomePage({super.key, required this.cameras});
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  late CameraController _controller;
+  List<Face> _detectedFaces = [];
+  bool _isProcessing = false;
+  String _debugMessage = "Initializing...";
+  int _frameCount = 0;
+  DateTime _lastFpsTime = DateTime.now();
+  double _fps = 0;
+  DateTime _lastProcessTime = DateTime.now();
+  int _currentCameraIndex = 0;
+  bool _isSwitchingCamera = false;
+  int _lastImageWidth = 0;
+  int _lastImageHeight = 0;
+
+  // Image dimensions (from camera frames)
+  Size _imageSize = Size.zero;
+
+  // Detection canvas dimensions (where face boxes should render)
+  Size _detectionCanvasSize = Size.zero;
+  Offset _detectionCanvasOffset = Offset.zero;
+
+  // Debug visualization
+  bool _showRedBorder = true;
+  bool _showTealBorder = true;
+  bool _showTestPanel = false;
+  bool _showDebugUI = true;
+  int? _overrideRotation; // Override rotation for testing
+
+  static const platform = MethodChannel(
+    'com.facepixel.app/faceDetection',
+  );
+
+  /// Calculate correct rotation for ML Kit based on camera frame dimensions
+  /// When rotation is correct, ML Kit can detect faces
+  int _calculateMLKitRotation() {
+    // If override is set (for testing), use it
+    if (_overrideRotation != null) {
+      return _overrideRotation!;
+    }
+
+    // The key insight: ML Kit needs to know which direction is "up" in the frame
+    // based on how the camera sensor is oriented relative to the device
+
+    // For most Android devices:
+    // - Back camera sensor orientation: 90° (landscape)
+    // - Front camera sensor orientation: 270° (landscape, but mirrored)
+
+    // The frame dimensions tell us the actual orientation:
+    // If frame is landscape (width > height): rotation should handle portrait display
+    // If frame is portrait (height > width): rotation should handle landscape display
+
+    final isFrontCamera = widget.cameras[_currentCameraIndex].lensDirection == CameraLensDirection.front;
+
+    // For most devices, these sensor orientations work:
+    if (isFrontCamera) {
+      // Front cameras typically need 270° for proper face detection in portrait
+      return 270;
+    } else {
+      // Back cameras typically need 90° for proper face detection in portrait
+      return 90;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Start with front camera if available
+    _currentCameraIndex = 0;
+    final frontCameraIndex = widget.cameras.indexWhere(
+      (camera) => camera.lensDirection == CameraLensDirection.front,
+    );
+    if (frontCameraIndex != -1) {
+      _currentCameraIndex = frontCameraIndex;
+    }
+    _initializeCamera();
+    _initializeNativeFaceDetection();
+  }
+
+  Future<void> _initializeNativeFaceDetection() async {
+    try {
+      final result = await platform.invokeMethod('initializeFaceDetection');
+      if (result) {
+        setState(() {
+          _debugMessage = "Ready";
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _debugMessage = "Init failed: $e";
+      });
+    }
+  }
+
+  Future<void> _initializeCamera() async {
+    try {
+      _controller = CameraController(
+        widget.cameras[_currentCameraIndex],
+        ResolutionPreset.max,
+        enableAudio: false,
+        imageFormatGroup: Platform.isAndroid
+            ? ImageFormatGroup.nv21
+            : ImageFormatGroup.bgra8888,
+      );
+
+      await _controller.initialize();
+
+      if (!mounted) return;
+
+      // Initialize image dimensions from camera preview size
+      final previewSize = _controller.value.previewSize;
+
+      if (previewSize != null) {
+        _lastImageWidth = previewSize.width.toInt();
+        _lastImageHeight = previewSize.height.toInt();
+      }
+
+      _controller.startImageStream((image) {
+        Future.microtask(() => _processFrame(image));
+      });
+
+      setState(() {
+        _isSwitchingCamera = false;
+      });
+    } catch (e) {
+      setState(() {
+        _debugMessage = "Camera error: $e";
+        _isSwitchingCamera = false;
+      });
+    }
+  }
+
+  Future<void> _processFrame(CameraImage image) async {
+    final now = DateTime.now();
+
+    // Only process every 100ms to reduce overhead
+    if (now.difference(_lastProcessTime).inMilliseconds < 100) {
+      return;
+    }
+    _lastProcessTime = now;
+
+    if (_isProcessing) return;
+
+    _isProcessing = true;
+    _frameCount++;
+
+    try {
+      // Calculate FPS
+      if (now.difference(_lastFpsTime).inMilliseconds > 1000) {
+        if (mounted) {
+          setState(() {
+            _fps =
+                _frameCount /
+                now.difference(_lastFpsTime).inMilliseconds *
+                1000;
+            _frameCount = 0;
+            _lastFpsTime = now;
+          });
+        }
+      }
+
+      // Update image dimensions
+      _lastImageWidth = image.width;
+      _lastImageHeight = image.height;
+      _imageSize = Size(image.width.toDouble(), image.height.toDouble());
+
+      final mlKitRotation = _calculateMLKitRotation();
+      final isFrontCamera = widget.cameras[_currentCameraIndex].lensDirection == CameraLensDirection.front;
+
+      // Log rotation info (once per second to avoid spam)
+      if (_frameCount % 10 == 0) {
+        final cameraInfo = isFrontCamera ? 'FRONT' : 'BACK';
+        // ignore: avoid_print
+        print('🎥 Sending frame: ${image.width}x${image.height}, Rotation: $mlKitRotation°, Camera: $cameraInfo');
+      }
+
+      final result = await platform.invokeMethod<Map>('processFrame', {
+        'frameBytes': image.planes[0].bytes,
+        'width': image.width,
+        'height': image.height,
+        'rotation': mlKitRotation,
+        'isFrontCamera': isFrontCamera,
+      });
+
+      if (result != null && result['success'] as bool) {
+        final facesList = (result['faces'] as List).cast<Map>();
+        final faces = facesList
+            .map(
+              (f) => Face(
+                x: (f['x'] as num).toDouble(),
+                y: (f['y'] as num).toDouble(),
+                width: (f['width'] as num).toDouble(),
+                height: (f['height'] as num).toDouble(),
+              ),
+            )
+            .toList();
+
+        if (mounted) {
+          final previewSize = _controller.value.previewSize;
+          setState(() {
+            _detectedFaces = faces;
+            final w = previewSize?.width.toInt() ?? 0;
+            final h = previewSize?.height.toInt() ?? 0;
+            _debugMessage =
+                'Faces: ${faces.length} | Image: ${_lastImageWidth}x$_lastImageHeight | Preview: ${w}x$h | FPS: ${_fps.toStringAsFixed(1)}';
+          });
+        }
+      }
+    } catch (e) {
+      // Silent catch
+    } finally {
+      _isProcessing = false;
+    }
+  }
+
+  Future<void> _switchCamera() async {
+    if (_isSwitchingCamera || widget.cameras.length < 2) return;
+
+    setState(() {
+      _isSwitchingCamera = true;
+      _detectedFaces = [];
+    });
+
+    // Dispose current controller
+    await _controller.dispose();
+
+    // Switch to next camera
+    _currentCameraIndex = (_currentCameraIndex + 1) % widget.cameras.length;
+
+    // Reinitialize with new camera
+    await _initializeCamera();
+  }
+
+  /// Calculate detection canvas dimensions
+  /// SIMPLE: Fill entire container
+  void _updateDetectionCanvasDimensions(Size bodySize) {
+    _detectionCanvasSize = bodySize;
+    _detectionCanvasOffset = Offset.zero;
+
+    // Debug logging
+    // ignore: avoid_print
+    print('📐 CANVAS: size=${bodySize.width.toInt()}x${bodySize.height.toInt()} @ (0,0)');
+  }
+
+  /// Transform face coordinates from image space to screen space
+  /// CRITICAL: Account for rotation changing effective image dimensions and front camera mirroring
+  FaceBox _transformFaceCoordinates(Face face) {
+    if (_imageSize.width <= 0 || _imageSize.height <= 0 || _detectionCanvasSize.width <= 0) {
+      return FaceBox(left: 0, top: 0, width: 0, height: 0);
+    }
+
+    final rotation = _calculateMLKitRotation();
+    final isFrontCamera = widget.cameras[_currentCameraIndex].lensDirection == CameraLensDirection.front;
+
+    // When rotation is 90° or 270°, the effective image dimensions are SWAPPED
+    // Original: 1600x1200
+    // After 90° rotation: effectively 1200x1600 (width and height swap!)
+
+    late double effectiveImageWidth;
+    late double effectiveImageHeight;
+
+    if (rotation == 90 || rotation == 270) {
+      // Dimensions are swapped due to rotation
+      effectiveImageWidth = _imageSize.height;
+      effectiveImageHeight = _imageSize.width;
+    } else {
+      // No swap for 0° or 180°
+      effectiveImageWidth = _imageSize.width;
+      effectiveImageHeight = _imageSize.height;
+    }
+
+    // Calculate scale factors using EFFECTIVE dimensions
+    final scaleX = _detectionCanvasSize.width / effectiveImageWidth;
+    final scaleY = _detectionCanvasSize.height / effectiveImageHeight;
+
+    // Transform the bounding box
+    var left = face.x * scaleX;
+    final top = face.y * scaleY;
+    final width = face.width * scaleX;
+    final height = face.height * scaleY;
+
+    // Front camera at 270° is horizontally mirrored in ML Kit coordinates
+    // Flip X coordinate to match visual position
+    if (isFrontCamera && (rotation == 270 || rotation == 90)) {
+      left = _detectionCanvasSize.width - left - width;
+    }
+
+    // ignore: avoid_print
+    print('✅ Transform: face(${face.x.toInt()}, ${face.y.toInt()}) → screen(${left.toInt()}, ${top.toInt()}) | rotation=$rotation° | camera=${isFrontCamera ? 'FRONT' : 'BACK'} | effective dims: ${effectiveImageWidth.toInt()}x${effectiveImageHeight.toInt()}');
+
+    return FaceBox(
+      left: left,
+      top: top,
+      width: width,
+      height: height,
+    );
+  }
+
+  /// Build a rotation test button
+  Widget _buildRotationButton(int rotation) {
+    final isActive = _overrideRotation == rotation;
+    return ElevatedButton(
+      onPressed: () {
+        setState(() {
+          _overrideRotation = rotation;
+        });
+        // ignore: avoid_print
+        print('🧪 Testing rotation: $rotation°');
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isActive ? Colors.orange : Colors.blue[900],
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      ),
+      child: Text(
+        '$rotation°',
+        style: TextStyle(
+          fontSize: 11,
+          color: Colors.white,
+          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_controller.value.isInitialized) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Face Pixelation'),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        actions: [
+          // Debug UI toggle
+          IconButton(
+            icon: Icon(_showDebugUI ? Icons.info : Icons.info_outline),
+            onPressed: () {
+              setState(() {
+                _showDebugUI = !_showDebugUI;
+              });
+            },
+            tooltip: 'Toggle Debug UI',
+          ),
+          // Camera switch
+          if (widget.cameras.length > 1)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(
+                child: _isSwitchingCamera
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : IconButton(
+                        icon: const Icon(Icons.flip_camera_ios),
+                        onPressed: _switchCamera,
+                        tooltip: 'Switch Camera',
+                      ),
+              ),
+            ),
+        ],
+      ),
+      body: Builder(
+        builder: (context) {
+          // Get actual screen size from MediaQuery
+          final screenSize = MediaQuery.of(context).size;
+          final appBarHeight = AppBar().preferredSize.height;
+          // Body size = full screen minus AppBar (which is in Scaffold above this body)
+          final bodySize = Size(screenSize.width, screenSize.height - appBarHeight);
+
+          // Calculate detection canvas dimensions on layout
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _updateDetectionCanvasDimensions(bodySize);
+          });
+
+          // ⚠️ DEBUG: Log what we're rendering
+          if (_showRedBorder || _showTealBorder) {
+            // ignore: avoid_print
+            print('🎨 BUILD: screenSize=${screenSize.width.toInt()}x${screenSize.height.toInt()} | bodySize=${bodySize.width.toInt()}x${bodySize.height.toInt()} | appBarHeight=${appBarHeight.toInt()}');
+          }
+
+          return Container(
+            width: bodySize.width,
+            height: bodySize.height,
+            color: Colors.black,
+            child: Stack(
+              children: [
+                // RED BORDER CONTAINER = THE VIDEO STREAM AREA
+                // Camera preview inside a container with red border
+                Container(
+                  width: bodySize.width,
+                  height: bodySize.height,
+                  decoration: _showRedBorder
+                      ? BoxDecoration(border: Border.all(color: Colors.red, width: 5))
+                      : null,
+                  child: CameraPreview(_controller),
+                ),
+
+                // TEAL BORDER - overlays on top of everything
+                if (_showTealBorder)
+                  Container(
+                    width: bodySize.width,
+                    height: bodySize.height,
+                    decoration: BoxDecoration(border: Border.all(color: Colors.cyan, width: 3)),
+                  ),
+
+              // Face detection boxes - flat list, no nested Stacks
+              if (_detectedFaces.isNotEmpty && _detectionCanvasSize != Size.zero)
+                ..._detectedFaces.map((face) {
+                  final box = _transformFaceCoordinates(face);
+                  return Positioned(
+                    left: _detectionCanvasOffset.dx + box.left,
+                    top: _detectionCanvasOffset.dy + box.top,
+                    width: box.width,
+                    height: box.height,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.green, width: 2),
+                      ),
+                    ),
+                  );
+                }),
+
+              // Status overlay with detailed debug info
+              if (_showDebugUI)
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  right: 8,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black87,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.all(8),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _debugMessage,
+                          style: const TextStyle(
+                            color: Colors.green,
+                            fontFamily: 'monospace',
+                            fontSize: 11,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Body: ${bodySize.width.toInt()}x${bodySize.height.toInt()}',
+                          style: const TextStyle(
+                            color: Colors.lightBlue,
+                            fontFamily: 'monospace',
+                            fontSize: 11,
+                          ),
+                        ),
+                        Text(
+                          'Image: ${_imageSize.width.toInt()}x${_imageSize.height.toInt()}',
+                          style: const TextStyle(
+                            color: Colors.yellow,
+                            fontFamily: 'monospace',
+                            fontSize: 11,
+                          ),
+                        ),
+                        Text(
+                          'Detection canvas: ${_detectionCanvasSize.width.toInt()}x${_detectionCanvasSize.height.toInt()}',
+                          style: const TextStyle(
+                            color: Colors.cyan,
+                            fontFamily: 'monospace',
+                            fontSize: 11,
+                          ),
+                        ),
+                        if (_detectionCanvasOffset != Offset.zero)
+                          Text(
+                            'Canvas offset: (${_detectionCanvasOffset.dx.toInt()}, ${_detectionCanvasOffset.dy.toInt()})',
+                            style: const TextStyle(
+                              color: Colors.cyan,
+                              fontFamily: 'monospace',
+                              fontSize: 11,
+                            ),
+                          ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Rotation: ${_calculateMLKitRotation()}°${_overrideRotation != null ? ' (OVERRIDE)' : ''}',
+                          style: TextStyle(
+                            color: _overrideRotation != null ? Colors.orange : Colors.lightGreen,
+                            fontFamily: 'monospace',
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _isProcessing ? 'Processing...' : 'Ready',
+                          style: TextStyle(
+                            color: _isProcessing ? Colors.orange : Colors.green,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        // Coordinate display
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey, width: 1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '🔴 RED (Body): (0,0) → (${bodySize.width.toInt()},${bodySize.height.toInt()})',
+                                style: const TextStyle(
+                                  color: Colors.red,
+                                  fontFamily: 'monospace',
+                                  fontSize: 10,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '🔷 TEAL (Canvas): (${_detectionCanvasOffset.dx.toInt()},${_detectionCanvasOffset.dy.toInt()}) → (${(_detectionCanvasOffset.dx + _detectionCanvasSize.width).toInt()},${(_detectionCanvasOffset.dy + _detectionCanvasSize.height).toInt()})',
+                                style: const TextStyle(
+                                  color: Colors.cyan,
+                                  fontFamily: 'monospace',
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _showRedBorder = !_showRedBorder;
+                                });
+                              },
+                              child: Text(
+                                '🔴 Red: ${_showRedBorder ? 'ON' : 'OFF'}',
+                                style: TextStyle(
+                                  color: _showRedBorder ? Colors.red : Colors.grey,
+                                  fontFamily: 'monospace',
+                                  fontSize: 10,
+                                  fontWeight: _showRedBorder ? FontWeight.bold : FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _showTealBorder = !_showTealBorder;
+                                });
+                              },
+                              child: Text(
+                                '🔷 Teal: ${_showTealBorder ? 'ON' : 'OFF'}',
+                                style: TextStyle(
+                                  color: _showTealBorder ? Colors.cyan : Colors.grey,
+                                  fontFamily: 'monospace',
+                                  fontSize: 10,
+                                  fontWeight: _showTealBorder ? FontWeight.bold : FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _showTestPanel = !_showTestPanel;
+                                });
+                              },
+                              child: Text(
+                                'Test: ${_showTestPanel ? 'ON' : 'OFF'}',
+                                style: TextStyle(
+                                  color: _showTestPanel ? Colors.orange : Colors.lightBlue,
+                                  fontFamily: 'monospace',
+                                  fontSize: 10,
+                                  fontWeight: _showTestPanel ? FontWeight.bold : FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              // Test panel - rotation testing buttons
+              if (_showTestPanel)
+                Positioned(
+                  bottom: 16,
+                  left: 16,
+                  right: 16,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black87,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.orange, width: 2),
+                    ),
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '🔄 ROTATION TEST PANEL',
+                          style: const TextStyle(
+                            color: Colors.orange,
+                            fontFamily: 'monospace',
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Current: ${_overrideRotation ?? 'AUTO'} | Detected faces: ${_detectedFaces.length}',
+                          style: TextStyle(
+                            color: _detectedFaces.isNotEmpty ? Colors.lightGreen : Colors.red,
+                            fontFamily: 'monospace',
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _buildRotationButton(0),
+                            _buildRotationButton(90),
+                            _buildRotationButton(180),
+                            _buildRotationButton(270),
+                            ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  _overrideRotation = null;
+                                });
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.grey[700],
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              ),
+                              child: const Text(
+                                'AUTO',
+                                style: TextStyle(fontSize: 11, color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[900],
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            _overrideRotation != null
+                                ? '⚠️ Testing rotation: $_overrideRotation°\nLook for faces in logcat'
+                                : '✓ Using auto-calculated rotation\nNo override active',
+                            style: TextStyle(
+                              color: _overrideRotation != null ? Colors.orange : Colors.lightGreen,
+                              fontFamily: 'monospace',
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+            );
+        },
+      ),
+    );
+  }
+}
+
+class Face {
+  final double x;
+  final double y;
+  final double width;
+  final double height;
+
+  Face({
+    required this.x,
+    required this.y,
+    required this.width,
+    required this.height,
+  });
+}
+
+/// Represents a face bounding box in screen space coordinates
+class FaceBox {
+  final double left;
+  final double top;
+  final double width;
+  final double height;
+
+  FaceBox({
+    required this.left,
+    required this.top,
+    required this.width,
+    required this.height,
+  });
+}

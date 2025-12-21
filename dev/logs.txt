@@ -1,0 +1,1809 @@
+Launching lib\main.dart on Redmi Note 9 Pro in debug mode...
+√ Built build\app\outputs\flutter-apk\app-debug.apk
+D/FlutterJNI(10826): Beginning load of flutter...
+D/FlutterJNI(10826): flutter (null) was loaded normally!
+I/flutter (10826): [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+Connecting to VM Service at ws://127.0.0.1:59737/xo3PM58kp5Y=/ws
+Connected to the VM Service.
+D/QuirkSettingsLoader(10826): QuirkSettings$MetadataHolderService is not found.
+D/CameraX (10826): QuirkSettings from app metadata: null
+D/CameraX (10826): QuirkSettings by default: QuirkSettings{enabledWhenDeviceHasQuirk=true, forceEnabledQuirks=[], forceDisabledQuirks=[]}
+D/DeviceQuirks(10826): camera2 DeviceQuirks = ExcludedSupportedSizesQuirk
+I/CameraManagerGlobal(10826): Connecting to camera service
+D/CameraExtStub(10826): init android.hardware.camera2.impl.CameraExtImplXiaoMi
+D/CameraInjector(10826): updateCloudCameraControllerInfoAsync: E
+D/CameraInjector(10826): updateCloudCameraControllerInfoAsync: X
+W/libc    (10826): Access denied finding property "vendor.camera.aux.packagelist"
+W/CameraManagerGlobal(10826): [soar.cts] ignore the status update of camera: 100
+W/libc    (10826): Access denied finding property "vendor.camera.aux.packagelist"
+W/CameraManagerGlobal(10826): [soar.cts] ignore the status update of camera: 101
+W/libc    (10826): Access denied finding property "vendor.camera.aux.packagelist"
+W/CameraManagerGlobal(10826): [soar.cts] ignore the status update of camera: 20
+W/libc    (10826): Access denied finding property "vendor.camera.aux.packagelist"
+W/CameraManagerGlobal(10826): [soar.cts] ignore the status update of camera: 21
+W/libc    (10826): Access denied finding property "vendor.camera.aux.packagelist"
+W/CameraManagerGlobal(10826): [soar.cts] ignore the status update of camera: 22
+W/libc    (10826): Access denied finding property "vendor.camera.aux.packagelist"
+W/CameraManagerGlobal(10826): [soar.cts] ignore the status update of camera: 61
+W/libc    (10826): Access denied finding property "vendor.camera.aux.packagelist"
+D/Camera2CameraCoordinator(10826): Updated concurrent camera map: {}
+W/libc    (10826): Access denied finding property "vendor.camera.aux.packagelist"
+W/libc    (10826): Access denied finding property "vendor.camera.aux.packagelist"
+W/CameraManagerGlobal(10826): ignore the torch status update of camera: 100
+D/Camera2CameraFactory(10826): Updated available camera list: [] -> [0, 1]
+W/libc    (10826): Access denied finding property "vendor.camera.aux.packagelist"
+W/CameraManagerGlobal(10826): ignore the torch status update of camera: 21
+W/libc    (10826): Access denied finding property "vendor.camera.aux.packagelist"
+W/CameraManagerGlobal(10826): ignore the torch status update of camera: 22
+W/libc    (10826): Access denied finding property "vendor.camera.aux.packagelist"
+W/CameraManagerGlobal(10826): ignore the torch status update of camera: 61
+D/CameraRepository(10826): Added camera: 0
+D/CameraQuirks(10826): camera2 CameraQuirks =
+I/Camera2CameraInfo(10826): Device Level: INFO_SUPPORTED_HARDWARE_LEVEL_3
+D/CameraRepository(10826): Added camera: 1
+D/CameraQuirks(10826): camera2 CameraQuirks =
+I/Camera2CameraInfo(10826): Device Level: INFO_SUPPORTED_HARDWARE_LEVEL_3
+I/CameraPresencePrvdr(10826): Starting CameraPresenceProvider monitoring.
+I/CameraPresenceSrc(10826): First observer added. Starting monitoring.
+I/Camera2PresenceSrc(10826): Starting system availability monitoring.
+D/Camera2PresenceSrc(10826): System onCameraAvailable: 0
+D/Camera2PresenceSrc(10826): System onCameraAvailable: 1
+D/CameraValidator(10826): Verifying camera lens facing on joyeuse, lensFacingInteger: null
+W/libc    (10826): Access denied finding property "vendor.camera.aux.packagelist"
+W/libc    (10826): Access denied finding property "vendor.camera.aux.packagelist"
+D/Camera2PresenceSrc(10826): [FetchData] Refreshed camera list: CameraIdentifier{cameraIds=0}, CameraIdentifier{cameraIds=1}
+D/Camera2PresenceSrc(10826): [FetchData] Refreshed camera list: CameraIdentifier{cameraIds=0}, CameraIdentifier{cameraIds=1}
+W/libc    (10826): Access denied finding property "vendor.camera.aux.packagelist"
+D/Camera2PresenceSrc(10826): [FetchData] Refreshed camera list: CameraIdentifier{cameraIds=0}, CameraIdentifier{cameraIds=1}
+E/r_application_(10826): open libmigui.so failed! dlopen - dlopen failed: library "libmigui.so" not found
+I/Choreographer(10826): Skipped 52 frames!  The application may be doing too much work on its main thread.
+W/Looper  (10826): PerfMonitor doFrame : time=0ms vsyncFrame=0 latency=875ms procState=-1
+D/TransportRuntime.JobInfoScheduler(10826): Scheduling upload for context TransportContext(cct, DEFAULT, MSRodHRwczovL2ZpcmViYXNlbG9nZ2luZy5nb29nbGVhcGlzLmNvbS92MGNjL2xvZy9iYXRjaD9mb3JtYXQ9anNvbl9wcm90bzNc) with jobId=-1924650378 in 30000ms(Backend next call timestamp 1766299265186). Attempt 1
+D/TransportRuntime.JobInfoScheduler(10826): Scheduling upload for context TransportContext(cct, VERY_LOW, MSRodHRwczovL2ZpcmViYXNlbG9nZ2luZy5nb29nbGVhcGlzLmNvbS92MGNjL2xvZy9iYXRjaD9mb3JtYXQ9anNvbl9wcm90bzNc) with jobId=-1919669641 in 86400000ms(Backend next call timestamp 0). Attempt 1
+D/MainActivity(10826): Face detection initialized successfully with ML Kit
+I/DynamiteModule(10826): Considering local module com.google.mlkit.dynamite.face:10000 and remote module com.google.mlkit.dynamite.face:0
+I/DynamiteModule(10826): Selected local version of com.google.mlkit.dynamite.face
+D/DecorView[](10826): getWindowModeFromSystem  windowmode is 1
+D/DecorView[](10826): updateDecorCaptionStatus displayWindowDecor is false
+D/nativeloader(10826): Load /data/app/~~Tw3euykzXN6_TJXY6f0MDA==/com.example.flutter_application_1--3iQsD2bp2Xvgkj2yXQWCA==/base.apk!/lib/arm64-v8a/libface_detector_v2_jni.so using class loader ns clns-4 (caller=/data/app/~~Tw3euykzXN6_TJXY6f0MDA==/com.example.flutter_application_1--3iQsD2bp2Xvgkj2yXQWCA==/base.apk!classes11.dex): ok
+D/TransportRuntime.SQLiteEventStore(10826): Storing event with priority=DEFAULT, name=FIREBASE_ML_SDK for destination cct
+D/TransportRuntime.JobInfoScheduler(10826): Upload for context TransportContext(cct, DEFAULT, MSRodHRwczovL2ZpcmViYXNlbG9nZ2luZy5nb29nbGVhcGlzLmNvbS92MGNjL2xvZy9iYXRjaD9mb3JtYXQ9anNvbl9wcm90bzNc) is already scheduled. Returning...
+D/TransportRuntime.SQLiteEventStore(10826): Storing event with priority=VERY_LOW, name=FIREBASE_ML_SDK for destination cct
+D/TransportRuntime.JobInfoScheduler(10826): Upload for context TransportContext(cct, VERY_LOW, MSRodHRwczovL2ZpcmViYXNlbG9nZ2luZy5nb29nbGVhcGlzLmNvbS92MGNjL2xvZy9iYXRjaD9mb3JtYXQ9anNvbl9wcm90bzNc) is already scheduled. Returning...
+D/DecorView[](10826): onWindowFocusChanged hasWindowFocus true
+D/DeviceQuirks(10826): video DeviceQuirks = NegativeLatLongSavesIncorrectlyQuirk | MediaCodecDefaultDataSpaceQuirk
+D/Recorder(10826): mRequiredFreeStorageBytes = 50 MB
+D/DeviceQuirks(10826): core DeviceQuirks = SurfaceOrderQuirk
+D/ResolvedFeatureGroup(10826): resolveFeatureGroup: sessionConfig = androidx.camera.core.LegacySessionConfig@1d97491, lensFacing = 0
+D/CameraUseCaseAdapter(10826): addUseCases: appUseCasesToAdd = [Preview:androidx.camera.core.Preview-db329db0-48c3-4910-bf60-1521216a5c46, ImageCapture:androidx.camera.core.ImageCapture-2c0edf75-7e1e-4400-89ae-0604e773c75b, ImageAnalysis:androidx.camera.core.ImageAnalysis-894566e3-63a6-43a5-a181-3181eb6dcb49], featureGroup = null
+D/UseCase (10826): applyFeaturesToConfig: mFeatureGroup = null, this = Preview:androidx.camera.core.Preview-db329db0-48c3-4910-bf60-1521216a5c46
+D/SupportedOutputSizesCollector(10826): useCaseConfig = androidx.camera.core.impl.PreviewConfig@440fff6, candidateSizes = [2304x1728, 1920x1440, 2160x1080, 1920x1080, 1600x1200, 1440x1080, 1280x960, 1560x720, 1440x720, 1280x768, 1280x720, 1024x768, 1024x738, 800x600, 800x480, 720x480, 640x480, 640x360, 352x288, 320x240, 176x144]
+D/UseCase (10826): applyFeaturesToConfig: mFeatureGroup = null, this = ImageCapture:androidx.camera.core.ImageCapture-2c0edf75-7e1e-4400-89ae-0604e773c75b
+D/SupportedOutputSizesCollector(10826): useCaseConfig = androidx.camera.core.impl.ImageCaptureConfig@1752582, candidateSizes = [2304x1728, 1920x1440, 2160x1080, 1920x1080, 1600x1200, 1440x1080, 1280x960, 1560x720, 1440x720, 1280x768, 1280x720, 1024x768, 1024x738, 800x600, 800x480, 720x480, 640x480, 640x360, 352x288, 320x240, 176x144]
+D/UseCase (10826): applyFeaturesToConfig: mFeatureGroup = null, this = ImageAnalysis:androidx.camera.core.ImageAnalysis-894566e3-63a6-43a5-a181-3181eb6dcb49
+D/SupportedOutputSizesCollector(10826): useCaseConfig = androidx.camera.core.impl.ImageAnalysisConfig@4dac493, candidateSizes = [2304x1728, 1920x1440, 2160x1080, 1920x1080, 1600x1200, 1440x1080, 1280x960, 1560x720, 1440x720, 1280x768, 1280x720, 1024x768, 1024x738, 800x600, 800x480, 720x480, 640x480, 640x360, 352x288, 320x240, 176x144]
+D/DynamicRangeResolver(10826): Resolved dynamic range for use case androidx.camera.core.Preview-db329db0-48c3-4910-bf60-1521216a5c46 to no compatible HDR dynamic ranges.
+D/DynamicRangeResolver(10826): DynamicRange@6dd24c9{encoding=UNSPECIFIED, bitDepth=0}
+D/DynamicRangeResolver(10826): ->
+D/DynamicRangeResolver(10826): DynamicRange@5bcacd0{encoding=SDR, bitDepth=8}
+D/SupportedSurfaceCombination(10826): resolvedDynamicRanges = {androidx.camera.core.impl.PreviewConfig@440fff6=DynamicRange@5bcacd0{encoding=SDR, bitDepth=8}, androidx.camera.core.impl.ImageCaptureConfig@1752582=DynamicRange@5bcacd0{encoding=SDR, bitDepth=8}, androidx.camera.core.impl.ImageAnalysisConfig@4dac493=DynamicRange@5bcacd0{encoding=SDR, bitDepth=8}}
+D/SupportedSurfaceCombination(10826): getSuggestedStreamSpecifications: isPreviewStabilizationOn = false, mIsPreviewStabilizationSupported = false, isFeatureComboInvocation = false
+D/SupportedSurfaceCombination(10826): resolveSpecsByCheckingMethod: checkingMethod = WITHOUT_FEATURE_COMBO
+D/SupportedSurfaceCombination(10826): resolveSpecsBySettings: featureSettings = FeatureSettings{getCameraMode=0, hasVideoCapture=false, getRequiredMaxBitDepth=8, isPreviewStabilizationOn=false, isUltraHdrOn=false, isHighSpeedOn=false, isFeatureComboInvocation=false, requiresFeatureComboQuery=false, getTargetFpsRange=[0, 0], isStrictFpsRequired=false}
+D/CameraQuirks(10826): camera2 CameraQuirks = 
+D/CameraQuirks(10826): camera2 CameraQuirks = 
+D/CameraQuirks(10826): camera2 CameraQuirks =
+D/SupportedSurfaceCombination(10826): resolveSpecsBySettings: bestSizesAndFps = BestSizesAndMaxFpsForConfigs{bestSizes=[2304x1728, 1600x1200, 1600x1200], bestSizesForStreamUseCase=null, maxFpsForBestSizes=30, maxFpsForStreamUseCase=2147483647, maxFpsForAllSizes=2147483647}
+D/UseCase (10826): applyFeaturesToConfig: mFeatureGroup = null, this = Preview:androidx.camera.core.Preview-db329db0-48c3-4910-bf60-1521216a5c46
+D/Preview (10826): onSuggestedStreamSpecUpdated: primaryStreamSpec = StreamSpec{resolution=1600x1200, originalConfiguredResolution=1600x1200, dynamicRange=DynamicRange@5bcacd0{encoding=SDR, bitDepth=8}, sessionType=0, expectedFrameRateRange=[0, 0], implementationOptions=androidx.camera.camera2.impl.Camera2ImplConfig@48945e8, zslDisabled=false}, secondaryStreamSpec null
+D/DeferrableSurface(10826): Surface created[total_surfaces=1, used_surfaces=0](androidx.camera.core.processing.SurfaceEdge$SettableSurface@b2fa401}
+D/DeferrableSurface(10826): Surface created[total_surfaces=2, used_surfaces=0](androidx.camera.core.SurfaceRequest$2@cf17f3d}
+D/DeferrableSurface(10826): New surface in use[total_surfaces=2, used_surfaces=1](androidx.camera.core.SurfaceRequest$2@cf17f3d}
+D/DeferrableSurface(10826): use count+1, useCount=1 androidx.camera.core.SurfaceRequest$2@cf17f3d
+D/UseCase (10826): applyFeaturesToConfig: mFeatureGroup = null, this = ImageCapture:androidx.camera.core.ImageCapture-2c0edf75-7e1e-4400-89ae-0604e773c75b
+D/ImageCapture(10826): onSuggestedStreamSpecUpdated: primaryStreamSpec = StreamSpec{resolution=2304x1728, originalConfiguredResolution=2304x1728, dynamicRange=DynamicRange@5bcacd0{encoding=SDR, bitDepth=8}, sessionType=0, expectedFrameRateRange=[0, 0], implementationOptions=androidx.camera.camera2.impl.Camera2ImplConfig@35c107e, zslDisabled=false}, secondaryStreamSpec null
+D/ImageCapture(10826): createPipeline(cameraId: 1, streamSpec: StreamSpec{resolution=2304x1728, originalConfiguredResolution=2304x1728, dynamicRange=DynamicRange@5bcacd0{encoding=SDR, bitDepth=8}, sessionType=0, expectedFrameRateRange=[0, 0], implementationOptions=androidx.camera.camera2.impl.Camera2ImplConfig@35c107e, zslDisabled=false})
+D/DeferrableSurface(10826): Surface created[total_surfaces=3, used_surfaces=1](androidx.camera.core.impl.ImmediateSurface@aad99df}
+D/UseCase (10826): applyFeaturesToConfig: mFeatureGroup = null, this = ImageAnalysis:androidx.camera.core.ImageAnalysis-894566e3-63a6-43a5-a181-3181eb6dcb49
+D/Camera2CameraImpl(10826): {Camera@e00c5e7[id=1]} Use case androidx.camera.core.ImageCapture-2c0edf75-7e1e-4400-89ae-0604e773c75b110442096 ACTIVE
+D/ImageAnalysis(10826): onSuggestedStreamSpecUpdated: primaryStreamSpec = StreamSpec{resolution=1600x1200, originalConfiguredResolution=1600x1200, dynamicRange=DynamicRange@5bcacd0{encoding=SDR, bitDepth=8}, sessionType=0, expectedFrameRateRange=[0, 0], implementationOptions=androidx.camera.camera2.impl.Camera2ImplConfig@be58f5, zslDisabled=false}, secondaryStreamSpec null
+D/UseCaseAttachState(10826): Active and attached use case: [] for camera: 1
+D/DeferrableSurface(10826): Surface created[total_surfaces=4, used_surfaces=1](androidx.camera.core.impl.ImmediateSurface@ce88f71}
+D/ImageCapture(10826): onCameraControlReady
+D/Camera2CameraControlImp(10826): setFlashMode: mFlashMode = 2
+D/Camera2CameraImpl(10826): {Camera@e00c5e7[id=1]} Use case androidx.camera.core.Preview-db329db0-48c3-4910-bf60-1521216a5c462609133 ACTIVE
+D/UseCaseAttachState(10826): Active and attached use case: [] for camera: 1
+D/Camera2CameraImpl(10826): {Camera@e00c5e7[id=1]} Use case androidx.camera.core.ImageCapture-2c0edf75-7e1e-4400-89ae-0604e773c75b110442096 ACTIVE
+D/UseCaseAttachState(10826): Active and attached use case: [] for camera: 1
+D/Camera2CameraImpl(10826): {Camera@e00c5e7[id=1]} Use case androidx.camera.core.ImageAnalysis-894566e3-63a6-43a5-a181-3181eb6dcb4949236380 INACTIVE
+D/UseCaseAttachState(10826): Active and attached use case: [] for camera: 1
+D/UseCaseAttachState(10826): Active and attached use case: [] for camera: 1
+D/Camera2CameraImpl(10826): {Camera@e00c5e7[id=1]} Use cases [androidx.camera.core.Preview-db329db0-48c3-4910-bf60-1521216a5c462609133, androidx.camera.core.ImageCapture-2c0edf75-7e1e-4400-89ae-0604e773c75b110442096, androidx.camera.core.ImageAnalysis-894566e3-63a6-43a5-a181-3181eb6dcb4949236380] now ATTACHED
+D/Camera2CameraControlImp(10826): setActive: isActive = true
+D/UseCaseAttachState(10826): All use case: [androidx.camera.core.ImageCapture-2c0edf75-7e1e-4400-89ae-0604e773c75b110442096, androidx.camera.core.Preview-db329db0-48c3-4910-bf60-1521216a5c462609133, androidx.camera.core.ImageAnalysis-894566e3-63a6-43a5-a181-3181eb6dcb4949236380] for camera: 1
+D/UseCaseAttachState(10826): Active and attached use case: [androidx.camera.core.ImageCapture-2c0edf75-7e1e-4400-89ae-0604e773c75b110442096, androidx.camera.core.Preview-db329db0-48c3-4910-bf60-1521216a5c462609133] for camera: 1
+D/Camera2CameraImpl(10826): {Camera@e00c5e7[id=1]} Resetting Capture Session
+D/Camera2CameraImpl(10826): {Camera@e00c5e7[id=1]} Skipping Capture Session state check due to current camera state: INITIALIZED and previous session status: false
+D/Camera2CameraImpl(10826): {Camera@e00c5e7[id=1]} Releasing session in state INITIALIZED
+D/Camera2CameraImpl(10826): {Camera@e00c5e7[id=1]} Attempting to force open the camera.
+D/CameraStateRegistry(10826): tryOpenCamera(Camera@e00c5e7[id=1]) [Available Cameras: 1, Already Open: false (Previous state: null)] --> SUCCESS
+D/CameraStateRegistry(10826): Recalculating open cameras:
+D/CameraStateRegistry(10826): Camera                                       State
+D/CameraStateRegistry(10826): -------------------------------------------------------------------
+D/CameraStateRegistry(10826): Camera@e00c5e7[id=1]                         OPENING
+D/CameraStateRegistry(10826): Camera@1c322fc[id=0]                         UNKNOWN
+D/CameraStateRegistry(10826): -------------------------------------------------------------------
+D/CameraStateRegistry(10826): Open count: 1 (Max allowed: 1)
+D/Camera2CameraImpl(10826): {Camera@e00c5e7[id=1]} Opening camera.
+D/Camera2CameraImpl(10826): {Camera@e00c5e7[id=1]} Transitioning camera internal state: INITIALIZED --> OPENING
+D/CameraStateMachine(10826): New public camera state CameraState{type=OPENING, error=null} from OPENING and null
+D/CameraStateMachine(10826): Publishing new public camera state CameraState{type=OPENING, error=null}
+D/UseCaseAttachState(10826): All use case: [androidx.camera.core.ImageCapture-2c0edf75-7e1e-4400-89ae-0604e773c75b110442096, androidx.camera.core.Preview-db329db0-48c3-4910-bf60-1521216a5c462609133, androidx.camera.core.ImageAnalysis-894566e3-63a6-43a5-a181-3181eb6dcb4949236380] for camera: 1
+W/libc    (10826): Access denied finding property "persist.vendor.camera.privapp.list"
+D/CameraExtImplXiaoMi(10826): initCameraDevice: 1
+D/Camera2PresenceSrc(10826): System onCameraUnavailable: 1
+W/libc    (10826): Access denied finding property "vendor.camera.aux.packagelist"
+D/Camera2PresenceSrc(10826): [FetchData] Refreshed camera list: CameraIdentifier{cameraIds=0}, CameraIdentifier{cameraIds=1}
+D/Camera2CameraImpl(10826): {Camera@e00c5e7[id=1]} Use case androidx.camera.core.Preview-db329db0-48c3-4910-bf60-1521216a5c462609133 ACTIVE
+D/UseCaseAttachState(10826): Active and attached use case: [androidx.camera.core.ImageCapture-2c0edf75-7e1e-4400-89ae-0604e773c75b110442096, androidx.camera.core.Preview-db329db0-48c3-4910-bf60-1521216a5c462609133] for camera: 1
+D/Camera2CameraImpl(10826): {Camera@e00c5e7[id=1]} Use case androidx.camera.core.ImageCapture-2c0edf75-7e1e-4400-89ae-0604e773c75b110442096 ACTIVE
+D/UseCaseAttachState(10826): Active and attached use case: [androidx.camera.core.ImageCapture-2c0edf75-7e1e-4400-89ae-0604e773c75b110442096, androidx.camera.core.Preview-db329db0-48c3-4910-bf60-1521216a5c462609133] for camera: 1
+D/Camera2CameraImpl(10826): {Camera@e00c5e7[id=1]} Use case androidx.camera.core.ImageAnalysis-894566e3-63a6-43a5-a181-3181eb6dcb4949236380 INACTIVE
+D/UseCaseAttachState(10826): Active and attached use case: [androidx.camera.core.ImageCapture-2c0edf75-7e1e-4400-89ae-0604e773c75b110442096, androidx.camera.core.Preview-db329db0-48c3-4910-bf60-1521216a5c462609133] for camera: 1
+D/Camera2PresenceSrc(10826): System onCameraAccessPrioritiesChanged.
+W/libc    (10826): Access denied finding property "vendor.camera.aux.packagelist"
+D/Camera2PresenceSrc(10826): [FetchData] Refreshed camera list: CameraIdentifier{cameraIds=0}, CameraIdentifier{cameraIds=1}
+D/Camera2CameraImpl(10826): {Camera@e00c5e7[id=1]} CameraDevice.onOpened()
+D/Camera2CameraImpl(10826): {Camera@e00c5e7[id=1]} Transitioning camera internal state: OPENING --> OPENED
+D/CameraStateRegistry(10826): Recalculating open cameras:
+D/CameraStateRegistry(10826): Camera                                       State
+D/CameraStateRegistry(10826): -------------------------------------------------------------------
+D/CameraStateRegistry(10826): Camera@e00c5e7[id=1]                         OPEN
+D/CameraStateRegistry(10826): Camera@1c322fc[id=0]                         UNKNOWN
+D/CameraStateRegistry(10826): -------------------------------------------------------------------
+D/CameraStateRegistry(10826): Open count: 1 (Max allowed: 1)
+D/CameraStateMachine(10826): New public camera state CameraState{type=OPEN, error=null} from OPEN and null
+D/CameraStateMachine(10826): Publishing new public camera state CameraState{type=OPEN, error=null}
+D/UseCaseAttachState(10826): All use case: [androidx.camera.core.ImageCapture-2c0edf75-7e1e-4400-89ae-0604e773c75b110442096, androidx.camera.core.Preview-db329db0-48c3-4910-bf60-1521216a5c462609133, androidx.camera.core.ImageAnalysis-894566e3-63a6-43a5-a181-3181eb6dcb4949236380] for camera: 1
+D/StreamUseCaseUtil(10826): populateSurfaceToStreamUseCaseMapping() - streamUseCaseMap = {}
+D/UseCaseAttachState(10826): Active and attached use case: [androidx.camera.core.ImageCapture-2c0edf75-7e1e-4400-89ae-0604e773c75b110442096, androidx.camera.core.Preview-db329db0-48c3-4910-bf60-1521216a5c462609133] for camera: 1
+D/SyncCaptureSessionBase(10826): [androidx.camera.camera2.internal.SynchronizedCaptureSessionImpl@a18a8d] getSurface done with results: [Surface(name=null)/@0x955f25c, Surface(name=null)/@0xa401bb7, Surface(name=null)/@0xc47bf24]
+D/CaptureSession(10826): Opening capture session.
+D/Camera2CaptureRequestBuilder(10826): template type = 1
+D/Camera2CaptureRequestBuilder(10826): applyAeFpsRange: expectedFrameRateRange = [0, 0]
+D/SyncCaptureSessionImpl(10826): [androidx.camera.camera2.internal.SynchronizedCaptureSessionImpl@a18a8d] start openCaptureSession
+D/DeferrableSurface(10826): use count+1, useCount=2 androidx.camera.core.SurfaceRequest$2@cf17f3d
+D/DeferrableSurface(10826): New surface in use[total_surfaces=4, used_surfaces=2](androidx.camera.core.impl.ImmediateSurface@aad99df}
+D/DeferrableSurface(10826): use count+1, useCount=1 androidx.camera.core.impl.ImmediateSurface@aad99df
+D/DeferrableSurface(10826): New surface in use[total_surfaces=4, used_surfaces=3](androidx.camera.core.impl.ImmediateSurface@ce88f71}
+D/DeferrableSurface(10826): use count+1, useCount=1 androidx.camera.core.impl.ImmediateSurface@ce88f71
+D/CameraDevice-JV-1(10826): waitUntilIdle: E. id = 1
+D/CameraDevice-JV-1(10826): waitUntilIdle: X
+D/SyncCaptureSessionImpl(10826): [androidx.camera.camera2.internal.SynchronizedCaptureSessionImpl@a18a8d] Session onConfigured()
+D/CaptureSession(10826): Attempting to send capture request onConfigured
+D/CaptureSession(10826): Issuing request for session.
+D/Camera2CaptureRequestBuilder(10826): createCaptureRequest
+D/Camera2CaptureRequestBuilder(10826): applyAeFpsRange: expectedFrameRateRange = [0, 0]
+D/Camera2CaptureRequestBuilder(10826): applyVideoStabilization: mode = null
+D/CaptureSession(10826): CameraCaptureSession.onConfigured() mState=OPENED
+D/CaptureSession(10826): CameraCaptureSession.onReady() OPENED
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(0.0, 0.0), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/Camera2CameraImpl(10826): {Camera@e00c5e7[id=1]} Use case androidx.camera.core.ImageAnalysis-894566e3-63a6-43a5-a181-3181eb6dcb4949236380 ACTIVE
+D/UseCaseAttachState(10826): Active and attached use case: [androidx.camera.core.ImageCapture-2c0edf75-7e1e-4400-89ae-0604e773c75b110442096, androidx.camera.core.Preview-db329db0-48c3-4910-bf60-1521216a5c462609133, androidx.camera.core.ImageAnalysis-894566e3-63a6-43a5-a181-3181eb6dcb4949236380] for camera: 1
+D/CaptureSession(10826): Attempting to submit CaptureRequest after setting
+D/CaptureSession(10826): Issuing request for session.
+D/Camera2CaptureRequestBuilder(10826): createCaptureRequest
+D/Camera2CaptureRequestBuilder(10826): applyAeFpsRange: expectedFrameRateRange = [0, 0]
+D/Camera2CaptureRequestBuilder(10826): applyVideoStabilization: mode = null
+D/ImageReaderSurfaceProducer(10826): ImageTextureEntry can't wait on the fence on Android < 33
+D/nativeloader(10826): Load /data/app/~~Tw3euykzXN6_TJXY6f0MDA==/com.example.flutter_application_1--3iQsD2bp2Xvgkj2yXQWCA==/base.apk!/lib/arm64-v8a/libimage_processing_util_jni.so using class loader ns clns-4 (caller=/data/app/~~Tw3euykzXN6_TJXY6f0MDA==/com.example.flutter_application_1--3iQsD2bp2Xvgkj2yXQWCA==/base.apk): ok
+I/flutter (10826): 🎥 Sending frame: 1600x1200, Rotation: 270°, Camera: FRONT
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 1 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): initialize.start()
+I/native  (10826): I0000 00:00:1766299236.949494   10907 face_detector_v2_jni.cc:34] Loading models_bundled/fssd_25_8bit_v2.tflite
+I/native  (10826): I0000 00:00:1766299236.950331   10907 face_detector_v2_jni.cc:34] Loading models_bundled/fssd_25_8bit_gray_v2.tflite
+I/native  (10826): I0000 00:00:1766299236.950792   10907 face_detector_v2_jni.cc:34] Loading models_bundled/fssd_anchors_v2.pb
+I/native  (10826): I0000 00:00:1766299236.951155   10907 face_detector_v2_jni.cc:34] Loading models_bundled/LMprec_600.emd
+I/native  (10826): I0000 00:00:1766299236.968271   10907 face_detector_v2_jni.cc:34] Loading models_bundled/BCLlefteyeclosed_200.emd
+I/native  (10826): I0000 00:00:1766299236.969245   10907 face_detector_v2_jni.cc:34] Loading models_bundled/BCLrighteyeclosed_200.emd
+I/native  (10826): I0000 00:00:1766299236.969670   10907 face_detector_v2_jni.cc:34] Loading models_bundled/BCLjoy_200.emd
+I/native  (10826): I0000 00:00:1766299236.970146   10907 face_detector_v2_jni.cc:34] Loading models_bundled/MFT_fssd_fastgray.pb
+I/native  (10826): I0000 00:00:1766299236.970363   10907 face_detector_v2_jni.cc:34] Loading models_bundled/contours.tfl
+D/TransportRuntime.SQLiteEventStore(10826): Storing event with priority=VERY_LOW, name=FIREBASE_ML_SDK for destination cct
+I/native  (10826): I0000 00:00:1766299236.981337   10907 face_detector_v2_jni.cc:34] Loading models_bundled/blazeface.tfl
+D/TransportRuntime.JobInfoScheduler(10826): Upload for context TransportContext(cct, VERY_LOW, MSRodHRwczovL2ZpcmViYXNlbG9nZ2luZy5nb29nbGVhcGlzLmNvbS92MGNjL2xvZy9iYXRjaD9mb3JtYXQ9anNvbl9wcm90bzNc) is already scheduled. Returning...
+I/tflite  (10826): Initialized TensorFlow Lite runtime.
+W/libc    (10826): Access denied finding property "ro.hardware.chipname"
+I/tflite  (10826): Created TensorFlow Lite XNNPACK delegate for CPU.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): initialize.end()
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 150ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+D/TransportRuntime.SQLiteEventStore(10826): Storing event with priority=VERY_LOW, name=FIREBASE_ML_SDK for destination cct
+D/TransportRuntime.JobInfoScheduler(10826): Upload for context TransportContext(cct, VERY_LOW, MSRodHRwczovL2ZpcmViYXNlbG9nZ2luZy5nb29nbGVhcGlzLmNvbS92MGNjL2xvZy9iYXRjaD9mb3JtYXQ9anNvbl9wcm90bzNc) is already scheduled. Returning...
+D/TransportRuntime.SQLiteEventStore(10826): Storing event with priority=VERY_LOW, name=FIREBASE_ML_SDK for destination cct
+D/TransportRuntime.JobInfoScheduler(10826): Upload for context TransportContext(cct, VERY_LOW, MSRodHRwczovL2ZpcmViYXNlbG9nZ2luZy5nb29nbGVhcGlzLmNvbS92MGNjL2xvZy9iYXRjaD9mb3JtYXQ9anNvbl9wcm90bzNc) is already scheduled. Returning...
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 2 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 87ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 3 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/r_application_(10826): Background concurrent copying GC freed 5309KB AllocSpace bytes, 57(93MB) LOS objects, 49% free, 13MB/26MB, paused 225us,24us total 105.203ms
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 90ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 4 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 116ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 5 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 107ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/ProfileInstaller(10826): Installing profile for com.example.flutter_application_1
+I/flutter (10826): 🎥 Sending frame: 1600x1200, Rotation: 270°, Camera: FRONT
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 6 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 98ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 7 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 89ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 8 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 83ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+W/ImageReader_JNI(10826): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI(10826): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 9 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/r_application_(10826): Background concurrent copying GC freed 198KB AllocSpace bytes, 12(22MB) LOS objects, 49% free, 12MB/25MB, paused 5.479ms,74us total 88.133ms
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 89ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 10 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 91ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+W/ImageReader_JNI(10826): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 11 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 83ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+I/flutter (10826): 🎥 Sending frame: 1600x1200, Rotation: 270°, Camera: FRONT
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 12 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/r_application_(10826): Background concurrent copying GC freed 165KB AllocSpace bytes, 9(18MB) LOS objects, 49% free, 12MB/25MB, paused 6.133ms,31us total 44.208ms
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 84ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 13 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 75ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 14 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 101ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 15 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 100ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 16 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 114ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 17 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 73ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+I/flutter (10826): 🎥 Sending frame: 1600x1200, Rotation: 270°, Camera: FRONT
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 18 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(-1, 944 - 521, 1557), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=-8.656536, eulerY=10.336608, eulerZ=-10.154793, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=-1 TOP=944 RIGHT=521 BOTTOM=1557
+D/FaceDetector(10826):   -> RectData: x=-1 y=944 w=522 h=613
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 83ms
+D/FaceProcessor(10826): │   Face[0]: (-1, 944) 522x613
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(-1, 944) → screen(0, 432) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 19 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(-3, 885 - 481, 1435), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=-2.7923076, eulerY=-5.671527, eulerZ=-13.27091, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=-3 TOP=885 RIGHT=481 BOTTOM=1435
+D/FaceDetector(10826):   -> RectData: x=-3 y=885 w=484 h=550
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 126ms
+D/FaceProcessor(10826): │   Face[0]: (-3, 885) 484x550
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+D/Camera2PresenceSrc(10826): System onCameraAccessPrioritiesChanged.
+W/libc    (10826): Access denied finding property "vendor.camera.aux.packagelist"
+D/Camera2PresenceSrc(10826): [FetchData] Refreshed camera list: CameraIdentifier{cameraIds=0}, CameraIdentifier{cameraIds=1}
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(-3, 885) → screen(0, 405) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 20 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(9, 853 - 317, 1401), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=0.99721473, eulerY=-32.19015, eulerZ=-7.738836, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=9 TOP=853 RIGHT=317 BOTTOM=1401
+D/FaceDetector(10826):   -> RectData: x=9 y=853 w=308 h=548
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 90ms
+D/FaceProcessor(10826): │   Face[0]: (9, 853) 308x548
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(9, 853) → screen(2, 390) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 21 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 83ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 22 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 99ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+I/flutter (10826): 🎥 Sending frame: 1600x1200, Rotation: 270°, Camera: FRONT
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 23 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 82ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 24 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 100ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 25 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 78ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 26 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 97ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 27 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 75ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 28 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(-2, 766 - 358, 1253), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=-0.39728603, eulerY=-14.860599, eulerZ=-8.990842, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=-2 TOP=766 RIGHT=358 BOTTOM=1253
+D/FaceDetector(10826):   -> RectData: x=-2 y=766 w=360 h=487
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 95ms
+D/FaceProcessor(10826): │   Face[0]: (-2, 766) 360x487
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(-2, 766) → screen(0, 350) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+I/flutter (10826): 🎥 Sending frame: 1600x1200, Rotation: 270°, Camera: FRONT
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 29 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(-5, 724 - 502, 1265), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=-4.3726788, eulerY=-0.9947748, eulerZ=-7.389913, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=-5 TOP=724 RIGHT=502 BOTTOM=1265
+D/FaceDetector(10826):   -> RectData: x=-5 y=724 w=507 h=541
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 84ms
+D/FaceProcessor(10826): │   Face[0]: (-5, 724) 507x541
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+W/ImageReader_JNI(10826): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(-5, 724) → screen(-1, 331) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 30 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(237, 666 - 786, 1215), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=-3.2937417, eulerY=4.754139, eulerZ=-7.4827228, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=237 TOP=666 RIGHT=786 BOTTOM=1215
+D/FaceDetector(10826):   -> RectData: x=237 y=666 w=549 h=549
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 103ms
+D/FaceProcessor(10826): │   Face[0]: (237, 666) 549x549
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(237, 666) → screen(77, 304) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+W/ImageReader_JNI(10826): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 31 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(272, 633 - 858, 1219), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=-5.022298, eulerY=2.9988754, eulerZ=-8.911973, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=272 TOP=633 RIGHT=858 BOTTOM=1219
+D/FaceDetector(10826):   -> RectData: x=272 y=633 w=586 h=586
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 100ms
+D/FaceProcessor(10826): │   Face[0]: (272, 633) 586x586
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(272, 633) → screen(89, 289) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 32 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(287, 633 - 882, 1238), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=-5.1519904, eulerY=3.4657767, eulerZ=-7.8152742, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=287 TOP=633 RIGHT=882 BOTTOM=1238
+D/FaceDetector(10826):   -> RectData: x=287 y=633 w=595 h=605
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 92ms
+D/FaceProcessor(10826): │   Face[0]: (287, 633) 595x605
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+W/ImageReader_JNI(10826): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(287, 633) → screen(93, 289) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 33 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(263, 643 - 858, 1238), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=-5.815775, eulerY=1.1919081, eulerZ=-5.3564997, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=263 TOP=643 RIGHT=858 BOTTOM=1238
+D/FaceDetector(10826):   -> RectData: x=263 y=643 w=595 h=595
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 91ms
+D/FaceProcessor(10826): │   Face[0]: (263, 643) 595x595
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(263, 643) → screen(86, 294) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 34 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(238, 658 - 824, 1253), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=-5.7371693, eulerY=1.4587508, eulerZ=-4.950103, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=238 TOP=658 RIGHT=824 BOTTOM=1253
+D/FaceDetector(10826):   -> RectData: x=238 y=658 w=586 h=595
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 120ms
+D/FaceProcessor(10826): │   Face[0]: (238, 658) 586x595
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(238, 658) → screen(77, 301) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+W/ImageReader_JNI(10826): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+I/flutter (10826): 🎥 Sending frame: 1600x1200, Rotation: 270°, Camera: FRONT
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(238, 658) → screen(77, 301) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 35 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(219, 658 - 814, 1262), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=-5.5253687, eulerY=1.6494644, eulerZ=-4.565633, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=219 TOP=658 RIGHT=814 BOTTOM=1262
+D/FaceDetector(10826):   -> RectData: x=219 y=658 w=595 h=604
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 85ms
+D/FaceProcessor(10826): │   Face[0]: (219, 658) 595x604
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(219, 658) → screen(71, 301) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 36 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(219, 667 - 804, 1263), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=-5.8605447, eulerY=1.6220111, eulerZ=-3.606152, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=219 TOP=667 RIGHT=804 BOTTOM=1263
+D/FaceDetector(10826):   -> RectData: x=219 y=667 w=585 h=596
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 121ms
+D/FaceProcessor(10826): │   Face[0]: (219, 667) 585x596
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(219, 667) → screen(71, 305) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 37 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(214, 667 - 809, 1263), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=-4.5688825, eulerY=1.7259533, eulerZ=-4.4431167, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=214 TOP=667 RIGHT=809 BOTTOM=1263
+D/FaceDetector(10826):   -> RectData: x=214 y=667 w=595 h=596
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 90ms
+D/FaceProcessor(10826): │   Face[0]: (214, 667) 595x596
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(214, 667) → screen(70, 305) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+W/ImageReader_JNI(10826): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 38 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(243, 663 - 838, 1258), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=-6.1924057, eulerY=0.7751991, eulerZ=-2.737803, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=243 TOP=663 RIGHT=838 BOTTOM=1258
+D/FaceDetector(10826):   -> RectData: x=243 y=663 w=595 h=595
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 96ms
+D/FaceProcessor(10826): │   Face[0]: (243, 663) 595x595
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(243, 663) → screen(79, 303) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 39 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(306, 667 - 892, 1263), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=-5.944484, eulerY=4.1537604, eulerZ=-6.3998117, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=306 TOP=667 RIGHT=892 BOTTOM=1263
+D/FaceDetector(10826):   -> RectData: x=306 y=667 w=586 h=596
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 85ms
+D/FaceProcessor(10826): │   Face[0]: (306, 667) 586x596
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(306, 667) → screen(100, 305) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+I/flutter (10826): 🎥 Sending frame: 1600x1200, Rotation: 270°, Camera: FRONT
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 40 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(414, 672 - 999, 1267), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=-4.8976154, eulerY=3.1677327, eulerZ=-5.355653, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=414 TOP=672 RIGHT=999 BOTTOM=1267
+D/FaceDetector(10826):   -> RectData: x=414 y=672 w=585 h=595
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 82ms
+D/FaceProcessor(10826): │   Face[0]: (414, 672) 585x595
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(414, 672) → screen(135, 307) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 41 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(448, 672 - 1034, 1258), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=-3.8315787, eulerY=6.5295196, eulerZ=-5.096162, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=448 TOP=672 RIGHT=1034 BOTTOM=1258
+D/FaceDetector(10826):   -> RectData: x=448 y=672 w=586 h=586
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 105ms
+D/FaceProcessor(10826): │   Face[0]: (448, 672) 586x586
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+W/ImageReader_JNI(10826): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(448, 672) → screen(146, 307) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 42 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(463, 658 - 1058, 1262), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=-4.9972878, eulerY=5.3402066, eulerZ=-5.261011, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=463 TOP=658 RIGHT=1058 BOTTOM=1262
+D/FaceDetector(10826):   -> RectData: x=463 y=658 w=595 h=604
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 89ms
+D/FaceProcessor(10826): │   Face[0]: (463, 658) 595x604
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(463, 658) → screen(151, 301) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 43 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(477, 648 - 1072, 1243), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=-1.9947261, eulerY=2.906509, eulerZ=-5.6202626, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=477 TOP=648 RIGHT=1072 BOTTOM=1243
+D/FaceDetector(10826):   -> RectData: x=477 y=648 w=595 h=595
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 97ms
+D/FaceProcessor(10826): │   Face[0]: (477, 648) 595x595
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(477, 648) → screen(156, 296) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 44 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(482, 648 - 1068, 1243), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=-1.3113762, eulerY=2.6170034, eulerZ=-4.2417707, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=482 TOP=648 RIGHT=1068 BOTTOM=1243
+D/FaceDetector(10826):   -> RectData: x=482 y=648 w=586 h=595
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 124ms
+D/FaceProcessor(10826): │   Face[0]: (482, 648) 586x595
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(482, 648) → screen(157, 296) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 45 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(462, 648 - 1048, 1243), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=-2.885473, eulerY=6.833131, eulerZ=-3.6473289, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=462 TOP=648 RIGHT=1048 BOTTOM=1243
+D/FaceDetector(10826):   -> RectData: x=462 y=648 w=586 h=595
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 87ms
+D/FaceProcessor(10826): │   Face[0]: (462, 648) 586x595
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(462, 648) → screen(151, 296) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+I/flutter (10826): 🎥 Sending frame: 1600x1200, Rotation: 270°, Camera: FRONT
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(462, 648) → screen(151, 296) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 46 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(399, 643 - 985, 1229), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=-4.670749, eulerY=1.7176344, eulerZ=-1.9496795, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=399 TOP=643 RIGHT=985 BOTTOM=1229
+D/FaceDetector(10826):   -> RectData: x=399 y=643 w=586 h=586
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 110ms
+D/FaceProcessor(10826): │   Face[0]: (399, 643) 586x586
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(399, 643) → screen(130, 294) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 47 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(296, 647 - 873, 1224), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=-2.076112, eulerY=0.88240635, eulerZ=-3.8409123, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=296 TOP=647 RIGHT=873 BOTTOM=1224
+D/FaceDetector(10826):   -> RectData: x=296 y=647 w=577 h=577
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 86ms
+D/FaceProcessor(10826): │   Face[0]: (296, 647) 577x577
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(296, 647) → screen(96, 296) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+W/ImageReader_JNI(10826): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 48 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(242, 657 - 810, 1224), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=1.4851818, eulerY=0.86590534, eulerZ=-2.1583467, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=242 TOP=657 RIGHT=810 BOTTOM=1224
+D/FaceDetector(10826):   -> RectData: x=242 y=657 w=568 h=567
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 108ms
+D/FaceProcessor(10826): │   Face[0]: (242, 657) 568x567
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(242, 657) → screen(79, 300) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 49 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(194, 638 - 771, 1224), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=-0.9532198, eulerY=-1.3891138, eulerZ=-3.8917167, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=194 TOP=638 RIGHT=771 BOTTOM=1224
+D/FaceDetector(10826):   -> RectData: x=194 y=638 w=577 h=586
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 97ms
+D/FaceProcessor(10826): │   Face[0]: (194, 638) 577x586
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+W/ImageReader_JNI(10826): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(194, 638) → screen(63, 292) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 50 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(183, 657 - 742, 1234), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=0.88494694, eulerY=-2.6822217, eulerZ=-3.2898393, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=183 TOP=657 RIGHT=742 BOTTOM=1234
+D/FaceDetector(10826):   -> RectData: x=183 y=657 w=559 h=577
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 137ms
+D/FaceProcessor(10826): │   Face[0]: (183, 657) 559x577
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(183, 657) → screen(59, 300) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+I/flutter (10826): 🎥 Sending frame: 1600x1200, Rotation: 270°, Camera: FRONT
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(183, 657) → screen(59, 300) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+W/ImageReader_JNI(10826): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 51 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(61, 685 - 611, 1235), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=-2.0906386, eulerY=-15.164369, eulerZ=-0.09761402, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=61 TOP=685 RIGHT=611 BOTTOM=1235
+D/FaceDetector(10826):   -> RectData: x=61 y=685 w=550 h=550
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 103ms
+D/FaceProcessor(10826): │   Face[0]: (61, 685) 550x550
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(61, 685) → screen(19, 313) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 52 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 1 faces
+D/FaceDetector(10826):   Face[Face{boundingBox=Rect(3, 758 - 362, 1307), trackingId=-1, rightEyeOpenProbability=-1.0, leftEyeOpenProbability=-1.0, smileProbability=-1.0, eulerX=0.14450929, eulerY=-26.283949, eulerZ=-3.241941, landmarks=Landmarks{landmark_0=null, landmark_1=null, landmark_3=null, landmark_4=null, landmark_5=null, landmark_6=null, landmark_7=null, landmark_9=null, landmark_10=null, landmark_11=null}, contours=Contours{Contour_1=null, Contour_2=null, Contour_3=null, Contour_4=null, Contour_5=null, Contour_6=null, Contour_7=null, Contour_8=null, Contour_9=null, Contour_10=null, Contour_11=null, Contour_12=null, Contour_13=null, Contour_14=null, Contour_15=null}}]: LEFT=3 TOP=758 RIGHT=362 BOTTOM=1307
+D/FaceDetector(10826):   -> RectData: x=3 y=758 w=359 h=549
+D/FaceProcessor(10826): ML KIT RESULT: Detected 1 faces
+D/FaceProcessor(10826): │ √ RESULT: 1 faces in 88ms
+D/FaceProcessor(10826): │   Face[0]: (3, 758) 359x549
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): ✅ Transform: face(3, 758) → screen(0, 346) | rotation=270° | effective dims: 1200x1600
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 53 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 105ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 54 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 112ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 55 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 81ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+I/flutter (10826): 🎥 Sending frame: 1600x1200, Rotation: 270°, Camera: FRONT
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 56 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 89ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 57 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 79ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 58 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 81ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 59 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.end()
+D/FaceDetector(10826): → ML KIT OUTPUT: Detected 0 faces
+D/FaceProcessor(10826): ML KIT RESULT: Detected 0 faces
+D/FaceProcessor(10826): │ √ RESULT: 0 faces in 89ms
+D/FaceProcessor(10826): └─ PROCESS FRAME END
+I/flutter (10826): 🎨 BORDERS ENABLED - Canvas size: Size(392.7, 732.4), Show debug: true
+I/flutter (10826): 📐 Detection canvas updated: 392x732, Offset: Offset(0.0, 0.0)
+D/MainActivity(10826): ━━━ FRAME RECEIVED FROM FLUTTER ━━━
+D/MainActivity(10826):   Size: 1600x1200
+D/MainActivity(10826):   Rotation: 270°
+D/MainActivity(10826):   Front Camera: true
+D/MainActivity(10826):   Bytes: 2880000b (expected 2880000b)
+D/FaceProcessor(10826): ┌─ PROCESS FRAME START
+D/FaceProcessor(10826): │ INPUT: 1600x1200, NV21=2880000b, rotation=270°
+D/FaceProcessor(10826): │ → ML KIT: 1600x1200
+D/FaceProcessor(10826): ML KIT PROCESSING: Starting detection on NV21 1600x1200, rotation=270
+D/FaceDetector(10826): ╔════ FRAME 60 ════╗
+D/FaceDetector(10826): ║ Image: 1600x1200 (aspect=1.333)
+D/FaceDetector(10826): ║ NV21 bytes: 2880000/2880000
+D/FaceDetector(10826): ║ Rotation: 270°
+D/FaceDetector(10826): ╚════════════════════╝
+V/FaceDetectorV2Jni(10826): detectFacesImageByteArray.start()
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
+I/tflite  (10826): Replacing 65 out of 65 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 1 partitions for the whole graph.
