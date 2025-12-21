@@ -1,0 +1,57 @@
+workflows:
+  ios-build:
+    name: iOS Build & Test
+    instance_type: mac_mini_m1
+    max_build_duration: 60
+
+    environment:
+      ios: latest
+      xcode: latest
+      cocoapods: default
+
+    triggering:
+      events:
+        - push
+        - pull_request
+        - tag
+      branch:
+        include_patterns:
+          - main
+          - develop
+        exclude_patterns:
+          - /^hotfix\//
+
+    scripts:
+      - name: Install Flutter dependencies
+        script: |
+          flutter pub get
+
+      - name: Run Flutter tests
+        script: |
+          flutter test || true
+
+      - name: Build iOS IPA (Release)
+        script: |
+          flutter build ipa \
+            --release \
+            --build-name=1.0.0 \
+            --build-number=$BUILD_NUMBER \
+            -v
+
+      - name: Display IPA location
+        script: |
+          ls -lah build/ios/ipa/
+          find build -name "*.ipa" -type f
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - build/logs/flutter_build.log
+
+    publishing:
+      email:
+        recipients:
+          - $PERSONAL_EMAIL
+        notify:
+          success: true
+          failure: true
+
