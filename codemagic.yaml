@@ -41,7 +41,7 @@ workflows:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGN_ENTITLEMENTS="" \
-            IPHONEOS_DEPLOYMENT_TARGET=14.0 \
+            IPHONEOS_DEPLOYMENT_TARGET=15.0 \
             -v
 
       - name: Export IPA (sideload)
