@@ -5,7 +5,6 @@ workflows:
     max_build_duration: 60
 
     environment:
-      ios: latest
       xcode: latest
       cocoapods: default
 
@@ -14,12 +13,6 @@ workflows:
         - push
         - pull_request
         - tag
-      branch:
-        include_patterns:
-          - main
-          - develop
-        exclude_patterns:
-          - /^hotfix\//
 
     scripts:
       - name: Install Flutter dependencies
