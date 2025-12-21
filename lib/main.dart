@@ -100,6 +100,55 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  /// Calculate video dimensions while preserving aspect ratio
+  /// Accounts for sensor rotation which may swap frame dimensions
+  /// Fits video within available screen space with letterboxing/pillarboxing
+  Size _calculateVideoDimensions(Size screenSpace) {
+    if (_imageSize.width <= 0 || _imageSize.height <= 0) {
+      return screenSpace;
+    }
+
+    // Account for ML Kit rotation which affects effective dimensions
+    final rotation = _calculateMLKitRotation();
+    late double effectiveImageWidth;
+    late double effectiveImageHeight;
+
+    if (rotation == 90 || rotation == 270) {
+      // Sensor rotation swaps dimensions: frame comes in landscape but displays as portrait
+      effectiveImageWidth = _imageSize.height;
+      effectiveImageHeight = _imageSize.width;
+    } else {
+      // No swap for 0° or 180°
+      effectiveImageWidth = _imageSize.width;
+      effectiveImageHeight = _imageSize.height;
+    }
+
+    final videoAspectRatio = effectiveImageWidth / effectiveImageHeight;
+    final screenAspectRatio = screenSpace.width / screenSpace.height;
+
+    late double videoWidth;
+    late double videoHeight;
+
+    if (videoAspectRatio > screenAspectRatio) {
+      // Video is wider: fit to width
+      videoWidth = screenSpace.width;
+      videoHeight = screenSpace.width / videoAspectRatio;
+    } else {
+      // Video is taller: fit to height
+      videoHeight = screenSpace.height;
+      videoWidth = screenSpace.height * videoAspectRatio;
+    }
+
+    return Size(videoWidth, videoHeight);
+  }
+
+  /// Calculate video position offset (centered in screen space)
+  Offset _calculateVideoOffset(Size videoDimensions, Size screenSpace) {
+    final offsetX = (screenSpace.width - videoDimensions.width) / 2;
+    final offsetY = (screenSpace.height - videoDimensions.height) / 2;
+    return Offset(offsetX, offsetY);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -270,14 +319,17 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   /// Calculate detection canvas dimensions
-  /// SIMPLE: Fill entire container
+  /// Canvas matches the actual video area (preserving aspect ratio)
   void _updateDetectionCanvasDimensions(Size bodySize) {
-    _detectionCanvasSize = bodySize;
-    _detectionCanvasOffset = Offset.zero;
+    final videoDimensions = _calculateVideoDimensions(bodySize);
+    final videoOffset = _calculateVideoOffset(videoDimensions, bodySize);
+
+    _detectionCanvasSize = videoDimensions;
+    _detectionCanvasOffset = videoOffset;
 
     // Debug logging
     // ignore: avoid_print
-    print('📐 CANVAS: size=${bodySize.width.toInt()}x${bodySize.height.toInt()} @ (0,0)');
+    print('📐 CANVAS: size=${videoDimensions.width.toInt()}x${videoDimensions.height.toInt()} @ (${videoOffset.dx.toInt()},${videoOffset.dy.toInt()})');
   }
 
   /// Transform face coordinates from image space to screen space
@@ -375,7 +427,8 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Face Pixelation'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Colors.grey[700],
+        foregroundColor: Colors.white,
         actions: [
           // Debug UI toggle
           IconButton(
@@ -426,47 +479,82 @@ class _MyHomePageState extends State<MyHomePage> {
             print('🎨 BUILD: screenSize=${screenSize.width.toInt()}x${screenSize.height.toInt()} | bodySize=${bodySize.width.toInt()}x${bodySize.height.toInt()} | appBarHeight=${appBarHeight.toInt()}');
           }
 
+          // Calculate video dimensions that preserve aspect ratio
+          final videoDimensions = _calculateVideoDimensions(bodySize);
+          final videoOffset = _calculateVideoOffset(videoDimensions, bodySize);
+
           return Container(
             width: bodySize.width,
             height: bodySize.height,
             color: Colors.black,
             child: Stack(
               children: [
-                // RED BORDER CONTAINER = THE VIDEO STREAM AREA
-                // Camera preview inside a container with red border
-                Container(
-                  width: bodySize.width,
-                  height: bodySize.height,
-                  decoration: _showRedBorder
-                      ? BoxDecoration(border: Border.all(color: Colors.red, width: 5))
-                      : null,
-                  child: CameraPreview(_controller),
+                // CENTERED VIDEO PREVIEW - Preserves aspect ratio
+                Positioned(
+                  left: videoOffset.dx,
+                  top: videoOffset.dy,
+                  width: videoDimensions.width,
+                  height: videoDimensions.height,
+                  child: Container(
+                    decoration: _showRedBorder
+                        ? BoxDecoration(border: Border.all(color: Colors.red, width: 5))
+                        : null,
+                    child: CameraPreview(_controller),
+                  ),
                 ),
 
-                // TEAL BORDER - overlays on top of everything
+                // TEAL BORDER - overlays on top of video
                 if (_showTealBorder)
-                  Container(
-                    width: bodySize.width,
-                    height: bodySize.height,
-                    decoration: BoxDecoration(border: Border.all(color: Colors.cyan, width: 3)),
+                  Positioned(
+                    left: videoOffset.dx,
+                    top: videoOffset.dy,
+                    width: videoDimensions.width,
+                    height: videoDimensions.height,
+                    child: Container(
+                      decoration: BoxDecoration(border: Border.all(color: Colors.cyan, width: 3)),
+                    ),
                   ),
 
-              // Face detection boxes - flat list, no nested Stacks
-              if (_detectedFaces.isNotEmpty && _detectionCanvasSize != Size.zero)
-                ..._detectedFaces.map((face) {
-                  final box = _transformFaceCoordinates(face);
-                  return Positioned(
-                    left: _detectionCanvasOffset.dx + box.left,
-                    top: _detectionCanvasOffset.dy + box.top,
-                    width: box.width,
-                    height: box.height,
+                // Face count above video stream
+                Positioned(
+                  top: videoOffset.dy - 40,
+                  left: videoOffset.dx,
+                  right: videoOffset.dx + (bodySize.width - videoOffset.dx - videoDimensions.width),
+                  child: Center(
                     child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.green, width: 2),
+                        color: Colors.black87,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        'Faces: ${_detectedFaces.length}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  );
-                }),
+                  ),
+                ),
+
+                // Face detection boxes - flat list, no nested Stacks
+                if (_detectedFaces.isNotEmpty && _detectionCanvasSize != Size.zero)
+                  ..._detectedFaces.map((face) {
+                    final box = _transformFaceCoordinates(face);
+                    return Positioned(
+                      left: _detectionCanvasOffset.dx + box.left,
+                      top: _detectionCanvasOffset.dy + box.top,
+                      width: box.width,
+                      height: box.height,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.green, width: 2),
+                        ),
+                      ),
+                    );
+                  }),
 
               // Status overlay with detailed debug info
               if (_showDebugUI)
@@ -495,7 +583,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Body: ${bodySize.width.toInt()}x${bodySize.height.toInt()}',
+                          'Screen: ${bodySize.width.toInt()}x${bodySize.height.toInt()}',
                           style: const TextStyle(
                             color: Colors.lightBlue,
                             fontFamily: 'monospace',
@@ -503,7 +591,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                         ),
                         Text(
-                          'Image: ${_imageSize.width.toInt()}x${_imageSize.height.toInt()}',
+                          'Camera frame: ${_imageSize.width.toInt()}x${_imageSize.height.toInt()}',
                           style: const TextStyle(
                             color: Colors.yellow,
                             fontFamily: 'monospace',
@@ -511,22 +599,21 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                         ),
                         Text(
-                          'Detection canvas: ${_detectionCanvasSize.width.toInt()}x${_detectionCanvasSize.height.toInt()}',
+                          'Video area: ${_detectionCanvasSize.width.toInt()}x${_detectionCanvasSize.height.toInt()}',
                           style: const TextStyle(
                             color: Colors.cyan,
                             fontFamily: 'monospace',
                             fontSize: 11,
                           ),
                         ),
-                        if (_detectionCanvasOffset != Offset.zero)
-                          Text(
-                            'Canvas offset: (${_detectionCanvasOffset.dx.toInt()}, ${_detectionCanvasOffset.dy.toInt()})',
-                            style: const TextStyle(
-                              color: Colors.cyan,
-                              fontFamily: 'monospace',
-                              fontSize: 11,
-                            ),
+                        Text(
+                          'Video offset: (${_detectionCanvasOffset.dx.toInt()}, ${_detectionCanvasOffset.dy.toInt()})',
+                          style: const TextStyle(
+                            color: Colors.cyan,
+                            fontFamily: 'monospace',
+                            fontSize: 11,
                           ),
+                        ),
                         const SizedBox(height: 4),
                         Text(
                           'Rotation: ${_calculateMLKitRotation()}°${_overrideRotation != null ? ' (OVERRIDE)' : ''}',
@@ -546,7 +633,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        // Coordinate display
+                        // Aspect ratios
                         Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
@@ -558,16 +645,15 @@ class _MyHomePageState extends State<MyHomePage> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                '🔴 RED (Body): (0,0) → (${bodySize.width.toInt()},${bodySize.height.toInt()})',
+                                'Camera aspect: ${(_imageSize.width / _imageSize.height).toStringAsFixed(3)}',
                                 style: const TextStyle(
-                                  color: Colors.red,
+                                  color: Colors.yellow,
                                   fontFamily: 'monospace',
                                   fontSize: 10,
                                 ),
                               ),
-                              const SizedBox(height: 2),
                               Text(
-                                '🔷 TEAL (Canvas): (${_detectionCanvasOffset.dx.toInt()},${_detectionCanvasOffset.dy.toInt()}) → (${(_detectionCanvasOffset.dx + _detectionCanvasSize.width).toInt()},${(_detectionCanvasOffset.dy + _detectionCanvasSize.height).toInt()})',
+                                'Video aspect: ${(_detectionCanvasSize.width / _detectionCanvasSize.height).toStringAsFixed(3)}',
                                 style: const TextStyle(
                                   color: Colors.cyan,
                                   fontFamily: 'monospace',
