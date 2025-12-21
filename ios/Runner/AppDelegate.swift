@@ -57,83 +57,86 @@ import AVFoundation
 
     let imageData = frameBytes.data
 
-    // Create a copy of the data for CVPixelBuffer
-    let mutableData = NSMutableData(data: imageData)
-    var pixelBuffer: CVPixelBuffer?
+    // ML Kit requires background thread - dispatch async
+    DispatchQueue.global(qos: .userInitiated).async {
+      // Create a copy of the data for CVPixelBuffer
+      let mutableData = NSMutableData(data: imageData)
+      var pixelBuffer: CVPixelBuffer?
 
-    let status = CVPixelBufferCreateWithBytes(
-      kCFAllocatorDefault,
-      width,
-      height,
-      kCVPixelFormatType_420YpCbCr8BiPlanarFullRange,
-      mutableData.mutableBytes,
-      imageData.count,
-      nil,
-      nil,
-      nil,
-      &pixelBuffer
-    )
+      let status = CVPixelBufferCreateWithBytes(
+        kCFAllocatorDefault,
+        width,
+        height,
+        kCVPixelFormatType_420YpCbCr8BiPlanarFullRange,
+        mutableData.mutableBytes,
+        imageData.count,
+        nil,
+        nil,
+        nil,
+        &pixelBuffer
+      )
 
-    guard status == kCVReturnSuccess, let buffer = pixelBuffer else {
-      result(["success": false])
-      return
-    }
-
-    // Create CMSampleBuffer from CVPixelBuffer
-    var formatDesc: CMVideoFormatDescription?
-    CMVideoFormatDescriptionCreateForImageBuffer(
-      allocator: kCFAllocatorDefault,
-      imageBuffer: buffer,
-      formatDescriptionOut: &formatDesc
-    )
-
-    guard let formatDescription = formatDesc else {
-      result(["success": false])
-      return
-    }
-
-    var sampleBuffer: CMSampleBuffer?
-    var timingInfo = CMSampleTimingInfo(
-      duration: CMTime(value: 1, timescale: 30),
-      presentationTimeStamp: CMTime.zero,
-      decodeTimeStamp: CMTime.invalid
-    )
-
-    CMSampleBufferCreateReadyWithImageBuffer(
-      allocator: kCFAllocatorDefault,
-      imageBuffer: buffer,
-      formatDescription: formatDescription,
-      sampleTiming: &timingInfo,
-      sampleBufferOut: &sampleBuffer
-    )
-
-    guard let smplBuffer = sampleBuffer else {
-      result(["success": false])
-      return
-    }
-
-    // Create VisionImage from CMSampleBuffer
-    let visionImage = VisionImage(buffer: smplBuffer)
-    visionImage.orientation = getImageOrientation(from: rotation)
-
-    // Detect faces
-    do {
-      let faces = try detector.results(in: visionImage)
-      var faceArray: [[String: NSNumber]] = []
-
-      for face in faces {
-        let boundingBox = face.frame
-        faceArray.append([
-          "x": NSNumber(value: Float(boundingBox.origin.x)),
-          "y": NSNumber(value: Float(boundingBox.origin.y)),
-          "width": NSNumber(value: Float(boundingBox.width)),
-          "height": NSNumber(value: Float(boundingBox.height))
-        ])
+      guard status == kCVReturnSuccess, let buffer = pixelBuffer else {
+        result(["success": false])
+        return
       }
 
-      result(["success": true, "faces": faceArray])
-    } catch {
-      result(["success": false])
+      // Create CMSampleBuffer from CVPixelBuffer
+      var formatDesc: CMVideoFormatDescription?
+      CMVideoFormatDescriptionCreateForImageBuffer(
+        allocator: kCFAllocatorDefault,
+        imageBuffer: buffer,
+        formatDescriptionOut: &formatDesc
+      )
+
+      guard let formatDescription = formatDesc else {
+        result(["success": false])
+        return
+      }
+
+      var sampleBuffer: CMSampleBuffer?
+      var timingInfo = CMSampleTimingInfo(
+        duration: CMTime(value: 1, timescale: 30),
+        presentationTimeStamp: CMTime.zero,
+        decodeTimeStamp: CMTime.invalid
+      )
+
+      CMSampleBufferCreateReadyWithImageBuffer(
+        allocator: kCFAllocatorDefault,
+        imageBuffer: buffer,
+        formatDescription: formatDescription,
+        sampleTiming: &timingInfo,
+        sampleBufferOut: &sampleBuffer
+      )
+
+      guard let smplBuffer = sampleBuffer else {
+        result(["success": false])
+        return
+      }
+
+      // Create VisionImage from CMSampleBuffer
+      let visionImage = VisionImage(buffer: smplBuffer)
+      visionImage.orientation = self.getImageOrientation(from: rotation)
+
+      // Detect faces (on background thread as required by ML Kit)
+      do {
+        let faces = try detector.results(in: visionImage)
+        var faceArray: [[String: NSNumber]] = []
+
+        for face in faces {
+          let boundingBox = face.frame
+          faceArray.append([
+            "x": NSNumber(value: Float(boundingBox.origin.x)),
+            "y": NSNumber(value: Float(boundingBox.origin.y)),
+            "width": NSNumber(value: Float(boundingBox.width)),
+            "height": NSNumber(value: Float(boundingBox.height))
+          ])
+        }
+
+        result(["success": true, "faces": faceArray])
+      } catch {
+        result(["success": false])
+      }
     }
   }
 
