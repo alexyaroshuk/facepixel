@@ -43,7 +43,7 @@ workflows:
             CODE_SIGN_IDENTITY="" \
             CODE_SIGN_ENTITLEMENTS="" \
             IPHONEOS_DEPLOYMENT_TARGET=16.0 \
-            -v
+            -verbose
 
       - name: Export IPA (sideload)
         script: |
