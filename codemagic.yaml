@@ -39,12 +39,3 @@ workflows:
     artifacts:
       - build/ios/ipa/*.ipa
       - build/logs/flutter_build.log
-
-    publishing:
-      email:
-        recipients:
-          - $PERSONAL_EMAIL
-        notify:
-          success: true
-          failure: true
-
