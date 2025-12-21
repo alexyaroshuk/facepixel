@@ -54,35 +54,32 @@ import MLKitVision
       return
     }
 
-    // Create VisionImage from raw bytes
     let imageData = frameBytes.data
-    var imageBuffer: CVImageBuffer?
 
-    // Create CVPixelBuffer from NV21 data
+    // Create a copy of the data for CVPixelBuffer
+    let mutableData = NSMutableData(data: imageData)
+    var pixelBuffer: CVPixelBuffer?
+
     let status = CVPixelBufferCreateWithBytes(
       kCFAllocatorDefault,
       width,
       height,
       kCVPixelFormatType_420YpCbCr8BiPlanarFullRange,
-      UnsafeMutableRawPointer(mutating: (imageData as NSData).bytes),
-      (imageData.count),
-      { buffer, pointer in
-        if let pointer = pointer {
-          free(pointer)
-        }
-      },
+      mutableData.mutableBytes,
+      imageData.count,
       nil,
       nil,
-      &imageBuffer
+      nil,
+      &pixelBuffer
     )
 
-    guard status == kCVReturnSuccess, let pixelBuffer = imageBuffer as? CVPixelBuffer else {
+    guard status == kCVReturnSuccess, let buffer = pixelBuffer else {
       result(["success": false])
       return
     }
 
-    // Create VisionImage
-    let visionImage = VisionImage(buffer: pixelBuffer)
+    // Create VisionImage from pixel buffer
+    let visionImage = VisionImage(buffer: buffer)
     visionImage.orientation = getImageOrientation(from: rotation)
 
     // Detect faces
