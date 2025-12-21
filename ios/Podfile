@@ -1,5 +1,5 @@
 # Podfile for Face Pixel Flutter app
-platform :ios, '15.0'
+platform :ios, '16.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
@@ -43,8 +43,8 @@ post_install do |installer|
         '$(inherited)',
         'PERMISSION_CAMERA=1',
       ]
-      # Force iOS 15.0 for all pods to satisfy google_mlkit_commons
-      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+      # Force iOS 16.0 for all pods to satisfy google_mlkit_commons
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
     end
   end
 end
