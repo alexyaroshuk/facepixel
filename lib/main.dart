@@ -322,6 +322,11 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _processFrame(CameraImage image) async {
+    // Skip if switching cameras to prevent crashes
+    if (_isSwitchingCamera) {
+      return;
+    }
+
     final now = DateTime.now();
 
     // Only process every 100ms to reduce overhead
@@ -435,19 +440,36 @@ class _MyHomePageState extends State<MyHomePage> {
       _detectedFaces = [];
     });
 
-    // Stop image stream first
-    if (_controller.value.isStreamingImages) {
-      await _controller.stopImageStream();
+    try {
+      // Stop image stream first
+      if (_controller.value.isStreamingImages) {
+        print('🔄 Flutter: Stopping image stream...');
+        await _controller.stopImageStream();
+      }
+
+      // Wait a bit for pending frame processing to complete
+      await Future.delayed(const Duration(milliseconds: 200));
+
+      // Dispose current controller
+      print('🔄 Flutter: Disposing camera controller...');
+      await _controller.dispose();
+
+      // Wait for disposal to complete
+      await Future.delayed(const Duration(milliseconds: 200));
+
+      // Switch to next camera
+      _currentCameraIndex = (_currentCameraIndex + 1) % widget.cameras.length;
+      print('🔄 Flutter: Switched to camera $_currentCameraIndex');
+
+      // Reinitialize with new camera
+      await _initializeCamera();
+    } catch (e) {
+      print('❌ Flutter: Error switching camera: $e');
+      setState(() {
+        _debugMessage = "Camera switch error: $e";
+        _isSwitchingCamera = false;
+      });
     }
-
-    // Dispose current controller
-    await _controller.dispose();
-
-    // Switch to next camera
-    _currentCameraIndex = (_currentCameraIndex + 1) % widget.cameras.length;
-
-    // Reinitialize with new camera
-    await _initializeCamera();
   }
 
   /// Calculate detection canvas dimensions
@@ -631,7 +653,12 @@ class _MyHomePageState extends State<MyHomePage> {
                     decoration: _showRedBorder
                         ? BoxDecoration(border: Border.all(color: Colors.red, width: 5))
                         : null,
-                    child: CameraPreview(_controller),
+                    child: _imageSize.width > 0 && _imageSize.height > 0
+                        ? AspectRatio(
+                            aspectRatio: _imageSize.width / _imageSize.height,
+                            child: CameraPreview(_controller),
+                          )
+                        : CameraPreview(_controller),
                   ),
                 ),
 
