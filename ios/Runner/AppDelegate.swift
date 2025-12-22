@@ -107,7 +107,9 @@ import AVFoundation
 
       guard status == kCVReturnSuccess, let buffer = pixelBuffer else {
         NSLog("❌ processFrame: Failed to create CVPixelBuffer, status: \(status)")
-        result(["success": false])
+        DispatchQueue.main.async {
+          result(["success": false])
+        }
         return
       }
 
@@ -123,7 +125,9 @@ import AVFoundation
 
       guard let formatDescription = formatDesc else {
         NSLog("❌ processFrame: Failed to create CMVideoFormatDescription")
-        result(["success": false])
+        DispatchQueue.main.async {
+          result(["success": false])
+        }
         return
       }
 
@@ -146,7 +150,9 @@ import AVFoundation
 
       guard let smplBuffer = sampleBuffer else {
         NSLog("❌ processFrame: Failed to create CMSampleBuffer")
-        result(["success": false])
+        DispatchQueue.main.async {
+          result(["success": false])
+        }
         return
       }
 
@@ -176,10 +182,16 @@ import AVFoundation
           ])
         }
 
-        result(["success": true, "faces": faceArray])
+        // CRITICAL: Flutter result callback MUST be called on main thread
+        DispatchQueue.main.async {
+          NSLog("📲 processFrame: Calling result callback on main thread")
+          result(["success": true, "faces": faceArray])
+        }
       } catch {
         NSLog("❌ processFrame: Face detection error - \(error.localizedDescription)")
-        result(["success": false])
+        DispatchQueue.main.async {
+          result(["success": false])
+        }
       }
     }
   }
