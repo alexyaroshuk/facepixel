@@ -520,19 +520,21 @@ class _MyHomePageState extends State<MyHomePage> {
         widget.cameras[_currentCameraIndex].lensDirection ==
         CameraLensDirection.front;
 
-    // When rotation is 90° or 270°, the effective image dimensions are SWAPPED
-    // Original: 1600x1200
-    // After 90° rotation: effectively 1200x1600 (width and height swap!)
+    // Account for frame orientation and rotation
+    // Android delivers landscape frames (1280x720), iOS delivers portrait frames (720x1280)
+    // Only swap dimensions if frame is landscape AND rotation indicates swap needed
 
     late double effectiveImageWidth;
     late double effectiveImageHeight;
 
-    if (rotation == 90 || rotation == 270) {
-      // Dimensions are swapped due to rotation
+    final isFrameLandscape = _imageSize.width > _imageSize.height;
+
+    if ((rotation == 90 || rotation == 270) && isFrameLandscape) {
+      // Frame is landscape and rotation says to swap for ML Kit
       effectiveImageWidth = _imageSize.height;
       effectiveImageHeight = _imageSize.width;
     } else {
-      // No swap for 0° or 180°
+      // Frame is already in correct orientation or doesn't need swapping
       effectiveImageWidth = _imageSize.width;
       effectiveImageHeight = _imageSize.height;
     }
@@ -547,9 +549,9 @@ class _MyHomePageState extends State<MyHomePage> {
     final width = face.width * scaleX;
     final height = face.height * scaleY;
 
-    // Front camera at 270° is horizontally mirrored in ML Kit coordinates
-    // Flip X coordinate to match visual position
-    if (isFrontCamera && (rotation == 270 || rotation == 90)) {
+    // Front camera is horizontally mirrored in ML Kit coordinates
+    // Only flip if frame is landscape (Android) - iOS portrait frames don't need flipping
+    if (isFrontCamera && isFrameLandscape) {
       left = _detectionCanvasSize.width - left - width;
     }
 
