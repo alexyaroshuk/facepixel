@@ -11,6 +11,7 @@ let videoElement = null;
 let detectionLoop = null;
 let onFacesDetectedCallback = null;
 let lastVideoTime = -1;
+let frameCounter = 0;
 
 console.log('[FaceDetection] Script loaded. Loading MediaPipe library as ES module...');
 
@@ -147,6 +148,7 @@ async function detectFrame() {
   // Only detect if we have a new frame (avoid processing same frame twice)
   if (currentTime !== lastVideoTime) {
     lastVideoTime = currentTime;
+    frameCounter++;
 
     try {
       console.log('[FaceDetection] Running detection at time:', currentTime);
@@ -165,38 +167,48 @@ async function detectFrame() {
         let videoDisplayWidth = 0;
         let videoDisplayHeight = 0;
 
-        // Try getBoundingClientRect first
-        const rect = videoElement.getBoundingClientRect();
-        if (rect.width > 0 && rect.height > 0) {
-          videoDisplayWidth = Math.round(rect.width);
-          videoDisplayHeight = Math.round(rect.height);
+        // FIRST: Check if Flutter has provided override dimensions (most reliable)
+        if (overrideDisplayWidth > 0 && overrideDisplayHeight > 0) {
+          videoDisplayWidth = overrideDisplayWidth;
+          videoDisplayHeight = overrideDisplayHeight;
         } else {
-          // Fallback: try parent container (for Flutter HtmlElementView compatibility)
-          const parent = videoElement.parentElement;
-          if (parent) {
-            const parentRect = parent.getBoundingClientRect();
-            if (parentRect.width > 0 && parentRect.height > 0) {
-              videoDisplayWidth = Math.round(parentRect.width);
-              videoDisplayHeight = Math.round(parentRect.height);
+          // Try getBoundingClientRect first
+          const rect = videoElement.getBoundingClientRect();
+          if (rect.width > 0 && rect.height > 0) {
+            videoDisplayWidth = Math.round(rect.width);
+            videoDisplayHeight = Math.round(rect.height);
+          } else {
+            // Fallback: try parent container (for Flutter HtmlElementView compatibility)
+            const parent = videoElement.parentElement;
+            if (parent) {
+              const parentRect = parent.getBoundingClientRect();
+              if (parentRect.width > 0 && parentRect.height > 0) {
+                videoDisplayWidth = Math.round(parentRect.width);
+                videoDisplayHeight = Math.round(parentRect.height);
+              }
             }
           }
-        }
 
-        // If still 0, use window dimensions and maintain aspect ratio
-        if (videoDisplayWidth === 0 || videoDisplayHeight === 0) {
-          videoDisplayWidth = window.innerWidth;
-          const containerAspectRatio = videoNatWidth / videoNatHeight;
-          videoDisplayHeight = Math.round(videoDisplayWidth / containerAspectRatio);
+          // If still 0, use window dimensions and maintain aspect ratio
+          if (videoDisplayWidth === 0 || videoDisplayHeight === 0) {
+            videoDisplayWidth = window.innerWidth;
+            const containerAspectRatio = videoNatWidth / videoNatHeight;
+            videoDisplayHeight = Math.round(videoDisplayWidth / containerAspectRatio);
+          }
         }
 
         // Calculate scale ratio (displayed size / natural size)
         const scaleX = videoDisplayWidth / videoNatWidth;
         const scaleY = videoDisplayHeight / videoNatHeight;
 
-        console.log('[FaceDetection] Processing', detections.detections.length, 'faces');
-        console.log('[FaceDetection] Natural resolution:', videoNatWidth, 'x', videoNatHeight);
-        console.log('[FaceDetection] Display resolution:', videoDisplayWidth, 'x', videoDisplayHeight);
-        console.log('[FaceDetection] Scale:', scaleX, 'x', scaleY);
+        // Log dimensions every 30 frames (not every frame to reduce spam)
+        if (frameCounter % 30 === 0) {
+          console.log('[FaceDetection] Processing', detections.detections.length, 'faces');
+          console.log('[FaceDetection] Natural resolution:', videoNatWidth, 'x', videoNatHeight);
+          console.log('[FaceDetection] Display resolution:', videoDisplayWidth, 'x', videoDisplayHeight);
+          console.log('[FaceDetection] Display rect:', { top: rect.top, left: rect.left, width: rect.width, height: rect.height });
+          console.log('[FaceDetection] Scale:', scaleX, 'x', scaleY);
+        }
 
         for (const detection of detections.detections) {
           const box = detection.boundingBox;
@@ -277,6 +289,21 @@ function getVideoDimensions(videoElementId) {
     };
   }
   return { width: 0, height: 0 };
+}
+
+/**
+ * Update canvas display dimensions - called by Flutter to sync JS dimensions with Flutter layout
+ * This ensures face detection boxes use the exact same dimensions as Flutter's layout calculation
+ * @param {number} width - Canvas display width in pixels
+ * @param {number} height - Canvas display height in pixels
+ */
+let overrideDisplayWidth = 0;
+let overrideDisplayHeight = 0;
+
+function updateCanvasDimensions(width, height) {
+  console.log('[FaceDetection] updateCanvasDimensions called:', width, 'x', height);
+  overrideDisplayWidth = Math.round(width);
+  overrideDisplayHeight = Math.round(height);
 }
 
 /**
