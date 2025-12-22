@@ -29,10 +29,33 @@
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>flutter_application_1</title>
+  <title>Face Pixel</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- MediaPipe will be loaded dynamically as an ES module from face_detection.js -->
+
+  <style>
+    body, html { margin: 0; padding: 0; }
+    #videoContainer { display: none; }
+    #webcam {
+      width: 100%;
+      height: auto;
+      /* Flip the video horizontally to match the reference implementation */
+      transform: rotateY(180deg);
+      -webkit-transform: rotateY(180deg);
+      -moz-transform: rotateY(180deg);
+    }
+    canvas { display: none; }
+  </style>
 </head>
 <body>
+  <!-- Simple video element for camera feed -->
+  <div id="videoContainer">
+    <video id="webcam" autoplay playsinline></video>
+  </div>
+
+  <!-- Face detection handler script (NEW API) -->
+  <script src="face_detection.js"></script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

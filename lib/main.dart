@@ -1,8 +1,10 @@
-import 'dart:io';
-
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
+// Conditional import: use web implementation on web, stub on native platforms (Android/iOS)
+import 'web_face_detection.dart' if (dart.library.io) 'web_face_detection_stub.dart' deferred as web_module;
 
 void main() async {
   print('🟢 Flutter: main() START');
@@ -35,7 +37,42 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: MyHomePage(cameras: cameras),
+      home: kIsWeb ? const _WebPlaceholder() : MyHomePage(cameras: cameras),
+    );
+  }
+}
+
+/// Placeholder that loads WebFaceDetectionView on web
+class _WebPlaceholder extends StatefulWidget {
+  const _WebPlaceholder();
+
+  @override
+  State<_WebPlaceholder> createState() => _WebPlaceholderState();
+}
+
+class _WebPlaceholderState extends State<_WebPlaceholder> {
+  late Future<void> _loadWeb;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWeb = web_module.loadLibrary();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<void>(
+      future: _loadWeb,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          // Web module loaded, use reflection to create WebFaceDetectionView
+          return web_module.WebFaceDetectionView();
+        } else {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+      },
     );
   }
 }
@@ -184,6 +221,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _initializeNativeFaceDetection() async {
     print('🚀 Flutter: _initializeNativeFaceDetection() START');
+
+    // Web platform is handled by WebFaceDetectionView (deferred module)
+    if (kIsWeb) {
+      print('🌐 Flutter: Running on web - face detection handled by WebFaceDetectionView');
+      return;
+    }
+
+    // Native platforms (iOS/Android) use ML Kit
     try {
       print('🚀 Flutter: Calling platform.invokeMethod(initializeFaceDetection)');
       final result = await platform.invokeMethod('initializeFaceDetection');
@@ -191,7 +236,7 @@ class _MyHomePageState extends State<MyHomePage> {
       if (result) {
         print('✅ Flutter: Face detection initialized successfully');
         setState(() {
-          _debugMessage = "Ready";
+          _debugMessage = "Ready (ML Kit)";
         });
       } else {
         print('❌ Flutter: Face detection initialization returned false');
@@ -212,22 +257,33 @@ class _MyHomePageState extends State<MyHomePage> {
     try {
       print('📷 Flutter: Creating CameraController with ResolutionPreset.max');
 
-      // On Android, use NV21 format
-      // On iOS, DON'T specify imageFormatGroup to avoid format conflicts
-      // Different iOS cameras support different formats, let AVFoundation choose
-      _controller = Platform.isAndroid
-          ? CameraController(
-              widget.cameras[_currentCameraIndex],
-              ResolutionPreset.max,
-              enableAudio: false,
-              imageFormatGroup: ImageFormatGroup.nv21,
-            )
-          : CameraController(
-              widget.cameras[_currentCameraIndex],
-              ResolutionPreset.max,
-              enableAudio: false,
-              // imageFormatGroup NOT specified for iOS
-            );
+      // Platform-specific camera configuration
+      // - Android: use NV21 format for ML Kit
+      // - iOS: let AVFoundation choose format
+      // - Web: use BGRA8888 (default for web)
+      if (kIsWeb) {
+        _controller = CameraController(
+          widget.cameras[_currentCameraIndex],
+          ResolutionPreset.max,
+          enableAudio: false,
+          imageFormatGroup: ImageFormatGroup.bgra8888,
+        );
+      } else if (Platform.isAndroid) {
+        _controller = CameraController(
+          widget.cameras[_currentCameraIndex],
+          ResolutionPreset.max,
+          enableAudio: false,
+          imageFormatGroup: ImageFormatGroup.nv21,
+        );
+      } else {
+        // iOS
+        _controller = CameraController(
+          widget.cameras[_currentCameraIndex],
+          ResolutionPreset.max,
+          enableAudio: false,
+          // imageFormatGroup NOT specified for iOS
+        );
+      }
 
       print('📷 Flutter: Calling _controller.initialize()');
       await _controller.initialize();
@@ -309,6 +365,9 @@ class _MyHomePageState extends State<MyHomePage> {
         print('🎥 Flutter: Sending frame: ${image.width}x${image.height}, Rotation: $mlKitRotation°, Camera: $cameraInfo, BytesLength: ${image.planes[0].bytes.length}');
       }
 
+      List<Map<String, dynamic>> facesList = [];
+
+      // Use ML Kit via platform channel (MyHomePage is only used on native platforms)
       print('📤 Flutter: Calling platform.invokeMethod(processFrame) with width=${image.width}, height=${image.height}');
       final result = await platform.invokeMethod<Map>('processFrame', {
         'frameBytes': image.planes[0].bytes,
@@ -325,35 +384,41 @@ class _MyHomePageState extends State<MyHomePage> {
         print('📥 Flutter: result[success] = $success');
 
         if (success) {
-          final facesList = (result['faces'] as List).cast<Map>();
-          print('📥 Flutter: Found ${facesList.length} faces');
-
-          final faces = facesList
-              .map(
-                (f) => Face(
-                  x: (f['x'] as num).toDouble(),
-                  y: (f['y'] as num).toDouble(),
-                  width: (f['width'] as num).toDouble(),
-                  height: (f['height'] as num).toDouble(),
-                ),
-              )
+          facesList = (result['faces'] as List)
+              .map((f) => Map<String, dynamic>.from(f as Map))
               .toList();
-
-          if (mounted) {
-            final previewSize = _controller.value.previewSize;
-            setState(() {
-              _detectedFaces = faces;
-              final w = previewSize?.width.toInt() ?? 0;
-              final h = previewSize?.height.toInt() ?? 0;
-              _debugMessage =
-                  'Faces: ${faces.length} | Image: ${_lastImageWidth}x$_lastImageHeight | Preview: ${w}x$h | FPS: ${_fps.toStringAsFixed(1)}';
-            });
-          }
+          print('📥 Flutter: Found ${facesList.length} faces');
         } else {
           print('❌ Flutter: processFrame returned success=false');
         }
       } else {
         print('❌ Flutter: processFrame returned null result');
+      }
+
+      // Convert face data to Face objects
+      if (facesList.isNotEmpty) {
+        final faces = facesList
+            .map(
+              (f) => Face(
+                x: (f['x'] as num).toDouble(),
+                y: (f['y'] as num).toDouble(),
+                width: (f['width'] as num).toDouble(),
+                height: (f['height'] as num).toDouble(),
+              ),
+            )
+            .toList();
+
+        if (mounted) {
+          final previewSize = _controller.value.previewSize;
+          setState(() {
+            _detectedFaces = faces;
+            final w = previewSize?.width.toInt() ?? 0;
+            final h = previewSize?.height.toInt() ?? 0;
+            final platform = kIsWeb ? 'Web' : 'Native';
+            _debugMessage =
+                'Faces: ${faces.length} | Image: ${_lastImageWidth}x$_lastImageHeight | Preview: ${w}x$h | FPS: ${_fps.toStringAsFixed(1)} | $platform';
+          });
+        }
       }
     } catch (e) {
       print('❌ Flutter: Exception in _processFrame: $e');
