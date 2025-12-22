@@ -248,32 +248,8 @@ import AVFoundation
   }
 
   private func cleanupCamera(result: @escaping FlutterResult) {
-    NSLog("🧹 cleanupCamera: Starting aggressive camera resource cleanup")
-
-    DispatchQueue.main.async {
-      // Step 1: Release face detector
-      NSLog("🧹 cleanupCamera Step 1: Releasing face detector...")
-      self.faceDetector = nil
-
-      // Step 2: Force garbage collection by releasing other cached resources
-      NSLog("🧹 cleanupCamera Step 2: Flushing memory and caches...")
-
-      // Force AutoreleasedPool drain to release temporary objects
-      autoreleasepool {
-        NSLog("🧹 cleanupCamera Step 2: Autorelease pool drained")
-      }
-
-      // Step 3: Let the system handle the cleanup with a delay
-      NSLog("🧹 cleanupCamera Step 3: Waiting for system cleanup...")
-      DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-        NSLog("✅ cleanupCamera: Cleanup phase 1 complete, releasing memory...")
-
-        // Step 4: Force another cleanup after a brief delay to ensure resources are freed
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-          NSLog("✅ cleanupCamera: All cleanup phases complete")
-          result(true)
-        }
-      }
-    }
+    NSLog("🧹 cleanupCamera: Releasing face detector")
+    self.faceDetector = nil
+    result(true)
   }
 }

@@ -270,16 +270,15 @@ class _MyHomePageState extends State<MyHomePage> {
           imageFormatGroup: ImageFormatGroup.nv21,
         );
       } else {
-        // iOS: Explicitly request BGRA8888 which is supported by both
-        // front and back cameras. Using other pixel formats can cause
-        // AVCaptureVideoDataOutput.setVideoSettings to throw
-        // "Unsupported pixel format type - use -availableVideoCVPixelFormatTypes"
-        // when switching cameras.
+        // iOS: Let the camera plugin auto-detect the pixel format.
+        // Forcing BGRA8888 can cause "Unsupported pixel format type" errors
+        // when reinitializing after camera switch, especially on certain
+        // iOS versions and devices. The plugin will select the best format.
         _controller = CameraController(
           widget.cameras[_currentCameraIndex],
           ResolutionPreset.max,
           enableAudio: false,
-          imageFormatGroup: ImageFormatGroup.bgra8888,
+          // DO NOT specify imageFormatGroup on iOS - let plugin auto-detect
         );
       }
 
@@ -482,105 +481,44 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _switchCamera() async {
     if (_isSwitchingCamera || widget.cameras.length < 2) return;
 
-    print('🔄 Flutter: ===== CAMERA SWITCH START =====');
-
+    print('🔄 Flutter: CAMERA SWITCH START');
     setState(() {
       _isSwitchingCamera = true;
       _detectedFaces = [];
-      _debugMessage = "Switching camera...";
     });
 
     try {
-      // Step 1: Stop image stream immediately
-      print('🔄 Step 1: Stopping image stream...');
+      // Step 1: Stop image stream
       if (_controller.value.isStreamingImages) {
-        try {
-          await _controller.stopImageStream();
-          print('✅ Step 1: Image stream stopped');
-        } catch (e) {
-          print('⚠️ Step 1 Warning: Failed to stop stream: $e');
-        }
+        print('🔄 Step 1: Stopping image stream');
+        await _controller.stopImageStream();
       }
 
-      // Step 2: Wait for pending frame processing to complete
-      print('🔄 Step 2: Waiting for frame processing to complete (max 5s)...');
-      int waitCount = 0;
-      while (_isProcessing && waitCount < 100) {
-        await Future.delayed(const Duration(milliseconds: 50));
-        waitCount++;
-      }
-      if (_isProcessing) {
-        print('⚠️ Step 2: Forcing frame processing stop after 5 seconds');
-        _isProcessing = false;
-      } else {
-        print('✅ Step 2: Frame processing completed');
-      }
+      // Step 2: Dispose old controller
+      print('🔄 Step 2: Disposing controller');
+      await _controller.dispose();
 
-      // Step 3: Dispose controller completely
-      print('🔄 Step 3: Disposing camera controller...');
-      try {
-        await _controller.dispose();
-        print('✅ Step 3: Camera controller disposed');
-      } catch (e) {
-        print('⚠️ Step 3 Warning: Error during disposal: $e');
-      }
+      // Step 3: Brief pause for system cleanup
+      print('🔄 Step 3: Waiting for cleanup...');
+      await Future.delayed(const Duration(milliseconds: 500));
 
-      // Step 4: Platform-specific cleanup
-      if (Platform.isIOS) {
-        print('🔄 Step 4: iOS-specific cleanup...');
-
-        // Step 4a: Call native cleanup to reset face detector and camera session
-        print('🔄 Step 4a: Calling native cleanup...');
-        try {
-          await platform.invokeMethod('cleanupCamera').timeout(
-            const Duration(seconds: 5),
-            onTimeout: () {
-              print('⚠️ Step 4a: Native cleanup timed out');
-              return null;
-            },
-          );
-          print('✅ Step 4a: Native cleanup completed');
-        } catch (e) {
-          print('⚠️ Step 4a Warning: Native cleanup failed: $e');
-        }
-
-        // Step 4b: Extended wait for AVCapture resources to fully release
-        // iOS AVCapture needs time to release camera hardware resources before reinitialization
-        print('🔄 Step 4b: Waiting for AVCapture resource release (5 seconds)...');
-        await Future.delayed(const Duration(seconds: 5));
-        print('✅ Step 4b: AVCapture resources released');
-      } else if (Platform.isAndroid) {
-        // Android is more forgiving, but still needs a brief pause
-        print('🔄 Step 4: Brief pause for Android cleanup...');
-        await Future.delayed(const Duration(milliseconds: 500));
-        print('✅ Step 4: Android cleanup completed');
-      }
-
-      // Step 5: Switch camera index
+      // Step 4: Switch camera index
       _currentCameraIndex = (_currentCameraIndex + 1) % widget.cameras.length;
-      final cameraName = widget.cameras[_currentCameraIndex].lensDirection == CameraLensDirection.front
-          ? 'FRONT'
-          : 'BACK';
-      print('🔄 Step 5: Switched to camera $_currentCameraIndex ($cameraName)');
+      print('🔄 Step 4: Switched to camera $_currentCameraIndex');
 
-      // Step 6: Initialize new camera with extended retry attempts
-      print('🔄 Step 6: Initializing new camera controller...');
+      // Step 5: Initialize new camera
+      print('🔄 Step 5: Initializing new camera');
       await _initializeCamera();
 
-      // Step 7: Reset switching flag on success
-      if (mounted) {
-        setState(() {
-          _isSwitchingCamera = false;
-          _debugMessage = "Camera switched successfully";
-        });
-      }
-
-      print('✅ Flutter: ===== CAMERA SWITCH SUCCESS =====');
+      print('✅ CAMERA SWITCH SUCCESS');
     } catch (e) {
-      print('❌ Flutter: CAMERA SWITCH FAILED: $e');
+      print('❌ CAMERA SWITCH FAILED: $e');
+      setState(() {
+        _debugMessage = "Switch failed: $e";
+      });
+    } finally {
       if (mounted) {
         setState(() {
-          _debugMessage = "Switch failed: $e";
           _isSwitchingCamera = false;
         });
       }
