@@ -254,9 +254,8 @@ class _MyHomePageState extends State<MyHomePage> {
       print('📷 Flutter: Creating CameraController with ResolutionPreset.max');
 
       // Platform-specific camera configuration
-      // - Android: use NV21 format for ML Kit
-      // - iOS: let AVFoundation choose format
-      // - Web: use BGRA8888 (default for web)
+      // CRITICAL: For iOS, use NV21 format which is widely supported on both front and back cameras
+      // This prevents "Unsupported pixel format type" errors when switching cameras
       if (kIsWeb) {
         _controller = CameraController(
           widget.cameras[_currentCameraIndex],
@@ -264,20 +263,13 @@ class _MyHomePageState extends State<MyHomePage> {
           enableAudio: false,
           imageFormatGroup: ImageFormatGroup.bgra8888,
         );
-      } else if (Platform.isAndroid) {
+      } else {
+        // Both Android and iOS use NV21 - it's the most compatible format
         _controller = CameraController(
           widget.cameras[_currentCameraIndex],
           ResolutionPreset.max,
           enableAudio: false,
           imageFormatGroup: ImageFormatGroup.nv21,
-        );
-      } else {
-        // iOS
-        _controller = CameraController(
-          widget.cameras[_currentCameraIndex],
-          ResolutionPreset.max,
-          enableAudio: false,
-          // imageFormatGroup NOT specified for iOS
         );
       }
 
@@ -464,7 +456,8 @@ class _MyHomePageState extends State<MyHomePage> {
     try {
       print('🔄 Flutter: Blocking new frame processing');
 
-      // Stop image stream - this should prevent new frames from arriving
+      // CRITICAL: Stop image stream FIRST
+      // This prevents new frames from being queued
       if (_controller.value.isStreamingImages) {
         print('🔄 Flutter: Stopping image stream');
         try {
@@ -476,19 +469,19 @@ class _MyHomePageState extends State<MyHomePage> {
       }
 
       // Wait for any in-flight frame processing to complete
-      // On iOS, some frames might still be in the platform channel
-      print('🔄 Flutter: Waiting for pending frame processing...');
-      for (int i = 0; i < 100; i++) {
+      print('🔄 Flutter: Waiting for pending frame processing to complete...');
+      for (int i = 0; i < 150; i++) {
         if (!_isProcessing) break;
         await Future.delayed(const Duration(milliseconds: 50));
       }
 
       if (_isProcessing) {
-        print('⚠️ Flutter: Frame processing still active, forcing stop');
+        print('⚠️ Flutter: Frame processing still active after 7.5s, forcing stop');
         _isProcessing = false;
       }
 
-      // On iOS, we must dispose the old controller carefully
+      // CRITICAL: Dispose the old controller
+      // This must complete fully before creating a new one
       print('🔄 Flutter: Disposing old camera controller');
       try {
         await _controller.dispose();
@@ -497,10 +490,11 @@ class _MyHomePageState extends State<MyHomePage> {
         print('⚠️ Flutter: Error disposing controller: $e');
       }
 
-      // Long wait for iOS to fully release camera resources
-      // This is critical on iOS - if we switch too quickly, the camera won't initialize
-      print('🔄 Flutter: Waiting for camera resource cleanup');
-      await Future.delayed(const Duration(milliseconds: 1000));
+      // CRITICAL: Long wait for iOS camera framework to fully release resources
+      // The AVCaptureSession and AVCaptureDevice need to be completely cleaned up
+      // Otherwise the new camera initialization fails with pixel format error
+      print('🔄 Flutter: Waiting for AVCapture resources to be released...');
+      await Future.delayed(const Duration(milliseconds: 2000));
 
       // Switch to next camera
       _currentCameraIndex = (_currentCameraIndex + 1) % widget.cameras.length;
