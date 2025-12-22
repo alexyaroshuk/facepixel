@@ -212,15 +212,15 @@ class _MyHomePageState extends State<MyHomePage> {
     try {
       print('📷 Flutter: Creating CameraController with ResolutionPreset.max');
 
-      // On iOS, let the camera choose the format to avoid compatibility issues
-      // Different cameras support different formats (front vs back camera)
+      // Use YUV420 format on iOS (supported by both front and back cameras)
+      // BGRA8888 is not universally supported across all iOS cameras
       _controller = CameraController(
         widget.cameras[_currentCameraIndex],
         ResolutionPreset.max,
         enableAudio: false,
         imageFormatGroup: Platform.isAndroid
             ? ImageFormatGroup.nv21
-            : null, // Let iOS choose the best format
+            : ImageFormatGroup.yuv420, // YUV420 works on both iOS cameras
       );
 
       print('📷 Flutter: Calling _controller.initialize()');
