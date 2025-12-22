@@ -248,8 +248,8 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  Future<void> _initializeCamera() async {
-    print('📷 Flutter: _initializeCamera() START');
+  Future<void> _initializeCamera({int retryCount = 0}) async {
+    print('📷 Flutter: _initializeCamera() START (attempt ${retryCount + 1})');
     try {
       print('📷 Flutter: Creating CameraController with ResolutionPreset.max');
 
@@ -309,6 +309,17 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     } catch (e) {
       print('❌ Flutter: Camera error: $e');
+
+      // iOS: Retry with longer delay if we get pixel format error
+      if (Platform.isIOS &&
+          e.toString().contains('Unsupported pixel format') &&
+          retryCount < 2) {
+        print('🔄 iOS: Retrying initialization after pixel format error (retry ${retryCount + 1}/2)');
+        await Future.delayed(Duration(milliseconds: 300 * (retryCount + 2)));
+        await _initializeCamera(retryCount: retryCount + 1);
+        return;
+      }
+
       setState(() {
         _debugMessage = "Camera error: $e";
         _isSwitchingCamera = false;
@@ -450,22 +461,6 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _switchCamera() async {
     if (_isSwitchingCamera || widget.cameras.length < 2) return;
 
-    // iOS camera switching is broken in Flutter camera plugin
-    // See: https://github.com/flutter/plugins/issues/...
-    // The plugin crashes when switching cameras due to AVCapture pixel format issues
-    if (Platform.isIOS) {
-      print('❌ Flutter: Camera switching disabled on iOS (plugin limitation)');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Camera switching not supported on iOS (known Flutter limitation)'),
-            duration: Duration(seconds: 3),
-          ),
-        );
-      }
-      return;
-    }
-
     print('🔄 Flutter: ===== CAMERA SWITCH START =====');
 
     setState(() {
@@ -503,6 +498,15 @@ class _MyHomePageState extends State<MyHomePage> {
         print('✅ Step 3: Controller disposed');
       } catch (e) {
         print('⚠️ Step 3 Error: $e');
+      }
+
+      // Step 3.5: Wait for AVCapture resources to be fully released (iOS fix)
+      // This prevents "Unsupported pixel format type" errors when switching cameras
+      // because different cameras may support different pixel formats
+      if (Platform.isIOS) {
+        print('🔄 Step 3.5: Waiting for AVCapture cleanup (iOS)...');
+        await Future.delayed(const Duration(milliseconds: 500));
+        print('✅ Step 3.5: AVCapture resources released');
       }
 
       // Step 4: Switch camera index
