@@ -652,8 +652,8 @@ class _MyHomePageState extends State<MyHomePage> {
             },
             tooltip: 'Toggle Debug UI',
           ),
-          // Camera switch (disabled on iOS due to plugin limitation)
-          if (widget.cameras.length > 1 && !Platform.isIOS)
+          // Camera switch button
+          if (widget.cameras.length > 1)
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Center(
