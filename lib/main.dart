@@ -1,4 +1,5 @@
 import 'dart:io' show Platform;
+import 'dart:async' show TimeoutException;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
