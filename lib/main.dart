@@ -249,101 +249,80 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  Future<void> _initializeCamera({int retryCount = 0}) async {
-    print('📷 Flutter: _initializeCamera() START (attempt ${retryCount + 1})');
+  Future<void> _initializeCamera() async {
+    print('📷 Flutter: _initializeCamera() START');
     try {
-      print('📷 Flutter: Creating CameraController with ResolutionPreset.max');
+      print('📷 Flutter: Creating CameraController');
 
-      // Platform-specific camera configuration
+      // Simple platform-specific config like fluttercamtest
       if (kIsWeb) {
         _controller = CameraController(
           widget.cameras[_currentCameraIndex],
-          ResolutionPreset.max,
+          ResolutionPreset.high,
           enableAudio: false,
           imageFormatGroup: ImageFormatGroup.bgra8888,
         );
       } else if (Platform.isAndroid) {
         _controller = CameraController(
           widget.cameras[_currentCameraIndex],
-          ResolutionPreset.max,
+          ResolutionPreset.high,
           enableAudio: false,
           imageFormatGroup: ImageFormatGroup.nv21,
         );
       } else {
-        // iOS: Let the camera plugin auto-detect the pixel format.
-        // Forcing BGRA8888 can cause "Unsupported pixel format type" errors
-        // when reinitializing after camera switch, especially on certain
-        // iOS versions and devices. The plugin will select the best format.
+        // iOS: Simple initialization without forcing any format
         _controller = CameraController(
           widget.cameras[_currentCameraIndex],
-          ResolutionPreset.max,
+          ResolutionPreset.high,
           enableAudio: false,
-          // DO NOT specify imageFormatGroup on iOS - let plugin auto-detect
         );
       }
 
       print('📷 Flutter: Calling _controller.initialize()');
-      await _controller.initialize().timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw TimeoutException('Camera initialization timed out', null);
-        },
-      );
-      print('✅ Flutter: Camera controller initialized');
+      await _controller.initialize();
+      print('✅ Flutter: Camera initialized');
 
       if (!mounted) {
-        print('⚠️ Flutter: Widget not mounted after camera init');
         return;
       }
 
-      // Initialize image dimensions from camera preview size
+      // Update preview size
       final previewSize = _controller.value.previewSize;
-
       if (previewSize != null) {
         _lastImageWidth = previewSize.width.toInt();
         _lastImageHeight = previewSize.height.toInt();
-        print(
-          '📷 Flutter: Preview size: ${_lastImageWidth}x${_lastImageHeight}',
-        );
+        print('📷 Flutter: Preview size: ${_lastImageWidth}x${_lastImageHeight}');
       }
-
-      print('📷 Flutter: Starting image stream');
-      await _controller.startImageStream((image) {
-        Future.microtask(() => _processFrame(image));
-      }).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw TimeoutException('Image stream startup timed out', null);
-        },
-      );
-      print('✅ Flutter: Image stream started');
 
       setState(() {
         _isSwitchingCamera = false;
       });
+
+      // Start image stream AFTER camera is stable
+      await _startImageStream();
     } catch (e) {
-      print('❌ Flutter: Camera error: $e');
-
-      // iOS: Retry with longer delay if we get pixel format error or timeout
-      if (Platform.isIOS &&
-          (e.toString().contains('Unsupported pixel format') ||
-           e.toString().contains('timed out')) &&
-          retryCount < 3) {
-        final delayMs = switch(retryCount) {
-          0 => 1500,  // 1.5 seconds on first retry
-          1 => 2500,  // 2.5 seconds on second retry
-          _ => 3500,  // 3.5 seconds on third retry
-        };
-        print('🔄 iOS: Retrying initialization (retry ${retryCount + 1}/3, delay: ${delayMs}ms)');
-        await Future.delayed(Duration(milliseconds: delayMs));
-        await _initializeCamera(retryCount: retryCount + 1);
-        return;
-      }
-
+      print('❌ Flutter: Camera init error: $e');
       setState(() {
         _debugMessage = "Camera error: $e";
         _isSwitchingCamera = false;
       });
+    }
+  }
+
+  Future<void> _startImageStream() async {
+    if (_isSwitchingCamera) {
+      print('⚠️ Skipping image stream start - camera switching in progress');
+      return;
+    }
+
+    try {
+      print('📷 Flutter: Starting image stream');
+      await _controller.startImageStream((image) {
+        Future.microtask(() => _processFrame(image));
+      });
+      print('✅ Flutter: Image stream started');
+    } catch (e) {
+      print('❌ Flutter: Error starting image stream: $e');
     }
   }
 
@@ -481,47 +460,29 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _switchCamera() async {
     if (_isSwitchingCamera || widget.cameras.length < 2) return;
 
-    print('🔄 Flutter: CAMERA SWITCH START');
     setState(() {
       _isSwitchingCamera = true;
       _detectedFaces = [];
     });
 
     try {
-      // Step 1: Stop image stream
-      if (_controller.value.isStreamingImages) {
-        print('🔄 Step 1: Stopping image stream');
-        await _controller.stopImageStream();
-      }
-
-      // Step 2: Dispose old controller
-      print('🔄 Step 2: Disposing controller');
-      await _controller.dispose();
-
-      // Step 3: Brief pause for system cleanup
-      print('🔄 Step 3: Waiting for cleanup...');
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      // Step 4: Switch camera index
+      // Exactly like fluttercamtest:
+      // 1. Switch camera index
       _currentCameraIndex = (_currentCameraIndex + 1) % widget.cameras.length;
-      print('🔄 Step 4: Switched to camera $_currentCameraIndex');
+      print('🔄 Switched to camera $_currentCameraIndex');
 
-      // Step 5: Initialize new camera
-      print('🔄 Step 5: Initializing new camera');
+      // 2. Dispose old controller
+      await _controller.dispose();
+      print('✅ Controller disposed');
+
+      // 3. Initialize new camera
       await _initializeCamera();
-
       print('✅ CAMERA SWITCH SUCCESS');
     } catch (e) {
       print('❌ CAMERA SWITCH FAILED: $e');
       setState(() {
         _debugMessage = "Switch failed: $e";
       });
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSwitchingCamera = false;
-        });
-      }
     }
   }
 
