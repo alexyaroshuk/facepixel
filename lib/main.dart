@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
 // Conditional import: use web implementation on web, stub on native platforms (Android/iOS)
-import 'web_face_detection.dart' if (dart.library.io) 'web_face_detection_stub.dart' deferred as web_module;
+import 'web_face_detection.dart'
+    if (dart.library.io) 'web_face_detection_stub.dart'
+    deferred as web_module;
 
 void main() async {
   print('🟢 Flutter: main() START');
@@ -15,7 +17,9 @@ void main() async {
   print('🟢 Flutter: Found ${cameras.length} cameras');
   for (int i = 0; i < cameras.length; i++) {
     final camera = cameras[i];
-    final lensDir = camera.lensDirection == CameraLensDirection.front ? 'FRONT' : 'BACK';
+    final lensDir = camera.lensDirection == CameraLensDirection.front
+        ? 'FRONT'
+        : 'BACK';
     print('  - Camera $i: $lensDir');
   }
 
@@ -114,9 +118,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _showDebugUI = true;
   int? _overrideRotation; // Override rotation for testing
 
-  static const platform = MethodChannel(
-    'com.facepixel.app/faceDetection',
-  );
+  static const platform = MethodChannel('com.facepixel.app/faceDetection');
 
   /// Calculate correct rotation for ML Kit based on camera frame dimensions
   /// When rotation is correct, ML Kit can detect faces
@@ -129,7 +131,9 @@ class _MyHomePageState extends State<MyHomePage> {
     // The key insight: ML Kit needs to know which direction is "up" in the frame
     // based on how the camera sensor is oriented relative to the device
 
-    final isFrontCamera = widget.cameras[_currentCameraIndex].lensDirection == CameraLensDirection.front;
+    final isFrontCamera =
+        widget.cameras[_currentCameraIndex].lensDirection ==
+        CameraLensDirection.front;
 
     // CRITICAL: iOS and Android have different sensor orientations!
     if (Platform.isIOS) {
@@ -212,13 +216,17 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // Web platform is handled by WebFaceDetectionView (deferred module)
     if (kIsWeb) {
-      print('🌐 Flutter: Running on web - face detection handled by WebFaceDetectionView');
+      print(
+        '🌐 Flutter: Running on web - face detection handled by WebFaceDetectionView',
+      );
       return;
     }
 
     // Native platforms (iOS/Android) use ML Kit
     try {
-      print('🚀 Flutter: Calling platform.invokeMethod(initializeFaceDetection)');
+      print(
+        '🚀 Flutter: Calling platform.invokeMethod(initializeFaceDetection)',
+      );
       final result = await platform.invokeMethod('initializeFaceDetection');
       print('🚀 Flutter: Got result from initializeFaceDetection: $result');
       if (result) {
@@ -288,7 +296,9 @@ class _MyHomePageState extends State<MyHomePage> {
       if (previewSize != null) {
         _lastImageWidth = previewSize.width.toInt();
         _lastImageHeight = previewSize.height.toInt();
-        print('📷 Flutter: Preview size: ${_lastImageWidth}x${_lastImageHeight}');
+        print(
+          '📷 Flutter: Preview size: ${_lastImageWidth}x${_lastImageHeight}',
+        );
       }
 
       print('📷 Flutter: Starting image stream');
@@ -312,6 +322,16 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _processFrame(CameraImage image) async {
     // Skip if switching cameras to prevent crashes
     if (_isSwitchingCamera) {
+      return;
+    }
+
+    // Skip if controller is not initialized or disposed
+    try {
+      if (!_controller.value.isInitialized) {
+        return;
+      }
+    } catch (e) {
+      // Controller might be disposed, skip processing
       return;
     }
 
@@ -349,19 +369,25 @@ class _MyHomePageState extends State<MyHomePage> {
       _imageSize = Size(image.width.toDouble(), image.height.toDouble());
 
       final mlKitRotation = _calculateMLKitRotation();
-      final isFrontCamera = widget.cameras[_currentCameraIndex].lensDirection == CameraLensDirection.front;
+      final isFrontCamera =
+          widget.cameras[_currentCameraIndex].lensDirection ==
+          CameraLensDirection.front;
 
       // Log rotation info (once per second to avoid spam)
       if (_frameCount % 10 == 0) {
         final cameraInfo = isFrontCamera ? 'FRONT' : 'BACK';
         // ignore: avoid_print
-        print('🎥 Flutter: Sending frame: ${image.width}x${image.height}, Rotation: $mlKitRotation°, Camera: $cameraInfo, BytesLength: ${image.planes[0].bytes.length}');
+        print(
+          '🎥 Flutter: Sending frame: ${image.width}x${image.height}, Rotation: $mlKitRotation°, Camera: $cameraInfo, BytesLength: ${image.planes[0].bytes.length}',
+        );
       }
 
       List<Map<String, dynamic>> facesList = [];
 
       // Use ML Kit via platform channel (MyHomePage is only used on native platforms)
-      print('📤 Flutter: Calling platform.invokeMethod(processFrame) with width=${image.width}, height=${image.height}');
+      print(
+        '📤 Flutter: Calling platform.invokeMethod(processFrame) with width=${image.width}, height=${image.height}',
+      );
       final result = await platform.invokeMethod<Map>('processFrame', {
         'frameBytes': image.planes[0].bytes,
         'width': image.width,
@@ -401,16 +427,20 @@ class _MyHomePageState extends State<MyHomePage> {
             )
             .toList();
 
-        if (mounted) {
-          final previewSize = _controller.value.previewSize;
-          setState(() {
-            _detectedFaces = faces;
-            final w = previewSize?.width.toInt() ?? 0;
-            final h = previewSize?.height.toInt() ?? 0;
-            final platform = kIsWeb ? 'Web' : 'Native';
-            _debugMessage =
-                'Faces: ${faces.length} | Image: ${_lastImageWidth}x$_lastImageHeight | Preview: ${w}x$h | FPS: ${_fps.toStringAsFixed(1)} | $platform';
-          });
+        if (mounted && !_isSwitchingCamera) {
+          try {
+            final previewSize = _controller.value.previewSize;
+            setState(() {
+              _detectedFaces = faces;
+              final w = previewSize?.width.toInt() ?? 0;
+              final h = previewSize?.height.toInt() ?? 0;
+              final platform = kIsWeb ? 'Web' : 'Native';
+              _debugMessage =
+                  'Faces: ${faces.length} | Image: ${_lastImageWidth}x$_lastImageHeight | Preview: ${w}x$h | FPS: ${_fps.toStringAsFixed(1)} | $platform';
+            });
+          } catch (e) {
+            print('⚠️ Flutter: Error updating UI with face results: $e');
+          }
         }
       }
     } catch (e) {
@@ -423,53 +453,69 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _switchCamera() async {
     if (_isSwitchingCamera || widget.cameras.length < 2) return;
 
+    print('🔄 Flutter: Camera switch requested');
+
+    // Set this flag IMMEDIATELY to block new frame processing
     setState(() {
       _isSwitchingCamera = true;
       _detectedFaces = [];
     });
 
     try {
-      print('🔄 Flutter: Camera switch initiated');
+      print('🔄 Flutter: Blocking new frame processing');
 
-      // Stop image stream first
+      // Stop image stream - this should prevent new frames from arriving
       if (_controller.value.isStreamingImages) {
-        print('🔄 Flutter: Stopping image stream...');
-        await _controller.stopImageStream();
+        print('🔄 Flutter: Stopping image stream');
+        try {
+          await _controller.stopImageStream();
+          print('✅ Flutter: Image stream stopped');
+        } catch (e) {
+          print('⚠️ Flutter: Error stopping stream: $e');
+        }
       }
 
-      // Wait for any pending frame processing to complete
-      print('🔄 Flutter: Waiting for frame processing to complete...');
-      int waitCount = 0;
-      while (_isProcessing && waitCount < 50) {
-        // ignore: avoid_print
-        print('🔄 Flutter: Waiting for processing... (${waitCount++}/50)');
-        await Future.delayed(const Duration(milliseconds: 100));
+      // Wait for any in-flight frame processing to complete
+      // On iOS, some frames might still be in the platform channel
+      print('🔄 Flutter: Waiting for pending frame processing...');
+      for (int i = 0; i < 100; i++) {
+        if (!_isProcessing) break;
+        await Future.delayed(const Duration(milliseconds: 50));
       }
 
       if (_isProcessing) {
-        print('⚠️ Flutter: Frame processing still active after waiting, forcing stop');
+        print('⚠️ Flutter: Frame processing still active, forcing stop');
         _isProcessing = false;
       }
 
-      // Dispose current controller - this takes time on iOS
-      print('🔄 Flutter: Disposing camera controller...');
-      await _controller.dispose();
-      print('✅ Flutter: Camera controller disposed');
+      // On iOS, we must dispose the old controller carefully
+      print('🔄 Flutter: Disposing old camera controller');
+      try {
+        await _controller.dispose();
+        print('✅ Flutter: Camera controller disposed');
+      } catch (e) {
+        print('⚠️ Flutter: Error disposing controller: $e');
+      }
 
-      // iOS needs extra time for camera resources to fully release
-      print('🔄 Flutter: Waiting for iOS camera cleanup...');
-      await Future.delayed(const Duration(milliseconds: 500));
+      // Long wait for iOS to fully release camera resources
+      // This is critical on iOS - if we switch too quickly, the camera won't initialize
+      print('🔄 Flutter: Waiting for camera resource cleanup');
+      await Future.delayed(const Duration(milliseconds: 1000));
 
       // Switch to next camera
       _currentCameraIndex = (_currentCameraIndex + 1) % widget.cameras.length;
-      print('🔄 Flutter: Switched to camera $_currentCameraIndex');
+      print('🔄 Flutter: Switched camera index to $_currentCameraIndex');
 
       // Reinitialize with new camera
+      print('🔄 Flutter: Initializing new camera');
       await _initializeCamera();
+
+      print('✅ Flutter: Camera switch complete');
     } catch (e) {
-      print('❌ Flutter: Error switching camera: $e');
+      print('❌ Flutter: CRASH during camera switch: $e');
+      print('❌ Flutter: Stack trace: ${StackTrace.current}');
       setState(() {
-        _debugMessage = "Camera switch error: $e";
+        _debugMessage = "Switch failed: $e";
         _isSwitchingCamera = false;
       });
     }
@@ -486,18 +532,24 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // Debug logging
     // ignore: avoid_print
-    print('📐 CANVAS: size=${videoDimensions.width.toInt()}x${videoDimensions.height.toInt()} @ (${videoOffset.dx.toInt()},${videoOffset.dy.toInt()})');
+    print(
+      '📐 CANVAS: size=${videoDimensions.width.toInt()}x${videoDimensions.height.toInt()} @ (${videoOffset.dx.toInt()},${videoOffset.dy.toInt()})',
+    );
   }
 
   /// Transform face coordinates from image space to screen space
   /// CRITICAL: Account for rotation changing effective image dimensions and front camera mirroring
   FaceBox _transformFaceCoordinates(Face face) {
-    if (_imageSize.width <= 0 || _imageSize.height <= 0 || _detectionCanvasSize.width <= 0) {
+    if (_imageSize.width <= 0 ||
+        _imageSize.height <= 0 ||
+        _detectionCanvasSize.width <= 0) {
       return FaceBox(left: 0, top: 0, width: 0, height: 0);
     }
 
     final rotation = _calculateMLKitRotation();
-    final isFrontCamera = widget.cameras[_currentCameraIndex].lensDirection == CameraLensDirection.front;
+    final isFrontCamera =
+        widget.cameras[_currentCameraIndex].lensDirection ==
+        CameraLensDirection.front;
 
     // When rotation is 90° or 270°, the effective image dimensions are SWAPPED
     // Original: 1600x1200
@@ -533,14 +585,11 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     // ignore: avoid_print
-    print('✅ Transform: face(${face.x.toInt()}, ${face.y.toInt()}) → screen(${left.toInt()}, ${top.toInt()}) | rotation=$rotation° | camera=${isFrontCamera ? 'FRONT' : 'BACK'} | effective dims: ${effectiveImageWidth.toInt()}x${effectiveImageHeight.toInt()}');
-
-    return FaceBox(
-      left: left,
-      top: top,
-      width: width,
-      height: height,
+    print(
+      '✅ Transform: face(${face.x.toInt()}, ${face.y.toInt()}) → screen(${left.toInt()}, ${top.toInt()}) | rotation=$rotation° | camera=${isFrontCamera ? 'FRONT' : 'BACK'} | effective dims: ${effectiveImageWidth.toInt()}x${effectiveImageHeight.toInt()}',
     );
+
+    return FaceBox(left: left, top: top, width: width, height: height);
   }
 
   /// Build a rotation test button
@@ -623,7 +672,10 @@ class _MyHomePageState extends State<MyHomePage> {
           final screenSize = MediaQuery.of(context).size;
           final appBarHeight = AppBar().preferredSize.height;
           // Body size = full screen minus AppBar (which is in Scaffold above this body)
-          final bodySize = Size(screenSize.width, screenSize.height - appBarHeight);
+          final bodySize = Size(
+            screenSize.width,
+            screenSize.height - appBarHeight,
+          );
 
           // Calculate detection canvas dimensions on layout
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -633,7 +685,9 @@ class _MyHomePageState extends State<MyHomePage> {
           // ⚠️ DEBUG: Log what we're rendering
           if (_showRedBorder || _showTealBorder) {
             // ignore: avoid_print
-            print('🎨 BUILD: screenSize=${screenSize.width.toInt()}x${screenSize.height.toInt()} | bodySize=${bodySize.width.toInt()}x${bodySize.height.toInt()} | appBarHeight=${appBarHeight.toInt()}');
+            print(
+              '🎨 BUILD: screenSize=${screenSize.width.toInt()}x${screenSize.height.toInt()} | bodySize=${bodySize.width.toInt()}x${bodySize.height.toInt()} | appBarHeight=${appBarHeight.toInt()}',
+            );
           }
 
           // Calculate video dimensions that preserve aspect ratio
@@ -654,7 +708,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   height: videoDimensions.height,
                   child: Container(
                     decoration: _showRedBorder
-                        ? BoxDecoration(border: Border.all(color: Colors.red, width: 5))
+                        ? BoxDecoration(
+                            border: Border.all(color: Colors.red, width: 5),
+                          )
                         : null,
                     child: CameraPreview(_controller),
                   ),
@@ -668,7 +724,9 @@ class _MyHomePageState extends State<MyHomePage> {
                     width: videoDimensions.width,
                     height: videoDimensions.height,
                     child: Container(
-                      decoration: BoxDecoration(border: Border.all(color: Colors.cyan, width: 3)),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.cyan, width: 3),
+                      ),
                     ),
                   ),
 
@@ -676,10 +734,15 @@ class _MyHomePageState extends State<MyHomePage> {
                 Positioned(
                   top: videoOffset.dy - 40,
                   left: videoOffset.dx,
-                  right: videoOffset.dx + (bodySize.width - videoOffset.dx - videoDimensions.width),
+                  right:
+                      videoOffset.dx +
+                      (bodySize.width - videoOffset.dx - videoDimensions.width),
                   child: Center(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black87,
                         borderRadius: BorderRadius.circular(20),
@@ -697,7 +760,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
 
                 // Face detection boxes - flat list, no nested Stacks
-                if (_detectedFaces.isNotEmpty && _detectionCanvasSize != Size.zero)
+                if (_detectedFaces.isNotEmpty &&
+                    _detectionCanvasSize != Size.zero)
                   ..._detectedFaces.map((face) {
                     final box = _transformFaceCoordinates(face);
                     return Positioned(
@@ -713,261 +777,290 @@ class _MyHomePageState extends State<MyHomePage> {
                     );
                   }),
 
-              // Status overlay with detailed debug info
-              if (_showDebugUI)
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  right: 8,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.black87,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding: const EdgeInsets.all(8),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          _debugMessage,
-                          style: const TextStyle(
-                            color: Colors.green,
-                            fontFamily: 'monospace',
-                            fontSize: 11,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Screen: ${bodySize.width.toInt()}x${bodySize.height.toInt()}',
-                          style: const TextStyle(
-                            color: Colors.lightBlue,
-                            fontFamily: 'monospace',
-                            fontSize: 11,
-                          ),
-                        ),
-                        Text(
-                          'Camera frame: ${_imageSize.width.toInt()}x${_imageSize.height.toInt()}',
-                          style: const TextStyle(
-                            color: Colors.yellow,
-                            fontFamily: 'monospace',
-                            fontSize: 11,
-                          ),
-                        ),
-                        Text(
-                          'Video area: ${_detectionCanvasSize.width.toInt()}x${_detectionCanvasSize.height.toInt()}',
-                          style: const TextStyle(
-                            color: Colors.cyan,
-                            fontFamily: 'monospace',
-                            fontSize: 11,
-                          ),
-                        ),
-                        Text(
-                          'Video offset: (${_detectionCanvasOffset.dx.toInt()}, ${_detectionCanvasOffset.dy.toInt()})',
-                          style: const TextStyle(
-                            color: Colors.cyan,
-                            fontFamily: 'monospace',
-                            fontSize: 11,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Rotation: ${_calculateMLKitRotation()}°${_overrideRotation != null ? ' (OVERRIDE)' : ''}',
-                          style: TextStyle(
-                            color: _overrideRotation != null ? Colors.orange : Colors.lightGreen,
-                            fontFamily: 'monospace',
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          _isProcessing ? 'Processing...' : 'Ready',
-                          style: TextStyle(
-                            color: _isProcessing ? Colors.orange : Colors.green,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        // Aspect ratios
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey, width: 1),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Camera aspect: ${(_imageSize.width / _imageSize.height).toStringAsFixed(3)}',
-                                style: const TextStyle(
-                                  color: Colors.yellow,
-                                  fontFamily: 'monospace',
-                                  fontSize: 10,
-                                ),
+                // Status overlay with detailed debug info
+                if (_showDebugUI)
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    right: 8,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black87,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.all(8),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              _debugMessage,
+                              style: const TextStyle(
+                                color: Colors.green,
+                                fontFamily: 'monospace',
+                                fontSize: 11,
                               ),
-                              Text(
-                                'Video aspect: ${(_detectionCanvasSize.width / _detectionCanvasSize.height).toStringAsFixed(3)}',
-                                style: const TextStyle(
-                                  color: Colors.cyan,
-                                  fontFamily: 'monospace',
-                                  fontSize: 10,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Screen: ${bodySize.width.toInt()}x${bodySize.height.toInt()}',
+                              style: const TextStyle(
+                                color: Colors.lightBlue,
+                                fontFamily: 'monospace',
+                                fontSize: 11,
+                              ),
+                            ),
+                            Text(
+                              'Camera frame: ${_imageSize.width.toInt()}x${_imageSize.height.toInt()}',
+                              style: const TextStyle(
+                                color: Colors.yellow,
+                                fontFamily: 'monospace',
+                                fontSize: 11,
+                              ),
+                            ),
+                            Text(
+                              'Video area: ${_detectionCanvasSize.width.toInt()}x${_detectionCanvasSize.height.toInt()}',
+                              style: const TextStyle(
+                                color: Colors.cyan,
+                                fontFamily: 'monospace',
+                                fontSize: 11,
+                              ),
+                            ),
+                            Text(
+                              'Video offset: (${_detectionCanvasOffset.dx.toInt()}, ${_detectionCanvasOffset.dy.toInt()})',
+                              style: const TextStyle(
+                                color: Colors.cyan,
+                                fontFamily: 'monospace',
+                                fontSize: 11,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Rotation: ${_calculateMLKitRotation()}°${_overrideRotation != null ? ' (OVERRIDE)' : ''}',
+                              style: TextStyle(
+                                color: _overrideRotation != null
+                                    ? Colors.orange
+                                    : Colors.lightGreen,
+                                fontFamily: 'monospace',
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _isProcessing ? 'Processing...' : 'Ready',
+                              style: TextStyle(
+                                color: _isProcessing
+                                    ? Colors.orange
+                                    : Colors.green,
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            // Aspect ratios
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: Colors.grey,
+                                  width: 1,
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Camera aspect: ${(_imageSize.width / _imageSize.height).toStringAsFixed(3)}',
+                                    style: const TextStyle(
+                                      color: Colors.yellow,
+                                      fontFamily: 'monospace',
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Video aspect: ${(_detectionCanvasSize.width / _detectionCanvasSize.height).toStringAsFixed(3)}',
+                                    style: const TextStyle(
+                                      color: Colors.cyan,
+                                      fontFamily: 'monospace',
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _showRedBorder = !_showRedBorder;
+                                    });
+                                  },
+                                  child: Text(
+                                    '🔴 Red: ${_showRedBorder ? 'ON' : 'OFF'}',
+                                    style: TextStyle(
+                                      color: _showRedBorder
+                                          ? Colors.red
+                                          : Colors.grey,
+                                      fontFamily: 'monospace',
+                                      fontSize: 10,
+                                      fontWeight: _showRedBorder
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _showTealBorder = !_showTealBorder;
+                                    });
+                                  },
+                                  child: Text(
+                                    '🔷 Teal: ${_showTealBorder ? 'ON' : 'OFF'}',
+                                    style: TextStyle(
+                                      color: _showTealBorder
+                                          ? Colors.cyan
+                                          : Colors.grey,
+                                      fontFamily: 'monospace',
+                                      fontSize: 10,
+                                      fontWeight: _showTealBorder
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _showTestPanel = !_showTestPanel;
+                                    });
+                                  },
+                                  child: Text(
+                                    'Test: ${_showTestPanel ? 'ON' : 'OFF'}',
+                                    style: TextStyle(
+                                      color: _showTestPanel
+                                          ? Colors.orange
+                                          : Colors.lightBlue,
+                                      fontFamily: 'monospace',
+                                      fontSize: 10,
+                                      fontWeight: _showTestPanel
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                // Test panel - rotation testing buttons
+                if (_showTestPanel)
+                  Positioned(
+                    bottom: 16,
+                    left: 16,
+                    right: 16,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black87,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.orange, width: 2),
+                      ),
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '🔄 ROTATION TEST PANEL',
+                            style: const TextStyle(
+                              color: Colors.orange,
+                              fontFamily: 'monospace',
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Current: ${_overrideRotation ?? 'AUTO'} | Detected faces: ${_detectedFaces.length}',
+                            style: TextStyle(
+                              color: _detectedFaces.isNotEmpty
+                                  ? Colors.lightGreen
+                                  : Colors.red,
+                              fontFamily: 'monospace',
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              _buildRotationButton(0),
+                              _buildRotationButton(90),
+                              _buildRotationButton(180),
+                              _buildRotationButton(270),
+                              ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _overrideRotation = null;
+                                  });
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.grey[700],
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
+                                ),
+                                child: const Text(
+                                  'AUTO',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _showRedBorder = !_showRedBorder;
-                                });
-                              },
-                              child: Text(
-                                '🔴 Red: ${_showRedBorder ? 'ON' : 'OFF'}',
-                                style: TextStyle(
-                                  color: _showRedBorder ? Colors.red : Colors.grey,
-                                  fontFamily: 'monospace',
-                                  fontSize: 10,
-                                  fontWeight: _showRedBorder ? FontWeight.bold : FontWeight.normal,
-                                ),
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[900],
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              _overrideRotation != null
+                                  ? '⚠️ Testing rotation: $_overrideRotation°\nLook for faces in logcat'
+                                  : '✓ Using auto-calculated rotation\nNo override active',
+                              style: TextStyle(
+                                color: _overrideRotation != null
+                                    ? Colors.orange
+                                    : Colors.lightGreen,
+                                fontFamily: 'monospace',
+                                fontSize: 10,
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _showTealBorder = !_showTealBorder;
-                                });
-                              },
-                              child: Text(
-                                '🔷 Teal: ${_showTealBorder ? 'ON' : 'OFF'}',
-                                style: TextStyle(
-                                  color: _showTealBorder ? Colors.cyan : Colors.grey,
-                                  fontFamily: 'monospace',
-                                  fontSize: 10,
-                                  fontWeight: _showTealBorder ? FontWeight.bold : FontWeight.normal,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _showTestPanel = !_showTestPanel;
-                                });
-                              },
-                              child: Text(
-                                'Test: ${_showTestPanel ? 'ON' : 'OFF'}',
-                                style: TextStyle(
-                                  color: _showTestPanel ? Colors.orange : Colors.lightBlue,
-                                  fontFamily: 'monospace',
-                                  fontSize: 10,
-                                  fontWeight: _showTestPanel ? FontWeight.bold : FontWeight.normal,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ),
-
-              // Test panel - rotation testing buttons
-              if (_showTestPanel)
-                Positioned(
-                  bottom: 16,
-                  left: 16,
-                  right: 16,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.black87,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.orange, width: 2),
-                    ),
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '🔄 ROTATION TEST PANEL',
-                          style: const TextStyle(
-                            color: Colors.orange,
-                            fontFamily: 'monospace',
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Current: ${_overrideRotation ?? 'AUTO'} | Detected faces: ${_detectedFaces.length}',
-                          style: TextStyle(
-                            color: _detectedFaces.isNotEmpty ? Colors.lightGreen : Colors.red,
-                            fontFamily: 'monospace',
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            _buildRotationButton(0),
-                            _buildRotationButton(90),
-                            _buildRotationButton(180),
-                            _buildRotationButton(270),
-                            ElevatedButton(
-                              onPressed: () {
-                                setState(() {
-                                  _overrideRotation = null;
-                                });
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.grey[700],
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              ),
-                              child: const Text(
-                                'AUTO',
-                                style: TextStyle(fontSize: 11, color: Colors.white),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[900],
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            _overrideRotation != null
-                                ? '⚠️ Testing rotation: $_overrideRotation°\nLook for faces in logcat'
-                                : '✓ Using auto-calculated rotation\nNo override active',
-                            style: TextStyle(
-                              color: _overrideRotation != null ? Colors.orange : Colors.lightGreen,
-                              fontFamily: 'monospace',
-                              fontSize: 10,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-            ],
-          ),
-            );
+              ],
+            ),
+          );
         },
       ),
     );
