@@ -117,6 +117,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _showTestPanel = false;
   bool _showDebugUI = true;
   int? _overrideRotation; // Override rotation for testing
+  int _cameraSwitchWaitMs = 5000; // iOS camera switch wait time in ms (1000/2000/5000)
 
   static const platform = MethodChannel('com.facepixel.app/faceDetection');
 
@@ -450,69 +451,73 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _switchCamera() async {
     if (_isSwitchingCamera || widget.cameras.length < 2) return;
 
-    print('🔄 Flutter: Camera switch requested');
+    print('🔄 Flutter: ===== CAMERA SWITCH START =====');
 
-    // Set this flag IMMEDIATELY to block new frame processing
     setState(() {
       _isSwitchingCamera = true;
       _detectedFaces = [];
     });
 
     try {
-      print('🔄 Flutter: Blocking new frame processing');
-
-      // CRITICAL: Stop image stream FIRST
-      // This prevents new frames from being queued
+      // Step 1: Stop image stream immediately
       if (_controller.value.isStreamingImages) {
-        print('🔄 Flutter: Stopping image stream');
+        print('🔄 Step 1: Stopping image stream...');
         try {
           await _controller.stopImageStream();
-          print('✅ Flutter: Image stream stopped');
+          print('✅ Step 1: Image stream stopped');
         } catch (e) {
-          print('⚠️ Flutter: Error stopping stream: $e');
+          print('⚠️ Step 1 Error: $e');
         }
       }
 
-      // Wait for any in-flight frame processing to complete
-      print('🔄 Flutter: Waiting for pending frame processing to complete...');
-      for (int i = 0; i < 150; i++) {
+      // Step 2: Wait for pending frames
+      print('🔄 Step 2: Waiting for frame processing (max 10s)...');
+      for (int i = 0; i < 200; i++) {
         if (!_isProcessing) break;
         await Future.delayed(const Duration(milliseconds: 50));
       }
-
       if (_isProcessing) {
-        print('⚠️ Flutter: Frame processing still active after 7.5s, forcing stop');
+        print('⚠️ Step 2: Forcing processing stop');
         _isProcessing = false;
       }
 
-      // CRITICAL: Dispose the old controller
-      // This must complete fully before creating a new one
-      print('🔄 Flutter: Disposing old camera controller');
+      // Step 3: Dispose controller
+      print('🔄 Step 3: Disposing controller...');
       try {
         await _controller.dispose();
-        print('✅ Flutter: Camera controller disposed');
+        print('✅ Step 3: Controller disposed');
       } catch (e) {
-        print('⚠️ Flutter: Error disposing controller: $e');
+        print('⚠️ Step 3 Error: $e');
       }
 
-      // CRITICAL: Long wait for iOS camera framework to fully release resources
-      // The AVCaptureSession and AVCaptureDevice need to be completely cleaned up
-      // Otherwise the new camera initialization fails with pixel format error
-      print('🔄 Flutter: Waiting for AVCapture resources to be released...');
-      await Future.delayed(const Duration(milliseconds: 2000));
+      // Step 4: Platform-specific wait for resource cleanup
+      if (Platform.isIOS) {
+        // iOS needs significant time to release AVCapture resources
+        print('🔄 Step 4: iOS resource cleanup wait (${_cameraSwitchWaitMs}ms)...');
+        int steps = _cameraSwitchWaitMs ~/ 100;
+        for (int i = 0; i < steps; i++) {
+          await Future.delayed(const Duration(milliseconds: 100));
+          if ((i + 1) % 5 == 0) {
+            print('  ...${(i + 1) * 100}ms');
+          }
+        }
+        print('✅ Step 4: iOS resource cleanup complete');
+      } else {
+        // Android doesn't need long wait
+        print('🔄 Step 4: Android - minimal wait (instant)');
+      }
 
-      // Switch to next camera
+      // Step 5: Switch camera index
       _currentCameraIndex = (_currentCameraIndex + 1) % widget.cameras.length;
-      print('🔄 Flutter: Switched camera index to $_currentCameraIndex');
+      print('🔄 Step 5: Switched to camera $_currentCameraIndex');
 
-      // Reinitialize with new camera
-      print('🔄 Flutter: Initializing new camera');
+      // Step 6: Initialize new camera
+      print('🔄 Step 6: Initializing new camera controller...');
       await _initializeCamera();
 
-      print('✅ Flutter: Camera switch complete');
+      print('✅ Flutter: ===== CAMERA SWITCH SUCCESS =====');
     } catch (e) {
-      print('❌ Flutter: CRASH during camera switch: $e');
-      print('❌ Flutter: Stack trace: ${StackTrace.current}');
+      print('❌ CRASH: $e');
       setState(() {
         _debugMessage = "Switch failed: $e";
         _isSwitchingCamera = false;
@@ -1053,6 +1058,102 @@ class _MyHomePageState extends State<MyHomePage> {
                               ),
                             ),
                           ),
+                          const SizedBox(height: 12),
+                          // iOS camera switch wait time controls
+                          if (Platform.isIOS)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '📱 iOS Camera Switch Wait:',
+                                  style: const TextStyle(
+                                    color: Colors.cyan,
+                                    fontFamily: 'monospace',
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Wrap(
+                                  spacing: 6,
+                                  runSpacing: 6,
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          _cameraSwitchWaitMs = 1000;
+                                        });
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: _cameraSwitchWaitMs ==
+                                                1000
+                                            ? Colors.cyan
+                                            : Colors.grey[700],
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        '1s',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          _cameraSwitchWaitMs = 2000;
+                                        });
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: _cameraSwitchWaitMs ==
+                                                2000
+                                            ? Colors.cyan
+                                            : Colors.grey[700],
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        '2s',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          _cameraSwitchWaitMs = 5000;
+                                        });
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: _cameraSwitchWaitMs ==
+                                                5000
+                                            ? Colors.cyan
+                                            : Colors.grey[700],
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        '5s',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                         ],
                       ),
                     ),
