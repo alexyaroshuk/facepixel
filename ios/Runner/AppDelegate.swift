@@ -125,8 +125,52 @@ import AVFoundation
 
       NSLog("✅ processFrame: CVPixelBuffer created")
 
-      // Create VisionImage directly from CVPixelBuffer (simpler approach)
-      let visionImage = VisionImage(buffer: buffer)
+      // Create CMVideoFormatDescription from CVPixelBuffer
+      var formatDesc: CMVideoFormatDescription?
+      let formatStatus = CMVideoFormatDescriptionCreateForImageBuffer(
+        allocator: kCFAllocatorDefault,
+        imageBuffer: buffer,
+        formatDescriptionOut: &formatDesc
+      )
+
+      guard formatStatus == noErr, let formatDescription = formatDesc else {
+        NSLog("❌ processFrame: Failed to create CMVideoFormatDescription, status: \(formatStatus)")
+        DispatchQueue.main.async {
+          result(["success": false])
+        }
+        return
+      }
+
+      NSLog("✅ processFrame: CMVideoFormatDescription created")
+
+      // Create CMSampleBuffer from CVPixelBuffer
+      var sampleBuffer: CMSampleBuffer?
+      var timingInfo = CMSampleTimingInfo(
+        duration: CMTime(value: 1, timescale: 30),
+        presentationTimeStamp: CMTime.zero,
+        decodeTimeStamp: CMTime.invalid
+      )
+
+      let sampleStatus = CMSampleBufferCreateReadyWithImageBuffer(
+        allocator: kCFAllocatorDefault,
+        imageBuffer: buffer,
+        formatDescription: formatDescription,
+        sampleTiming: &timingInfo,
+        sampleBufferOut: &sampleBuffer
+      )
+
+      guard sampleStatus == noErr, let smplBuffer = sampleBuffer else {
+        NSLog("❌ processFrame: Failed to create CMSampleBuffer, status: \(sampleStatus)")
+        DispatchQueue.main.async {
+          result(["success": false])
+        }
+        return
+      }
+
+      NSLog("✅ processFrame: CMSampleBuffer created")
+
+      // Create VisionImage from CMSampleBuffer
+      let visionImage = VisionImage(buffer: smplBuffer)
       visionImage.orientation = self?.getImageOrientation(from: rotation) ?? .up
 
       NSLog("✅ processFrame: VisionImage created with orientation \(rotation)°")
