@@ -89,13 +89,34 @@ import AVFoundation
     DispatchQueue.global(qos: .userInitiated).async { [weak self] in
       NSLog("📷 processFrame: Running on background thread")
 
-      // iOS uses BGRA8888 format (4 bytes per pixel)
-      let bytesPerPixel = 4
-      let bytesPerRow = width * bytesPerPixel
+      // Auto-detect pixel format based on data size
+      // BGRA8888: 4 bytes per pixel
+      // YUV420: ~1.5 bytes per pixel (Y plane + UV planes)
+      let expectedBGRASize = width * height * 4
+      let expectedYUVSize = width * height * 3 / 2
 
-      NSLog("📷 processFrame: bytesPerRow=\(bytesPerRow), expected data size=\(bytesPerRow * height)")
+      let pixelFormat: OSType
+      let bytesPerRow: Int
 
-      // Create CVPixelBuffer from BGRA data
+      if imageData.count == expectedBGRASize {
+        NSLog("📷 processFrame: Detected BGRA8888 format")
+        pixelFormat = kCVPixelFormatType_32BGRA
+        bytesPerRow = width * 4
+      } else if imageData.count >= expectedYUVSize && imageData.count <= expectedYUVSize + 100 {
+        NSLog("📷 processFrame: Detected YUV420 format")
+        pixelFormat = kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
+        bytesPerRow = width
+      } else {
+        NSLog("❌ processFrame: Unknown format, data size: \(imageData.count), expected BGRA: \(expectedBGRASize), YUV: \(expectedYUVSize)")
+        DispatchQueue.main.async {
+          result(["success": false])
+        }
+        return
+      }
+
+      NSLog("📷 processFrame: Using format \(pixelFormat), bytesPerRow=\(bytesPerRow)")
+
+      // Create CVPixelBuffer
       var pixelBuffer: CVPixelBuffer?
       let options: [String: Any] = [
         kCVPixelBufferCGImageCompatibilityKey as String: true,
@@ -106,7 +127,7 @@ import AVFoundation
         kCFAllocatorDefault,
         width,
         height,
-        kCVPixelFormatType_32BGRA,  // BGRA8888 format for iOS
+        pixelFormat,
         UnsafeMutableRawPointer(mutating: (imageData as NSData).bytes),
         bytesPerRow,
         nil,

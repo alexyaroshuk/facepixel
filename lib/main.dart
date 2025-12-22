@@ -211,13 +211,16 @@ class _MyHomePageState extends State<MyHomePage> {
     print('📷 Flutter: _initializeCamera() START');
     try {
       print('📷 Flutter: Creating CameraController with ResolutionPreset.max');
+
+      // On iOS, let the camera choose the format to avoid compatibility issues
+      // Different cameras support different formats (front vs back camera)
       _controller = CameraController(
         widget.cameras[_currentCameraIndex],
         ResolutionPreset.max,
         enableAudio: false,
         imageFormatGroup: Platform.isAndroid
             ? ImageFormatGroup.nv21
-            : ImageFormatGroup.bgra8888,
+            : null, // Let iOS choose the best format
       );
 
       print('📷 Flutter: Calling _controller.initialize()');
