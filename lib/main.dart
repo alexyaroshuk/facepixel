@@ -361,6 +361,11 @@ class _MyHomePageState extends State<MyHomePage> {
       _detectedFaces = [];
     });
 
+    // Stop image stream first
+    if (_controller.value.isStreamingImages) {
+      await _controller.stopImageStream();
+    }
+
     // Dispose current controller
     await _controller.dispose();
 
@@ -473,7 +478,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_controller.value.isInitialized) {
+    if (!_controller.value.isInitialized || _isSwitchingCamera) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
