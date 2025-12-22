@@ -212,16 +212,22 @@ class _MyHomePageState extends State<MyHomePage> {
     try {
       print('📷 Flutter: Creating CameraController with ResolutionPreset.max');
 
-      // Use YUV420 format on iOS (supported by both front and back cameras)
-      // BGRA8888 is not universally supported across all iOS cameras
-      _controller = CameraController(
-        widget.cameras[_currentCameraIndex],
-        ResolutionPreset.max,
-        enableAudio: false,
-        imageFormatGroup: Platform.isAndroid
-            ? ImageFormatGroup.nv21
-            : ImageFormatGroup.yuv420, // YUV420 works on both iOS cameras
-      );
+      // On Android, use NV21 format
+      // On iOS, DON'T specify imageFormatGroup to avoid format conflicts
+      // Different iOS cameras support different formats, let AVFoundation choose
+      _controller = Platform.isAndroid
+          ? CameraController(
+              widget.cameras[_currentCameraIndex],
+              ResolutionPreset.max,
+              enableAudio: false,
+              imageFormatGroup: ImageFormatGroup.nv21,
+            )
+          : CameraController(
+              widget.cameras[_currentCameraIndex],
+              ResolutionPreset.max,
+              enableAudio: false,
+              // imageFormatGroup NOT specified for iOS
+            );
 
       print('📷 Flutter: Calling _controller.initialize()');
       await _controller.initialize();
