@@ -28,6 +28,8 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
   bool _showDebugUI = true;
   bool _showRedBorder = true;
   bool _showTealBorder = true;
+  bool _blurEnabled = false;
+  int _blurLevel = 10;
 
   @override
   void initState() {
@@ -74,6 +76,30 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
         return video;
       },
     );
+  }
+
+  /// Apply CSS blur filter to video element
+  void _applyVideoBlur() {
+    try {
+      final video = html.document.getElementById('webcam');
+      if (video != null) {
+        if (_blurEnabled) {
+          // Apply blur filter to video
+          final blurAmount = (_blurLevel / 10).clamp(1, 20);
+          video.style.filter = 'blur(${blurAmount}px)';
+          // ignore: avoid_print
+          print('🌐 Web: Applied blur filter to video: ${blurAmount}px');
+        } else {
+          // Remove blur filter
+          video.style.filter = 'none';
+          // ignore: avoid_print
+          print('🌐 Web: Removed blur filter from video');
+        }
+      }
+    } catch (e) {
+      // ignore: avoid_print
+      print('🌐 Web: Error applying blur filter: $e');
+    }
   }
 
   void _startFaceDetection() {
@@ -139,6 +165,7 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
     });
   }
 
+
   /// Calculate canvas offset to center fixed-size canvas in available space
   Offset _calculateCanvasOffset(Size screenSize) {
     final offsetX = (screenSize.width - _canvasWidth) / 2;
@@ -154,6 +181,20 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
         backgroundColor: Colors.grey[700],
         foregroundColor: Colors.white,
         actions: [
+          // Blur toggle
+          IconButton(
+            icon: Icon(
+              _blurEnabled ? Icons.blur_on : Icons.blur_off,
+              color: _blurEnabled ? Colors.cyan : Colors.grey,
+            ),
+            onPressed: () {
+              setState(() {
+                _blurEnabled = !_blurEnabled;
+              });
+              _applyVideoBlur();
+            },
+            tooltip: 'Toggle Blur',
+          ),
           // Debug UI toggle
           IconButton(
             icon: Icon(_showDebugUI ? Icons.info : Icons.info_outline),
@@ -248,6 +289,7 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                       ),
                     );
                   }),
+
 
                 // Debug overlay
                 if (_showDebugUI)
@@ -347,6 +389,85 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                             ),
                           ],
                         ),
+                      ),
+                    ),
+                  ),
+
+                // Blur level slider control
+                if (_blurEnabled)
+                  Positioned(
+                    bottom: 16,
+                    left: 16,
+                    right: 16,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black87,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.blur_on, color: Colors.cyan),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'Blur Strength',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const Spacer(),
+                              Text(
+                                _blurLevel.toString(),
+                                style: const TextStyle(
+                                  color: Colors.cyan,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Slider(
+                            value: _blurLevel.toDouble(),
+                            min: 1,
+                            max: 100,
+                            divisions: 99,
+                            label: _blurLevel.toString(),
+                            activeColor: Colors.cyan,
+                            inactiveColor: Colors.grey[700],
+                            onChanged: (value) {
+                              setState(() {
+                                _blurLevel = value.toInt();
+                              });
+                              _applyVideoBlur();
+                            },
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: const [
+                                Text(
+                                  'Subtle (1)',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                                Text(
+                                  'Strong (100)',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

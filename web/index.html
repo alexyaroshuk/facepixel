@@ -45,6 +45,13 @@
       -webkit-transform: rotateY(180deg);
       -moz-transform: rotateY(180deg);
     }
+    #pixelationCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 1000;
+    }
     canvas { display: none; }
   </style>
 </head>
@@ -53,6 +60,9 @@
   <div id="videoContainer">
     <video id="webcam" autoplay playsinline></video>
   </div>
+
+  <!-- Canvas for pixelation overlay -->
+  <canvas id="pixelationCanvas"></canvas>
 
   <!-- Face detection handler script (NEW API) -->
   <script src="face_detection.js"></script>

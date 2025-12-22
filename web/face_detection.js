@@ -13,6 +13,13 @@ let onFacesDetectedCallback = null;
 let lastVideoTime = -1;
 let frameCounter = 0;
 
+// Pixelation state
+let pixelationCanvas = null;
+let pixelationCtx = null;
+let detectedFaces = [];
+let pixelationEnabled = false;
+let pixelationLevel = 10;
+
 console.log('[FaceDetection] Script loaded. Loading MediaPipe library as ES module...');
 
 /**
@@ -307,6 +314,151 @@ function updateCanvasDimensions(width, height) {
 }
 
 /**
+ * Initialize pixelation canvas overlay
+ */
+function initializePixelationCanvas() {
+  console.log('[FaceDetection] Initializing pixelation canvas...');
+
+  pixelationCanvas = document.getElementById('pixelationCanvas');
+  if (!pixelationCanvas) {
+    console.error('[FaceDetection] Pixelation canvas not found!');
+    return;
+  }
+
+  pixelationCtx = pixelationCanvas.getContext('2d');
+
+  // Set canvas size to match window
+  function resizeCanvas() {
+    pixelationCanvas.width = window.innerWidth;
+    pixelationCanvas.height = window.innerHeight;
+  }
+
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  console.log('[FaceDetection] Pixelation canvas initialized');
+}
+
+/**
+ * Apply pixelation to a region of the canvas using video frame data
+ */
+function pixelateRegion(x, y, width, height, pixelSize) {
+  if (!pixelationCtx || !videoElement || pixelSize <= 0) {
+    return;
+  }
+
+  try {
+    // Draw the entire video to a temporary canvas first
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = videoElement.videoWidth;
+    tempCanvas.height = videoElement.videoHeight;
+    const tempCtx = tempCanvas.getContext('2d');
+
+    // Draw video with horizontal flip (same as CSS transform)
+    tempCtx.scale(-1, 1);
+    tempCtx.translate(-tempCanvas.width, 0);
+    tempCtx.drawImage(videoElement, 0, 0);
+
+    // Get pixel data from the region
+    const imageData = tempCtx.getImageData(
+      Math.max(0, x),
+      Math.max(0, y),
+      Math.min(width, tempCanvas.width - x),
+      Math.min(height, tempCanvas.height - y)
+    );
+
+    const data = imageData.data;
+
+    // Pixelate by averaging pixel blocks
+    const blockSize = Math.ceil(pixelSize);
+    for (let i = 0; i < blockSize * blockSize && i * 4 < data.length; i++) {
+      const blockX = (i % blockSize) * 4;
+      const blockY = Math.floor(i / blockSize) * 4;
+      const pixelIndex = blockY * (width * 4) + blockX;
+
+      if (pixelIndex + 3 < data.length) {
+        const avgR = (data[pixelIndex] + data[pixelIndex + 4] + data[pixelIndex + (width * 4)] + data[pixelIndex + (width * 4) + 4]) / 4;
+        const avgG = (data[pixelIndex + 1] + data[pixelIndex + 5] + data[pixelIndex + (width * 4) + 1] + data[pixelIndex + (width * 4) + 5]) / 4;
+        const avgB = (data[pixelIndex + 2] + data[pixelIndex + 6] + data[pixelIndex + (width * 4) + 2] + data[pixelIndex + (width * 4) + 6]) / 4;
+
+        for (let j = 0; j < blockSize * 4; j++) {
+          if (pixelIndex + j < data.length) {
+            if (j % 4 === 0) data[pixelIndex + j] = avgR;
+            else if (j % 4 === 1) data[pixelIndex + j] = avgG;
+            else if (j % 4 === 2) data[pixelIndex + j] = avgB;
+          }
+        }
+      }
+    }
+
+    // Create a small canvas for the pixelated block
+    const blockCanvas = document.createElement('canvas');
+    blockCanvas.width = width;
+    blockCanvas.height = height;
+    const blockCtx = blockCanvas.getContext('2d');
+    blockCtx.putImageData(imageData, 0, 0);
+
+    // Scale and draw the pixelated block to the main canvas
+    // This creates the pixelation effect
+    pixelationCtx.save();
+    pixelationCtx.scale(pixelSize / blockSize, pixelSize / blockSize);
+    pixelationCtx.drawImage(blockCanvas, Math.floor(x / pixelSize) * pixelSize, Math.floor(y / pixelSize) * pixelSize);
+    pixelationCtx.restore();
+  } catch (error) {
+    console.error('[FaceDetection] Error in pixelateRegion:', error);
+  }
+}
+
+/**
+ * Update pixelation overlay based on detected faces
+ */
+function updatePixelationOverlay() {
+  if (!pixelationCtx || !pixelationEnabled || !videoElement) {
+    // Clear canvas if pixelation is disabled
+    if (pixelationCtx) {
+      pixelationCtx.clearRect(0, 0, pixelationCanvas.width, pixelationCanvas.height);
+    }
+    return;
+  }
+
+  // Clear the canvas
+  pixelationCtx.clearRect(0, 0, pixelationCanvas.width, pixelationCanvas.height);
+
+  // Calculate video display dimensions
+  const rect = videoElement.getBoundingClientRect();
+  const videoDisplayWidth = Math.round(rect.width);
+  const videoDisplayHeight = Math.round(rect.height);
+
+  // Calculate pixel size from level (1-100)
+  const pixelSize = Math.max(1, (pixelationLevel / 10) * 2);
+
+  // Apply pixelation to each detected face
+  for (const face of detectedFaces) {
+    const faceX = rect.left + face.x;
+    const faceY = rect.top + face.y;
+    const faceWidth = face.width;
+    const faceHeight = face.height;
+
+    pixelateRegion(
+      Math.round(faceX),
+      Math.round(faceY),
+      Math.round(faceWidth),
+      Math.round(faceHeight),
+      pixelSize
+    );
+  }
+}
+
+/**
+ * Set pixelation settings from Flutter
+ */
+window.setPixelationSettings = function(enabled, level) {
+  console.log('[FaceDetection] Setting pixelation:', enabled, 'level:', level);
+  pixelationEnabled = enabled;
+  pixelationLevel = Math.max(1, Math.min(100, level));
+};
+
+/**
  * Main initialization sequence
  * This is called from Dart when the app is ready
  */
@@ -314,6 +466,10 @@ async function startApp() {
   console.log('[FaceDetection] ===== STARTUP SEQUENCE =====');
 
   try {
+    // Step 0: Initialize pixelation canvas
+    console.log('[FaceDetection] Step 0: Initializing pixelation canvas...');
+    initializePixelationCanvas();
+
     // Step 1: Initialize MediaPipe
     console.log('[FaceDetection] Step 1: Initializing MediaPipe...');
     const initSuccess = await initializeFaceDetection();
@@ -325,9 +481,15 @@ async function startApp() {
     console.log('[FaceDetection] Step 2: Initializing camera...');
     await initializeCamera();
 
-    // Step 3: Set up callback to dispatch events
+    // Step 3: Set up callback to dispatch events and update pixelation
     console.log('[FaceDetection] Step 3: Setting up callback...');
     onFacesDetectedCallback = (faces) => {
+      // Store faces for pixelation overlay
+      detectedFaces = faces;
+
+      // Update pixelation overlay
+      updatePixelationOverlay();
+
       console.log('[FaceDetection] Dispatching facesDetected event with', faces.length, 'faces');
       const event = new CustomEvent('facesDetected', {
         detail: { faces: faces }

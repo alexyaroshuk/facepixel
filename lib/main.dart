@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 import 'dart:async' show TimeoutException;
+import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -118,6 +119,10 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _showTestPanel = false;
   bool _showDebugUI = true;
   int? _overrideRotation; // Override rotation for testing
+
+  // Pixelation settings
+  bool _pixelationEnabled = false;
+  int _pixelationLevel = 10; // 1-100, lower = more pixels (more privacy)
 
   static const platform = MethodChannel('com.facepixel.app/faceDetection');
 
@@ -607,6 +612,19 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Colors.grey[700],
         foregroundColor: Colors.white,
         actions: [
+          // Pixelation toggle
+          IconButton(
+            icon: Icon(
+              _pixelationEnabled ? Icons.blur_on : Icons.blur_off,
+              color: _pixelationEnabled ? Colors.cyan : Colors.grey,
+            ),
+            onPressed: () {
+              setState(() {
+                _pixelationEnabled = !_pixelationEnabled;
+              });
+            },
+            tooltip: 'Toggle Pixelation',
+          ),
           // Debug UI toggle
           IconButton(
             icon: Icon(_showDebugUI ? Icons.info : Icons.info_outline),
@@ -743,6 +761,37 @@ class _MyHomePageState extends State<MyHomePage> {
                       child: Container(
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.green, width: 2),
+                        ),
+                      ),
+                    );
+                  }),
+
+                // Backdrop blur overlay for detected faces
+                if (_pixelationEnabled &&
+                    _detectedFaces.isNotEmpty &&
+                    _detectionCanvasSize != Size.zero)
+                  ..._detectedFaces.map((face) {
+                    final box = _transformFaceCoordinates(face);
+                    // Calculate blur sigma from blur level (1-100)
+                    // Level 1 = minimal blur, Level 100 = heavy blur
+                    final blurSigma = (_pixelationLevel / 2).toDouble();
+
+                    return Positioned(
+                      left: _detectionCanvasOffset.dx + box.left,
+                      top: _detectionCanvasOffset.dy + box.top,
+                      width: box.width,
+                      height: box.height,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(box.width * 0.15),
+                        child: BackdropFilter(
+                          filter: ui.ImageFilter.blur(
+                            sigmaX: blurSigma,
+                            sigmaY: blurSigma,
+                          ),
+                          child: Container(
+                            // Transparent container to apply the blur
+                            color: Colors.transparent,
+                          ),
                         ),
                       ),
                     );
@@ -1037,6 +1086,84 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                     ),
                   ),
+
+                // Blur level slider control
+                if (_pixelationEnabled)
+                  Positioned(
+                    bottom: 16,
+                    left: 16,
+                    right: 16,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black87,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.blur_on, color: Colors.cyan),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'Blur Strength',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const Spacer(),
+                              Text(
+                                _pixelationLevel.toString(),
+                                style: const TextStyle(
+                                  color: Colors.cyan,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Slider(
+                            value: _pixelationLevel.toDouble(),
+                            min: 1,
+                            max: 100,
+                            divisions: 99,
+                            label: _pixelationLevel.toString(),
+                            activeColor: Colors.cyan,
+                            inactiveColor: Colors.grey[700],
+                            onChanged: (value) {
+                              setState(() {
+                                _pixelationLevel = value.toInt();
+                              });
+                            },
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: const [
+                                Text(
+                                  'Subtle (1)',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                                Text(
+                                  'Strong (100)',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
               ],
             ),
           );
@@ -1074,3 +1201,4 @@ class FaceBox {
     required this.height,
   });
 }
+
