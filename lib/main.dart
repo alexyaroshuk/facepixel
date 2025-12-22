@@ -155,17 +155,21 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   /// Calculate video dimensions while preserving aspect ratio
-  /// Frame dimensions from camera are already in correct display orientation
+  /// Uses camera output dimensions from controller's preview size
   /// Fits video within available screen space with letterboxing/pillarboxing
   Size _calculateVideoDimensions(Size screenSpace) {
-    if (_imageSize.width <= 0 || _imageSize.height <= 0) {
+    // Get camera preview size - this is the actual camera output dimensions
+    var previewSize = _controller.value.previewSize;
+    if (previewSize == null || previewSize.width <= 0 || previewSize.height <= 0) {
       return screenSpace;
     }
 
-    // IMPORTANT: Frame dimensions from camera.startImageStream() are already
-    // in the correct orientation for display - do NOT swap them based on rotation.
-    // Rotation is only needed for ML Kit face detection coordinates, not display.
-    final videoAspectRatio = _imageSize.width / _imageSize.height;
+    // For portrait mode display: if preview is landscape (width > height), swap dimensions
+    if (previewSize.width > previewSize.height) {
+      previewSize = Size(previewSize.height, previewSize.width);
+    }
+
+    final videoAspectRatio = previewSize.width / previewSize.height;
     final screenAspectRatio = screenSpace.width / screenSpace.height;
 
     late double videoWidth;
@@ -777,7 +781,15 @@ class _MyHomePageState extends State<MyHomePage> {
                               ),
                             ),
                             Text(
-                              'Camera frame: ${_imageSize.width.toInt()}x${_imageSize.height.toInt()}',
+                              'Preview size: ${(_controller.value.previewSize?.width.toInt() ?? 0)}x${(_controller.value.previewSize?.height.toInt() ?? 0)}',
+                              style: const TextStyle(
+                                color: Colors.lightGreen,
+                                fontFamily: 'monospace',
+                                fontSize: 11,
+                              ),
+                            ),
+                            Text(
+                              'Frame data: ${_imageSize.width.toInt()}x${_imageSize.height.toInt()}',
                               style: const TextStyle(
                                 color: Colors.yellow,
                                 fontFamily: 'monospace',
