@@ -269,17 +269,26 @@ class _MyHomePageState extends State<MyHomePage> {
           imageFormatGroup: ImageFormatGroup.nv21,
         );
       } else {
-        // iOS: DON'T specify imageFormatGroup - let camera plugin choose default
-        // This avoids "Unsupported pixel format type" errors on camera switch
+        // iOS: Explicitly request BGRA8888 which is supported by both
+        // front and back cameras. Using other pixel formats can cause
+        // AVCaptureVideoDataOutput.setVideoSettings to throw
+        // "Unsupported pixel format type - use -availableVideoCVPixelFormatTypes"
+        // when switching cameras.
         _controller = CameraController(
           widget.cameras[_currentCameraIndex],
           ResolutionPreset.max,
           enableAudio: false,
+          imageFormatGroup: ImageFormatGroup.bgra8888,
         );
       }
 
       print('📷 Flutter: Calling _controller.initialize()');
-      await _controller.initialize();
+      await _controller.initialize().timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw TimeoutException('Camera initialization timed out', null);
+        },
+      );
       print('✅ Flutter: Camera controller initialized');
 
       if (!mounted) {
@@ -299,9 +308,14 @@ class _MyHomePageState extends State<MyHomePage> {
       }
 
       print('📷 Flutter: Starting image stream');
-      _controller.startImageStream((image) {
+      await _controller.startImageStream((image) {
         Future.microtask(() => _processFrame(image));
-      });
+      }).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw TimeoutException('Image stream startup timed out', null);
+        },
+      );
       print('✅ Flutter: Image stream started');
 
       setState(() {
@@ -310,12 +324,18 @@ class _MyHomePageState extends State<MyHomePage> {
     } catch (e) {
       print('❌ Flutter: Camera error: $e');
 
-      // iOS: Retry with longer delay if we get pixel format error
+      // iOS: Retry with longer delay if we get pixel format error or timeout
       if (Platform.isIOS &&
-          e.toString().contains('Unsupported pixel format') &&
-          retryCount < 2) {
-        print('🔄 iOS: Retrying initialization after pixel format error (retry ${retryCount + 1}/2)');
-        await Future.delayed(Duration(milliseconds: 300 * (retryCount + 2)));
+          (e.toString().contains('Unsupported pixel format') ||
+           e.toString().contains('timed out')) &&
+          retryCount < 3) {
+        final delayMs = switch(retryCount) {
+          0 => 1500,  // 1.5 seconds on first retry
+          1 => 2500,  // 2.5 seconds on second retry
+          _ => 3500,  // 3.5 seconds on third retry
+        };
+        print('🔄 iOS: Retrying initialization (retry ${retryCount + 1}/3, delay: ${delayMs}ms)');
+        await Future.delayed(Duration(milliseconds: delayMs));
         await _initializeCamera(retryCount: retryCount + 1);
         return;
       }
@@ -500,20 +520,32 @@ class _MyHomePageState extends State<MyHomePage> {
         print('⚠️ Step 3 Error: $e');
       }
 
-      // Step 3.5: Wait for AVCapture resources to be fully released (iOS fix)
-      // This prevents "Unsupported pixel format type" errors when switching cameras
-      // because different cameras may support different pixel formats
+      // Step 3.5: Force native cleanup via method channel
       if (Platform.isIOS) {
-        print('🔄 Step 3.5: Waiting for AVCapture cleanup (iOS)...');
-        await Future.delayed(const Duration(milliseconds: 500));
-        print('✅ Step 3.5: AVCapture resources released');
+        print('🔄 Step 3.5: Calling native cleanup...');
+        try {
+          // Try to call a cleanup method on native side to reset camera session
+          await platform.invokeMethod('cleanupCamera');
+          print('✅ Step 3.5: Native cleanup completed');
+        } catch (e) {
+          // If method doesn't exist, continue anyway
+          print('⚠️ Step 3.5: Native cleanup not available: $e');
+        }
+      }
+
+      // Step 3.6: Wait for AVCapture resources to be fully released (iOS fix)
+      // This prevents "Unsupported pixel format type" errors when switching cameras.
+      if (Platform.isIOS) {
+        print('🔄 Step 3.6: Waiting for AVCapture cleanup (iOS)...');
+        await Future.delayed(const Duration(milliseconds: 1500));
+        print('✅ Step 3.6: AVCapture resources released');
       }
 
       // Step 4: Switch camera index
       _currentCameraIndex = (_currentCameraIndex + 1) % widget.cameras.length;
       print('🔄 Step 4: Switched to camera $_currentCameraIndex');
 
-      // Step 5: Initialize new camera
+      // Step 5: Initialize new camera with extended retry attempts
       print('🔄 Step 5: Initializing new camera controller...');
       await _initializeCamera();
 

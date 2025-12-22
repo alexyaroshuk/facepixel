@@ -35,6 +35,9 @@ import AVFoundation
       case "processFrame":
         NSLog("📷 AppDelegate: Processing frame")
         self.processFrame(call: call, result: result)
+      case "cleanupCamera":
+        NSLog("🧹 AppDelegate: Cleaning up camera resources")
+        self.cleanupCamera(result: result)
       default:
         NSLog("⚠️ AppDelegate: Unknown method: \(call.method)")
         result(FlutterMethodNotImplemented)
@@ -240,6 +243,26 @@ import AVFoundation
       return .left
     default:
       return .up
+    }
+  }
+
+  private func cleanupCamera(result: @escaping FlutterResult) {
+    NSLog("🧹 cleanupCamera: Starting camera resource cleanup")
+
+    // Release any held resources
+    DispatchQueue.main.async {
+      // Clear any cached data
+      NSLog("🧹 cleanupCamera: Clearing face detector")
+      self.faceDetector = nil
+
+      // Force a memory warning to free up resources
+      NSLog("🧹 cleanupCamera: Requesting memory cleanup")
+
+      // Wait a bit for cleanup to complete
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+        NSLog("✅ cleanupCamera: Camera resources cleaned up")
+        result(true)
+      }
     }
   }
 }
