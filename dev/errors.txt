@@ -1,17 +1,45 @@
-Launching lib\main.dart on Windows in debug mode...
-√ Built build\windows\x64\runner\Debug\flutter_application_1.exe
-Connecting to VM Service at ws://127.0.0.1:62806/9MwWPKt8zMU=/ws
-Connected to the VM Service.
-[ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: MissingPluginException(No implementation found for method availableCameras on channel plugins.flutter.io/camera)
-#0      MethodChannel._invokeMethod (package:flutter/src/services/platform_channel.dart:365:7)
-platform_channel.dart:365
-<asynchronous suspension>
-#1      MethodChannel.invokeListMethod (package:flutter/src/services/platform_channel.dart:553:35)
-platform_channel.dart:553
-<asynchronous suspension>
-#2      MethodChannelCamera.availableCameras (package:camera_platform_interface/src/method_channel/method_channel_camera.dart:68:52)
-method_channel_camera.dart:68
-<asynchronous suspension>
-#3      main (package:flutter_application_1/main.dart:9:19)
-main.dart:9
-<asynchronous suspension>
+Dec 21 22:02:33 iPhone-v2 backboardd(QuartzCore)[72] <Notice>: Display 1 swap brightness: 331.374, limit: 331.374, indicator brightness: 334.17, ambient lux: nan, low ambient strength: nan, high ambient strength: nan, contrast preservation: 1.0459, contrast enhancer: 0.00203622
+Dec 21 22:02:33 iPhone-v2 kernel(AppleH16ANEInterface)[0] <Notice>: ANE0: processISPEventReport: ISP-ANE: ProcStart. Event UUID: 0x3c0000001b ClientNetworkID: 27 HWTimestamp: 71130921453
+Dec 21 22:02:33 iPhone-v2 kernel(AppleH16ANEInterface)[0] <Notice>: ANE0: processISPEventReport: ISP-ANE: ProcEnd. Event UUID: 0x3c0000001b ClientNetworkID: 27 HWTimestamp: 71130934314
+Dec 21 22:02:33 iPhone-v2 kernel[0] <Error>: log,840EE882-AFE8-3A81-8467-0A983E9FA5BC,f6392e
+Dec 21 22:02:33 iPhone-v2 kernel[0] <Error>: log,840EE882-AFE8-3A81-8467-0A983E9FA5BC,f63915
+Dec 21 22:02:33 iPhone-v2 kernel[0] <Error>: log,840EE882-AFE8-3A81-8467-0A983E9FA5BC,f638e0
+Dec 21 22:02:33 iPhone-v2 kernel[0] <Error>: log,840EE882-AFE8-3A81-8467-0A983E9FA5BC,f638c9
+Dec 21 22:02:33 iPhone-v2 kernel[0] <Error>: log,840EE882-AFE8-3A81-8467-0A983E9FA5BC,f638ba
+Dec 21 22:02:33 iPhone-v2 kernel[0] <Error>: log,840EE882-AFE8-3A81-8467-0A983E9FA5BC,f63830
+Dec 21 22:02:33 iPhone-v2 kernel[0] <Error>: log,840EE882-AFE8-3A81-8467-0A983E9FA5BC,f63809
+Dec 21 22:02:33 iPhone-v2 kernel[0] <Error>: log,840EE882-AFE8-3A81-8467-0A983E9FA5BC,f6391e
+Dec 21 22:02:33 iPhone-v2 kernel[0] <Error>: log,840EE882-AFE8-3A81-8467-0A983E9FA5BC,f6390c
+Dec 21 22:02:33 iPhone-v2 kernel[0] <Error>: log,840EE882-AFE8-3A81-8467-0A983E9FA5BC,f6391e
+Dec 21 22:02:33 iPhone-v2 kernel[0] <Error>: log,840EE882-AFE8-3A81-8467-0A983E9FA5BC,f63903
+Dec 21 22:02:33 iPhone-v2 kernel[0] <Error>: log,840EE882-AFE8-3A81-8467-0A983E9FA5BC,f6391e
+Dec 21 22:02:33 iPhone-v2 kernel[0] <Error>: log,840EE882-AFE8-3A81-8467-0A983E9FA5BC,f638fa
+Dec 21 22:02:33 iPhone-v2 backboardd(libEDR)[72] <Notice>: ScheduleSetBrightnessIn_block_invoke: enter WaitUntil late 0.024459 millisecond (3477 / 3477)
+Dec 21 22:02:33 iPhone-v2 backboardd(CoreBrightness)[72] <Notice>: HDR | _edrState: Engaged, forceRamp: NO
+Dec 21 22:02:33 iPhone-v2 backboardd(CoreBrightness)[72] <Notice>: SyncDBV Transaction | ID=16172 | SDR.Nits=276.333 | Applied.Compensation=1.000 | Nits.Cap=850.000 | DynamicSlider.Cap=276.333 | Brightness.Limit=331.654 | Trusted.Lux=4.357 | HDR.Nits=331.654 | HDR.State=Engaged | Capped.Headroom.Current=1.200  | Aurora.Factor=1.000 | Aurora.RampInProgress=NO | RTPLC.State=None | RTPLC.Cap=1600.000 | RTPLC.CapApplied=NO | PeakAPCE.Cap=0.440 | IndicatorBrightness.Nits=342.123 | IndicatorBrightness.Cap=342.123 | Twilight.Strength=0.000 | Ammolite.Strength=0.000 | GCP.Strength=1.046 | ContrastEnhancer.Strength=0.002 |
+Dec 21 22:02:33 iPhone-v2 kernel[0] <Error>: log,D87FD124-7BAC-34B1-BA79-2D31190012B6,1951d10
+Dec 21 22:02:33 iPhone-v2 Runner(CoreFoundation)[1146] <Notice>: *** Terminating app due to uncaught exception 'MLKCannotCallOnMainThread', reason: 'This method must be called on a background thread.'
+*** First throw call stack:
+(0x18e1968c8 0x18b10d7c4 0x18e2218d4 0x104397d7c 0x104396a24 0x1042fcffc 0x1042fc480 0x1042fc4ec 0x105d7b9d4 0x105911860 0x1c5a8dadc 0x1c5aa77ec 0x1c5ac4b24 0x1c5a9cec8 0x1c5a9ce04 0x18e138520 0x18e0ead14 0x18e0e9c44 0x22d4c0498 0x193a64dcc 0x193a09b0c 0x193b45854 0x1042fd790 0x18b162e28)
+Dec 21 22:02:33 iPhone-v2 kernel[0] <Notice>: Runner[1146] Corpse allowed 1 of 5
+Dec 21 22:02:33 iPhone-v2 audiomxd(libxpc.dylib)[113] <Notice>: [0x700000811379f80] invalidated because the client process (pid 1146) either cancelled the connection or exited
+Dec 21 22:02:33 iPhone-v2 SpringBoard(libxpc.dylib)[259] <Notice>: [0x819f12e80] invalidated because the client process (pid 1146) either cancelled the connection or exited
+Dec 21 22:02:33 iPhone-v2 SpringBoard(BoardServices)[259] <Error>: [S:ad] Error received: Connection invalidated.
+Dec 21 22:02:33 iPhone-v2 SpringBoard(FrontBoard)[259] <Notice>: [app<com.facepixel.app.BYTTS5DWR6>:1146] Workspace connection invalidated.
+Dec 21 22:02:33 iPhone-v2 SpringBoard(FrontBoard)[259] <Notice>: [app<com.facepixel.app.BYTTS5DWR6>:1146] Now flagged as pending exit for reason: workspace client connection invalidated
+Dec 21 22:02:33 iPhone-v2 SpringBoard(libxpc.dylib)[259] <Notice>: [0x81842b600] invalidated because the client process (pid 1146) either cancelled the connection or exited
+Dec 21 22:02:33 iPhone-v2 audiomxd(libxpc.dylib)[113] <Notice>: [0xf00000811379b00] invalidated because the client process (pid 1146) either cancelled the connection or exited
+Dec 21 22:02:33 iPhone-v2 audiomxd(AudioSessionServer)[113] <Notice>: AVAudioSessionXPCServer.mm:634   Invalidated connection: <NSXPCConnection: 0xb00000811142760> connection from pid 1146 on mach service named com.apple.audio.AudioSession (0x700000810fa12c0)
+Dec 21 22:02:33 iPhone-v2 audiomxd(AudioSessionServer)[113] <Notice>:   ServerSessionManager.mm:476   { "action":"destroy_session", "session":{"ID":"0x710a1","name":"Runner(1146)","type":"Auxiliary"}, "details":null }
+Dec 21 22:02:33 iPhone-v2 audiomxd(AudioSessionServer)[113] <Notice>: AudioApplicationInfoImpl.mm:690   Successfully removed session 0x710a1 from AudioApp, input mute state unchanged (app: {"name":"[implicit] Runner","pid":1146})
+Dec 21 22:02:33 iPhone-v2 backboardd(IOKit)[72] <Notice>: Connection removed: IOHIDEventSystemConnection uuid:45EBE62E-9974-4A46-80AD-9EC483764FC4 pid:1146 process:Runner type:Passive entitlements:0x0 caller:BackBoardServices: <redacted> + 280 attributes:{
+    HighFrequency = 1;
+    bundleID = "com.facepixel.app.BYTTS5DWR6";
+    pid = 1146;
+} state:0x1 events:0 mask:0x0 dropped:0 dropStatus:0 droppedMask:0x0 lastDroppedTime:NONE
+Dec 21 22:02:33 iPhone-v2 SpringBoard(KeyboardArbiter)[259] <Notice>: com.facepixel.app.BYTTS5DWR6(1146) lostConnection (invalidation)
+Dec 21 22:02:33 iPhone-v2 audiomxd(AudioSessionServer)[113] <Notice>:   ServerSessionManager.mm:529   session 0x710a1 being removed has 0 siblings, 0 weakNodes, 0 strongNodes
+Dec 21 22:02:33 iPhone-v2 audiomxd(libxpc.dylib)[113] <Notice>: [0x400000811379e00] invalidated because the client process (pid 1146) either cancelled the connection or exited
+Dec 21 22:02:33 iPhone-v2 audiomxd(AudioSessionServer)[113] <Notice>:   ServerSessionManager.mm:437   RemoveSession summary: {
+    0x710a1 = "removed: 'auxi' (mxRef: 487)";
+}
