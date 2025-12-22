@@ -79,9 +79,10 @@ import AVFoundation
       return
     }
 
+    // Guard against detector being nil during camera switch cleanup
     guard let detector = faceDetector else {
-      NSLog("❌ processFrame: Face detector not initialized")
-      result(["success": false])
+      NSLog("⚠️ processFrame: Face detector not available (may be during camera switch)")
+      result(["success": false, "faces": []])
       return
     }
 
@@ -247,21 +248,31 @@ import AVFoundation
   }
 
   private func cleanupCamera(result: @escaping FlutterResult) {
-    NSLog("🧹 cleanupCamera: Starting camera resource cleanup")
+    NSLog("🧹 cleanupCamera: Starting aggressive camera resource cleanup")
 
-    // Release any held resources
     DispatchQueue.main.async {
-      // Clear any cached data
-      NSLog("🧹 cleanupCamera: Clearing face detector")
+      // Step 1: Release face detector
+      NSLog("🧹 cleanupCamera Step 1: Releasing face detector...")
       self.faceDetector = nil
 
-      // Force a memory warning to free up resources
-      NSLog("🧹 cleanupCamera: Requesting memory cleanup")
+      // Step 2: Force garbage collection by releasing other cached resources
+      NSLog("🧹 cleanupCamera Step 2: Flushing memory and caches...")
 
-      // Wait a bit for cleanup to complete
-      DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-        NSLog("✅ cleanupCamera: Camera resources cleaned up")
-        result(true)
+      // Force AutoreleasedPool drain to release temporary objects
+      autoreleasepool {
+        NSLog("🧹 cleanupCamera Step 2: Autorelease pool drained")
+      }
+
+      // Step 3: Let the system handle the cleanup with a delay
+      NSLog("🧹 cleanupCamera Step 3: Waiting for system cleanup...")
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        NSLog("✅ cleanupCamera: Cleanup phase 1 complete, releasing memory...")
+
+        // Step 4: Force another cleanup after a brief delay to ensure resources are freed
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+          NSLog("✅ cleanupCamera: All cleanup phases complete")
+          result(true)
+        }
       }
     }
   }

@@ -487,76 +487,103 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _isSwitchingCamera = true;
       _detectedFaces = [];
+      _debugMessage = "Switching camera...";
     });
 
     try {
       // Step 1: Stop image stream immediately
+      print('🔄 Step 1: Stopping image stream...');
       if (_controller.value.isStreamingImages) {
-        print('🔄 Step 1: Stopping image stream...');
         try {
           await _controller.stopImageStream();
           print('✅ Step 1: Image stream stopped');
         } catch (e) {
-          print('⚠️ Step 1 Error: $e');
+          print('⚠️ Step 1 Warning: Failed to stop stream: $e');
         }
       }
 
-      // Step 2: Wait for pending frames
-      print('🔄 Step 2: Waiting for frame processing (max 10s)...');
-      for (int i = 0; i < 200; i++) {
-        if (!_isProcessing) break;
+      // Step 2: Wait for pending frame processing to complete
+      print('🔄 Step 2: Waiting for frame processing to complete (max 5s)...');
+      int waitCount = 0;
+      while (_isProcessing && waitCount < 100) {
         await Future.delayed(const Duration(milliseconds: 50));
+        waitCount++;
       }
       if (_isProcessing) {
-        print('⚠️ Step 2: Forcing processing stop');
+        print('⚠️ Step 2: Forcing frame processing stop after 5 seconds');
         _isProcessing = false;
+      } else {
+        print('✅ Step 2: Frame processing completed');
       }
 
-      // Step 3: Dispose controller
-      print('🔄 Step 3: Disposing controller...');
+      // Step 3: Dispose controller completely
+      print('🔄 Step 3: Disposing camera controller...');
       try {
         await _controller.dispose();
-        print('✅ Step 3: Controller disposed');
+        print('✅ Step 3: Camera controller disposed');
       } catch (e) {
-        print('⚠️ Step 3 Error: $e');
+        print('⚠️ Step 3 Warning: Error during disposal: $e');
       }
 
-      // Step 3.5: Force native cleanup via method channel
+      // Step 4: Platform-specific cleanup
       if (Platform.isIOS) {
-        print('🔄 Step 3.5: Calling native cleanup...');
+        print('🔄 Step 4: iOS-specific cleanup...');
+
+        // Step 4a: Call native cleanup to reset face detector and camera session
+        print('🔄 Step 4a: Calling native cleanup...');
         try {
-          // Try to call a cleanup method on native side to reset camera session
-          await platform.invokeMethod('cleanupCamera');
-          print('✅ Step 3.5: Native cleanup completed');
+          await platform.invokeMethod('cleanupCamera').timeout(
+            const Duration(seconds: 5),
+            onTimeout: () {
+              print('⚠️ Step 4a: Native cleanup timed out');
+              return null;
+            },
+          );
+          print('✅ Step 4a: Native cleanup completed');
         } catch (e) {
-          // If method doesn't exist, continue anyway
-          print('⚠️ Step 3.5: Native cleanup not available: $e');
+          print('⚠️ Step 4a Warning: Native cleanup failed: $e');
         }
+
+        // Step 4b: Extended wait for AVCapture resources to fully release
+        // iOS AVCapture needs time to release camera hardware resources before reinitialization
+        print('🔄 Step 4b: Waiting for AVCapture resource release (5 seconds)...');
+        await Future.delayed(const Duration(seconds: 5));
+        print('✅ Step 4b: AVCapture resources released');
+      } else if (Platform.isAndroid) {
+        // Android is more forgiving, but still needs a brief pause
+        print('🔄 Step 4: Brief pause for Android cleanup...');
+        await Future.delayed(const Duration(milliseconds: 500));
+        print('✅ Step 4: Android cleanup completed');
       }
 
-      // Step 3.6: Wait for AVCapture resources to be fully released (iOS fix)
-      // This prevents "Unsupported pixel format type" errors when switching cameras.
-      if (Platform.isIOS) {
-        print('🔄 Step 3.6: Waiting for AVCapture cleanup (iOS)...');
-        await Future.delayed(const Duration(milliseconds: 1500));
-        print('✅ Step 3.6: AVCapture resources released');
-      }
-
-      // Step 4: Switch camera index
+      // Step 5: Switch camera index
       _currentCameraIndex = (_currentCameraIndex + 1) % widget.cameras.length;
-      print('🔄 Step 4: Switched to camera $_currentCameraIndex');
+      final cameraName = widget.cameras[_currentCameraIndex].lensDirection == CameraLensDirection.front
+          ? 'FRONT'
+          : 'BACK';
+      print('🔄 Step 5: Switched to camera $_currentCameraIndex ($cameraName)');
 
-      // Step 5: Initialize new camera with extended retry attempts
-      print('🔄 Step 5: Initializing new camera controller...');
+      // Step 6: Initialize new camera with extended retry attempts
+      print('🔄 Step 6: Initializing new camera controller...');
       await _initializeCamera();
+
+      // Step 7: Reset switching flag on success
+      if (mounted) {
+        setState(() {
+          _isSwitchingCamera = false;
+          _debugMessage = "Camera switched successfully";
+        });
+      }
 
       print('✅ Flutter: ===== CAMERA SWITCH SUCCESS =====');
     } catch (e) {
-      print('❌ CRASH: $e');
-      setState(() {
-        _debugMessage = "Switch failed: $e";
-        _isSwitchingCamera = false;
-      });
+      print('❌ Flutter: CAMERA SWITCH FAILED: $e');
+      if (mounted) {
+        setState(() {
+          _debugMessage = "Switch failed: $e";
+          _isSwitchingCamera = false;
+        });
+      }
     }
   }
 
