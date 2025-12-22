@@ -129,50 +129,38 @@ class _MyHomePageState extends State<MyHomePage> {
     // The key insight: ML Kit needs to know which direction is "up" in the frame
     // based on how the camera sensor is oriented relative to the device
 
-    // For most Android devices:
-    // - Back camera sensor orientation: 90° (landscape)
-    // - Front camera sensor orientation: 270° (landscape, but mirrored)
-
-    // The frame dimensions tell us the actual orientation:
-    // If frame is landscape (width > height): rotation should handle portrait display
-    // If frame is portrait (height > width): rotation should handle landscape display
-
     final isFrontCamera = widget.cameras[_currentCameraIndex].lensDirection == CameraLensDirection.front;
 
-    // For most devices, these sensor orientations work:
-    if (isFrontCamera) {
-      // Front cameras typically need 270° for proper face detection in portrait
-      return 270;
-    } else {
-      // Back cameras typically need 90° for proper face detection in portrait
+    // CRITICAL: iOS and Android have different sensor orientations!
+    if (Platform.isIOS) {
+      // iOS sensor orientations:
+      // - Front camera: 90° (needs to be rotated left to be upright)
+      // - Back camera: 90° (needs to be rotated left to be upright)
       return 90;
+    } else {
+      // Android sensor orientations:
+      // - Front camera: 270° (landscape, mirrored)
+      // - Back camera: 90° (landscape)
+      if (isFrontCamera) {
+        return 270;
+      } else {
+        return 90;
+      }
     }
   }
 
   /// Calculate video dimensions while preserving aspect ratio
-  /// Accounts for sensor rotation which may swap frame dimensions
+  /// Frame dimensions from camera are already in correct display orientation
   /// Fits video within available screen space with letterboxing/pillarboxing
   Size _calculateVideoDimensions(Size screenSpace) {
     if (_imageSize.width <= 0 || _imageSize.height <= 0) {
       return screenSpace;
     }
 
-    // Account for ML Kit rotation which affects effective dimensions
-    final rotation = _calculateMLKitRotation();
-    late double effectiveImageWidth;
-    late double effectiveImageHeight;
-
-    if (rotation == 90 || rotation == 270) {
-      // Sensor rotation swaps dimensions: frame comes in landscape but displays as portrait
-      effectiveImageWidth = _imageSize.height;
-      effectiveImageHeight = _imageSize.width;
-    } else {
-      // No swap for 0° or 180°
-      effectiveImageWidth = _imageSize.width;
-      effectiveImageHeight = _imageSize.height;
-    }
-
-    final videoAspectRatio = effectiveImageWidth / effectiveImageHeight;
+    // IMPORTANT: Frame dimensions from camera.startImageStream() are already
+    // in the correct orientation for display - do NOT swap them based on rotation.
+    // Rotation is only needed for ML Kit face detection coordinates, not display.
+    final videoAspectRatio = _imageSize.width / _imageSize.height;
     final screenAspectRatio = screenSpace.width / screenSpace.height;
 
     late double videoWidth;
@@ -441,21 +429,36 @@ class _MyHomePageState extends State<MyHomePage> {
     });
 
     try {
+      print('🔄 Flutter: Camera switch initiated');
+
       // Stop image stream first
       if (_controller.value.isStreamingImages) {
         print('🔄 Flutter: Stopping image stream...');
         await _controller.stopImageStream();
       }
 
-      // Wait a bit for pending frame processing to complete
-      await Future.delayed(const Duration(milliseconds: 200));
+      // Wait for any pending frame processing to complete
+      print('🔄 Flutter: Waiting for frame processing to complete...');
+      int waitCount = 0;
+      while (_isProcessing && waitCount < 50) {
+        // ignore: avoid_print
+        print('🔄 Flutter: Waiting for processing... (${waitCount++}/50)');
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
 
-      // Dispose current controller
+      if (_isProcessing) {
+        print('⚠️ Flutter: Frame processing still active after waiting, forcing stop');
+        _isProcessing = false;
+      }
+
+      // Dispose current controller - this takes time on iOS
       print('🔄 Flutter: Disposing camera controller...');
       await _controller.dispose();
+      print('✅ Flutter: Camera controller disposed');
 
-      // Wait for disposal to complete
-      await Future.delayed(const Duration(milliseconds: 200));
+      // iOS needs extra time for camera resources to fully release
+      print('🔄 Flutter: Waiting for iOS camera cleanup...');
+      await Future.delayed(const Duration(milliseconds: 500));
 
       // Switch to next camera
       _currentCameraIndex = (_currentCameraIndex + 1) % widget.cameras.length;
@@ -653,12 +656,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     decoration: _showRedBorder
                         ? BoxDecoration(border: Border.all(color: Colors.red, width: 5))
                         : null,
-                    child: _imageSize.width > 0 && _imageSize.height > 0
-                        ? AspectRatio(
-                            aspectRatio: _imageSize.width / _imageSize.height,
-                            child: CameraPreview(_controller),
-                          )
-                        : CameraPreview(_controller),
+                    child: CameraPreview(_controller),
                   ),
                 ),
 
