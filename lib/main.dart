@@ -254,8 +254,6 @@ class _MyHomePageState extends State<MyHomePage> {
       print('📷 Flutter: Creating CameraController with ResolutionPreset.max');
 
       // Platform-specific camera configuration
-      // CRITICAL: For iOS, use NV21 format which is widely supported on both front and back cameras
-      // This prevents "Unsupported pixel format type" errors when switching cameras
       if (kIsWeb) {
         _controller = CameraController(
           widget.cameras[_currentCameraIndex],
@@ -263,13 +261,20 @@ class _MyHomePageState extends State<MyHomePage> {
           enableAudio: false,
           imageFormatGroup: ImageFormatGroup.bgra8888,
         );
-      } else {
-        // Both Android and iOS use NV21 - it's the most compatible format
+      } else if (Platform.isAndroid) {
         _controller = CameraController(
           widget.cameras[_currentCameraIndex],
           ResolutionPreset.max,
           enableAudio: false,
           imageFormatGroup: ImageFormatGroup.nv21,
+        );
+      } else {
+        // iOS: DON'T specify imageFormatGroup - let camera plugin choose default
+        // This avoids "Unsupported pixel format type" errors on camera switch
+        _controller = CameraController(
+          widget.cameras[_currentCameraIndex],
+          ResolutionPreset.max,
+          enableAudio: false,
         );
       }
 
