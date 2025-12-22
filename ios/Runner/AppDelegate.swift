@@ -88,20 +88,30 @@ import AVFoundation
     // ML Kit requires background thread - dispatch async
     DispatchQueue.global(qos: .userInitiated).async { [weak self] in
       NSLog("📷 processFrame: Running on background thread")
-      // Create a copy of the data for CVPixelBuffer
-      let mutableData = NSMutableData(data: imageData)
+
+      // iOS uses BGRA8888 format (4 bytes per pixel)
+      let bytesPerPixel = 4
+      let bytesPerRow = width * bytesPerPixel
+
+      NSLog("📷 processFrame: bytesPerRow=\(bytesPerRow), expected data size=\(bytesPerRow * height)")
+
+      // Create CVPixelBuffer from BGRA data
       var pixelBuffer: CVPixelBuffer?
+      let options: [String: Any] = [
+        kCVPixelBufferCGImageCompatibilityKey as String: true,
+        kCVPixelBufferCGBitmapContextCompatibilityKey as String: true
+      ]
 
       let status = CVPixelBufferCreateWithBytes(
         kCFAllocatorDefault,
         width,
         height,
-        kCVPixelFormatType_420YpCbCr8BiPlanarFullRange,
-        mutableData.mutableBytes,
-        imageData.count,
+        kCVPixelFormatType_32BGRA,  // BGRA8888 format for iOS
+        UnsafeMutableRawPointer(mutating: (imageData as NSData).bytes),
+        bytesPerRow,
         nil,
         nil,
-        nil,
+        options as CFDictionary,
         &pixelBuffer
       )
 
@@ -115,54 +125,11 @@ import AVFoundation
 
       NSLog("✅ processFrame: CVPixelBuffer created")
 
-      // Create CMSampleBuffer from CVPixelBuffer
-      var formatDesc: CMVideoFormatDescription?
-      CMVideoFormatDescriptionCreateForImageBuffer(
-        allocator: kCFAllocatorDefault,
-        imageBuffer: buffer,
-        formatDescriptionOut: &formatDesc
-      )
-
-      guard let formatDescription = formatDesc else {
-        NSLog("❌ processFrame: Failed to create CMVideoFormatDescription")
-        DispatchQueue.main.async {
-          result(["success": false])
-        }
-        return
-      }
-
-      NSLog("✅ processFrame: CMVideoFormatDescription created")
-
-      var sampleBuffer: CMSampleBuffer?
-      var timingInfo = CMSampleTimingInfo(
-        duration: CMTime(value: 1, timescale: 30),
-        presentationTimeStamp: CMTime.zero,
-        decodeTimeStamp: CMTime.invalid
-      )
-
-      CMSampleBufferCreateReadyWithImageBuffer(
-        allocator: kCFAllocatorDefault,
-        imageBuffer: buffer,
-        formatDescription: formatDescription,
-        sampleTiming: &timingInfo,
-        sampleBufferOut: &sampleBuffer
-      )
-
-      guard let smplBuffer = sampleBuffer else {
-        NSLog("❌ processFrame: Failed to create CMSampleBuffer")
-        DispatchQueue.main.async {
-          result(["success": false])
-        }
-        return
-      }
-
-      NSLog("✅ processFrame: CMSampleBuffer created")
-
-      // Create VisionImage from CMSampleBuffer
-      let visionImage = VisionImage(buffer: smplBuffer)
+      // Create VisionImage directly from CVPixelBuffer (simpler approach)
+      let visionImage = VisionImage(buffer: buffer)
       visionImage.orientation = self?.getImageOrientation(from: rotation) ?? .up
 
-      NSLog("✅ processFrame: VisionImage created")
+      NSLog("✅ processFrame: VisionImage created with orientation \(rotation)°")
 
       // Detect faces (on background thread as required by ML Kit)
       do {
