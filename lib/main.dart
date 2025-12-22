@@ -5,9 +5,21 @@ import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
 
 void main() async {
+  print('🟢 Flutter: main() START');
   WidgetsFlutterBinding.ensureInitialized();
+  print('🟢 Flutter: WidgetsFlutterBinding ensured');
+
   final cameras = await availableCameras();
+  print('🟢 Flutter: Found ${cameras.length} cameras');
+  for (int i = 0; i < cameras.length; i++) {
+    final camera = cameras[i];
+    final lensDir = camera.lensDirection == CameraLensDirection.front ? 'FRONT' : 'BACK';
+    print('  - Camera $i: $lensDir');
+  }
+
+  print('🟢 Flutter: Calling runApp()');
   runApp(MyApp(cameras: cameras));
+  print('🟢 Flutter: runApp() returned');
 }
 
 class MyApp extends StatelessWidget {
@@ -152,6 +164,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    print('🔧 Flutter: _MyHomePageState.initState() START');
     // Start with front camera if available
     _currentCameraIndex = 0;
     final frontCameraIndex = widget.cameras.indexWhere(
@@ -159,20 +172,35 @@ class _MyHomePageState extends State<MyHomePage> {
     );
     if (frontCameraIndex != -1) {
       _currentCameraIndex = frontCameraIndex;
+      print('🔧 Flutter: Using front camera at index $frontCameraIndex');
+    } else {
+      print('🔧 Flutter: No front camera found, using camera at index 0');
     }
+    print('🔧 Flutter: Calling _initializeCamera()');
     _initializeCamera();
+    print('🔧 Flutter: Calling _initializeNativeFaceDetection()');
     _initializeNativeFaceDetection();
   }
 
   Future<void> _initializeNativeFaceDetection() async {
+    print('🚀 Flutter: _initializeNativeFaceDetection() START');
     try {
+      print('🚀 Flutter: Calling platform.invokeMethod(initializeFaceDetection)');
       final result = await platform.invokeMethod('initializeFaceDetection');
+      print('🚀 Flutter: Got result from initializeFaceDetection: $result');
       if (result) {
+        print('✅ Flutter: Face detection initialized successfully');
         setState(() {
           _debugMessage = "Ready";
         });
+      } else {
+        print('❌ Flutter: Face detection initialization returned false');
+        setState(() {
+          _debugMessage = "Init failed: returned false";
+        });
       }
     } catch (e) {
+      print('❌ Flutter: Exception in _initializeNativeFaceDetection: $e');
       setState(() {
         _debugMessage = "Init failed: $e";
       });
@@ -180,7 +208,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _initializeCamera() async {
+    print('📷 Flutter: _initializeCamera() START');
     try {
+      print('📷 Flutter: Creating CameraController with ResolutionPreset.max');
       _controller = CameraController(
         widget.cameras[_currentCameraIndex],
         ResolutionPreset.max,
@@ -190,9 +220,14 @@ class _MyHomePageState extends State<MyHomePage> {
             : ImageFormatGroup.bgra8888,
       );
 
+      print('📷 Flutter: Calling _controller.initialize()');
       await _controller.initialize();
+      print('✅ Flutter: Camera controller initialized');
 
-      if (!mounted) return;
+      if (!mounted) {
+        print('⚠️ Flutter: Widget not mounted after camera init');
+        return;
+      }
 
       // Initialize image dimensions from camera preview size
       final previewSize = _controller.value.previewSize;
@@ -200,16 +235,20 @@ class _MyHomePageState extends State<MyHomePage> {
       if (previewSize != null) {
         _lastImageWidth = previewSize.width.toInt();
         _lastImageHeight = previewSize.height.toInt();
+        print('📷 Flutter: Preview size: ${_lastImageWidth}x${_lastImageHeight}');
       }
 
+      print('📷 Flutter: Starting image stream');
       _controller.startImageStream((image) {
         Future.microtask(() => _processFrame(image));
       });
+      print('✅ Flutter: Image stream started');
 
       setState(() {
         _isSwitchingCamera = false;
       });
     } catch (e) {
+      print('❌ Flutter: Camera error: $e');
       setState(() {
         _debugMessage = "Camera error: $e";
         _isSwitchingCamera = false;
@@ -258,9 +297,10 @@ class _MyHomePageState extends State<MyHomePage> {
       if (_frameCount % 10 == 0) {
         final cameraInfo = isFrontCamera ? 'FRONT' : 'BACK';
         // ignore: avoid_print
-        print('🎥 Sending frame: ${image.width}x${image.height}, Rotation: $mlKitRotation°, Camera: $cameraInfo');
+        print('🎥 Flutter: Sending frame: ${image.width}x${image.height}, Rotation: $mlKitRotation°, Camera: $cameraInfo, BytesLength: ${image.planes[0].bytes.length}');
       }
 
+      print('📤 Flutter: Calling platform.invokeMethod(processFrame) with width=${image.width}, height=${image.height}');
       final result = await platform.invokeMethod<Map>('processFrame', {
         'frameBytes': image.planes[0].bytes,
         'width': image.width,
@@ -269,32 +309,45 @@ class _MyHomePageState extends State<MyHomePage> {
         'isFrontCamera': isFrontCamera,
       });
 
-      if (result != null && result['success'] as bool) {
-        final facesList = (result['faces'] as List).cast<Map>();
-        final faces = facesList
-            .map(
-              (f) => Face(
-                x: (f['x'] as num).toDouble(),
-                y: (f['y'] as num).toDouble(),
-                width: (f['width'] as num).toDouble(),
-                height: (f['height'] as num).toDouble(),
-              ),
-            )
-            .toList();
+      print('📥 Flutter: Got result from processFrame: $result');
 
-        if (mounted) {
-          final previewSize = _controller.value.previewSize;
-          setState(() {
-            _detectedFaces = faces;
-            final w = previewSize?.width.toInt() ?? 0;
-            final h = previewSize?.height.toInt() ?? 0;
-            _debugMessage =
-                'Faces: ${faces.length} | Image: ${_lastImageWidth}x$_lastImageHeight | Preview: ${w}x$h | FPS: ${_fps.toStringAsFixed(1)}';
-          });
+      if (result != null) {
+        final success = result['success'] as bool;
+        print('📥 Flutter: result[success] = $success');
+
+        if (success) {
+          final facesList = (result['faces'] as List).cast<Map>();
+          print('📥 Flutter: Found ${facesList.length} faces');
+
+          final faces = facesList
+              .map(
+                (f) => Face(
+                  x: (f['x'] as num).toDouble(),
+                  y: (f['y'] as num).toDouble(),
+                  width: (f['width'] as num).toDouble(),
+                  height: (f['height'] as num).toDouble(),
+                ),
+              )
+              .toList();
+
+          if (mounted) {
+            final previewSize = _controller.value.previewSize;
+            setState(() {
+              _detectedFaces = faces;
+              final w = previewSize?.width.toInt() ?? 0;
+              final h = previewSize?.height.toInt() ?? 0;
+              _debugMessage =
+                  'Faces: ${faces.length} | Image: ${_lastImageWidth}x$_lastImageHeight | Preview: ${w}x$h | FPS: ${_fps.toStringAsFixed(1)}';
+            });
+          }
+        } else {
+          print('❌ Flutter: processFrame returned success=false');
         }
+      } else {
+        print('❌ Flutter: processFrame returned null result');
       }
     } catch (e) {
-      // Silent catch
+      print('❌ Flutter: Exception in _processFrame: $e');
     } finally {
       _isProcessing = false;
     }
