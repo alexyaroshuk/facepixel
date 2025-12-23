@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <!--
     If you are serving your web app in a path other than the root, change the
@@ -27,7 +28,7 @@
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="icon" type="image/png" href="favicon.png" />
 
   <title>Face Pixel</title>
   <link rel="manifest" href="manifest.json">
@@ -35,8 +36,16 @@
   <!-- MediaPipe will be loaded dynamically as an ES module from face_detection.js -->
 
   <style>
-    body, html { margin: 0; padding: 0; }
-    #videoContainer { display: none; }
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+    }
+
+    #videoContainer {
+      display: none;
+    }
+
     #webcam {
       width: 100%;
       height: auto;
@@ -45,16 +54,22 @@
       -webkit-transform: rotateY(180deg);
       -moz-transform: rotateY(180deg);
     }
+
     #pixelationCanvas {
       position: fixed;
       top: 0;
       left: 0;
       pointer-events: none;
       z-index: 1000;
+      display: block;
     }
-    canvas { display: none; }
+
+    canvas:not(#pixelationCanvas) {
+      display: none;
+    }
   </style>
 </head>
+
 <body>
   <!-- Simple video element for camera feed -->
   <div id="videoContainer">
@@ -68,4 +83,5 @@
   <script src="face_detection.js"></script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
+
 </html>

@@ -25,11 +25,11 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
   DateTime _lastFpsTime = DateTime.now();
   double _fps = 0;
   Size _videoSize = Size.zero;
-  bool _showDebugUI = true;
+  bool _showDebugUI = false;
   bool _showRedBorder = true;
   bool _showTealBorder = true;
-  bool _blurEnabled = false;
-  int _blurLevel = 10;
+  bool _pixelationEnabled = false;
+  int _pixelationLevel = 10;
 
   @override
   void initState() {
@@ -78,27 +78,20 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
     );
   }
 
-  /// Apply CSS blur filter to video element
-  void _applyVideoBlur() {
+  /// Apply pixelation using JavaScript overlay
+  void _applyPixelation() {
     try {
-      final video = html.document.getElementById('webcam');
-      if (video != null) {
-        if (_blurEnabled) {
-          // Apply blur filter to video
-          final blurAmount = (_blurLevel / 10).clamp(1, 20);
-          video.style.filter = 'blur(${blurAmount}px)';
-          // ignore: avoid_print
-          print('🌐 Web: Applied blur filter to video: ${blurAmount}px');
-        } else {
-          // Remove blur filter
-          video.style.filter = 'none';
-          // ignore: avoid_print
-          print('🌐 Web: Removed blur filter from video');
-        }
-      }
+      // Call JavaScript function to set pixelation settings
+      js_util.callMethod(
+        html.window,
+        'setPixelationSettings',
+        [_pixelationEnabled, _pixelationLevel],
+      );
+      // ignore: avoid_print
+      print('🌐 Web: Set pixelation: enabled=$_pixelationEnabled, level=$_pixelationLevel');
     } catch (e) {
       // ignore: avoid_print
-      print('🌐 Web: Error applying blur filter: $e');
+      print('🌐 Web: Error setting pixelation: $e');
     }
   }
 
@@ -181,19 +174,19 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
         backgroundColor: Colors.grey[700],
         foregroundColor: Colors.white,
         actions: [
-          // Blur toggle
+          // Pixelation toggle
           IconButton(
             icon: Icon(
-              _blurEnabled ? Icons.blur_on : Icons.blur_off,
-              color: _blurEnabled ? Colors.cyan : Colors.grey,
+              _pixelationEnabled ? Icons.blur_on : Icons.blur_off,
+              color: _pixelationEnabled ? Colors.cyan : Colors.grey,
             ),
             onPressed: () {
               setState(() {
-                _blurEnabled = !_blurEnabled;
+                _pixelationEnabled = !_pixelationEnabled;
               });
-              _applyVideoBlur();
+              _applyPixelation();
             },
-            tooltip: 'Toggle Blur',
+            tooltip: 'Toggle Pixelation',
           ),
           // Debug UI toggle
           IconButton(
@@ -212,13 +205,20 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
           final screenSize = MediaQuery.of(context).size;
           final canvasOffset = _calculateCanvasOffset(screenSize);
 
-          // Sync canvas dimensions with JavaScript once (fixed dimensions)
+          // Account for AppBar height when passing to JavaScript
+          // MediaQuery.of(context).size returns body size (below AppBar)
+          // But JavaScript uses position: fixed which is viewport-relative (includes AppBar)
+          final appBarHeight = AppBar().preferredSize.height;
+          final statusBarHeight = MediaQuery.of(context).padding.top;
+          final adjustedCanvasOffsetY = canvasOffset.dy + appBarHeight + statusBarHeight;
+
+          // Sync canvas dimensions and offset with JavaScript (fixed dimensions)
           WidgetsBinding.instance.addPostFrameCallback((_) {
             try {
               js_util.callMethod(
                 html.window,
                 'updateCanvasDimensions',
-                [_canvasWidth, _canvasHeight],
+                [_canvasWidth, _canvasHeight, canvasOffset.dx, adjustedCanvasOffsetY],
               );
             } catch (e) {
               // ignore: avoid_print
@@ -289,6 +289,9 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                       ),
                     );
                   }),
+
+                // Backdrop blur overlay is handled by JavaScript (CSS backdrop-filter)
+                // See web/face_detection.js updateBlurOverlay() function
 
 
                 // Debug overlay
@@ -393,8 +396,8 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                     ),
                   ),
 
-                // Blur level slider control
-                if (_blurEnabled)
+                // Pixelation level slider control
+                if (_pixelationEnabled)
                   Positioned(
                     bottom: 16,
                     left: 16,
@@ -413,7 +416,7 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                               const Icon(Icons.blur_on, color: Colors.cyan),
                               const SizedBox(width: 8),
                               const Text(
-                                'Blur Strength',
+                                'Pixelation Level',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -421,7 +424,7 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                               ),
                               const Spacer(),
                               Text(
-                                _blurLevel.toString(),
+                                _pixelationLevel.toString(),
                                 style: const TextStyle(
                                   color: Colors.cyan,
                                   fontWeight: FontWeight.bold,
@@ -431,18 +434,18 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                           ),
                           const SizedBox(height: 8),
                           Slider(
-                            value: _blurLevel.toDouble(),
+                            value: _pixelationLevel.toDouble(),
                             min: 1,
                             max: 100,
                             divisions: 99,
-                            label: _blurLevel.toString(),
+                            label: _pixelationLevel.toString(),
                             activeColor: Colors.cyan,
                             inactiveColor: Colors.grey[700],
                             onChanged: (value) {
                               setState(() {
-                                _blurLevel = value.toInt();
+                                _pixelationLevel = value.toInt();
                               });
-                              _applyVideoBlur();
+                              _applyPixelation();
                             },
                           ),
                           Padding(

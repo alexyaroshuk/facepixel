@@ -20,6 +20,10 @@ let detectedFaces = [];
 let pixelationEnabled = false;
 let pixelationLevel = 10;
 
+// Blur overlay state
+let blurOverlayContainer = null;
+let blurOverlays = [];
+
 console.log('[FaceDetection] Script loaded. Loading MediaPipe library as ES module...');
 
 /**
@@ -220,27 +224,25 @@ async function detectFrame() {
         for (const detection of detections.detections) {
           const box = detection.boundingBox;
 
-          // First, scale the bounding box to match the displayed video size
-          const scaledOriginX = box.originX * scaleX;
-          const scaledOriginY = box.originY * scaleY;
-          const scaledWidth = box.width * scaleX;
-          const scaledHeight = box.height * scaleY;
-
-          // Then apply horizontal flip (the video is mirrored with CSS rotateY)
-          const flippedX = videoDisplayWidth - (scaledOriginX + scaledWidth);
-
+          // Store face in NATURAL coordinate space (not display space)
+          // This matches what Flutter expects: face coordinates in natural video dimensions
+          // Flutter will then scale them: face.left * scaleX where scaleX = canvasWidth / videoNatWidth
           const face = {
-            x: Math.round(flippedX),
-            y: Math.round(scaledOriginY),
-            width: Math.round(scaledWidth),
-            height: Math.round(scaledHeight)
+            x: Math.round(box.originX),  // Use natural coordinates, not scaled
+            y: Math.round(box.originY),
+            width: Math.round(box.width),
+            height: Math.round(box.height)
           };
 
-          // Clamp to video bounds
-          face.x = Math.max(0, Math.min(face.x, videoDisplayWidth));
-          face.y = Math.max(0, Math.min(face.y, videoDisplayHeight));
-          face.width = Math.max(0, Math.min(face.width, videoDisplayWidth - face.x));
-          face.height = Math.max(0, Math.min(face.height, videoDisplayHeight - face.y));
+          // Apply horizontal flip for natural coordinates (video is mirrored with CSS rotateY)
+          const flippedXNatural = videoNatWidth - (face.x + face.width);
+          face.x = flippedXNatural;
+
+          // Clamp to video natural bounds
+          face.x = Math.max(0, Math.min(face.x, videoNatWidth));
+          face.y = Math.max(0, Math.min(face.y, videoNatHeight));
+          face.width = Math.max(0, Math.min(face.width, videoNatWidth - face.x));
+          face.height = Math.max(0, Math.min(face.height, videoNatHeight - face.y));
 
           faces.push(face);
           console.log('[FaceDetection] Scaled face:', face);
@@ -303,14 +305,20 @@ function getVideoDimensions(videoElementId) {
  * This ensures face detection boxes use the exact same dimensions as Flutter's layout calculation
  * @param {number} width - Canvas display width in pixels
  * @param {number} height - Canvas display height in pixels
+ * @param {number} offsetX - Canvas X offset in pixels
+ * @param {number} offsetY - Canvas Y offset in pixels
  */
 let overrideDisplayWidth = 0;
 let overrideDisplayHeight = 0;
+let canvasOffsetX = 0;
+let canvasOffsetY = 0;
 
-function updateCanvasDimensions(width, height) {
-  console.log('[FaceDetection] updateCanvasDimensions called:', width, 'x', height);
+function updateCanvasDimensions(width, height, offsetX, offsetY) {
+  console.log('[FaceDetection] updateCanvasDimensions called:', width, 'x', height, 'offset:', offsetX, offsetY);
   overrideDisplayWidth = Math.round(width);
   overrideDisplayHeight = Math.round(height);
+  canvasOffsetX = offsetX || 0;
+  canvasOffsetY = offsetY || 0;
 }
 
 /**
@@ -340,69 +348,115 @@ function initializePixelationCanvas() {
 }
 
 /**
- * Apply pixelation to a region of the canvas using video frame data
+ * Initialize blur overlay container
  */
-function pixelateRegion(x, y, width, height, pixelSize) {
+function initializeBlurOverlay() {
+  console.log('[FaceDetection] Initializing blur overlay container...');
+
+  // Create container for blur overlays
+  blurOverlayContainer = document.createElement('div');
+  blurOverlayContainer.id = 'blurOverlayContainer';
+  blurOverlayContainer.style.position = 'fixed';
+  blurOverlayContainer.style.top = '0';
+  blurOverlayContainer.style.left = '0';
+  blurOverlayContainer.style.width = '100%';
+  blurOverlayContainer.style.height = '100%';
+  blurOverlayContainer.style.pointerEvents = 'none';
+  blurOverlayContainer.style.zIndex = '999';
+  blurOverlayContainer.style.overflow = 'hidden'; // Clip children to prevent overflow
+  document.body.appendChild(blurOverlayContainer);
+
+  // Update blur overlay on window resize
+  window.addEventListener('resize', () => {
+    if (pixelationEnabled && detectedFaces.length > 0) {
+      updateBlurOverlay();
+    }
+  });
+
+  console.log('[FaceDetection] Blur overlay container initialized');
+}
+
+/**
+ * Apply pixelation to a region of the canvas using video frame data
+ * @param {number} screenX - X position in screen coordinates
+ * @param {number} screenY - Y position in screen coordinates
+ * @param {number} screenWidth - Width in screen coordinates
+ * @param {number} screenHeight - Height in screen coordinates
+ * @param {number} pixelSize - Pixelation block size
+ */
+function pixelateRegion(screenX, screenY, screenWidth, screenHeight, pixelSize) {
   if (!pixelationCtx || !videoElement || pixelSize <= 0) {
     return;
   }
 
   try {
-    // Draw the entire video to a temporary canvas first
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = videoElement.videoWidth;
-    tempCanvas.height = videoElement.videoHeight;
-    const tempCtx = tempCanvas.getContext('2d');
+    const videoRect = videoElement.getBoundingClientRect();
+    const videoNatWidth = videoElement.videoWidth;
+    const videoNatHeight = videoElement.videoHeight;
+    const videoDisplayWidth = videoRect.width;
+    const videoDisplayHeight = videoRect.height;
 
-    // Draw video with horizontal flip (same as CSS transform)
-    tempCtx.scale(-1, 1);
-    tempCtx.translate(-tempCanvas.width, 0);
-    tempCtx.drawImage(videoElement, 0, 0);
+    // Calculate scale from natural video size to displayed size
+    const scaleX = videoNatWidth / videoDisplayWidth;
+    const scaleY = videoNatHeight / videoDisplayHeight;
 
-    // Get pixel data from the region
-    const imageData = tempCtx.getImageData(
-      Math.max(0, x),
-      Math.max(0, y),
-      Math.min(width, tempCanvas.width - x),
-      Math.min(height, tempCanvas.height - y)
-    );
+    // Convert screen coordinates to video natural coordinates
+    // First, convert to coordinates relative to video element
+    const relativeX = screenX - videoRect.left;
+    const relativeY = screenY - videoRect.top;
 
-    const data = imageData.data;
+    // Clamp to video bounds
+    const clampedX = Math.max(0, Math.min(relativeX, videoDisplayWidth));
+    const clampedY = Math.max(0, Math.min(relativeY, videoDisplayHeight));
+    const clampedWidth = Math.max(0, Math.min(screenWidth, videoDisplayWidth - clampedX));
+    const clampedHeight = Math.max(0, Math.min(screenHeight, videoDisplayHeight - clampedY));
 
-    // Pixelate by averaging pixel blocks
-    const blockSize = Math.ceil(pixelSize);
-    for (let i = 0; i < blockSize * blockSize && i * 4 < data.length; i++) {
-      const blockX = (i % blockSize) * 4;
-      const blockY = Math.floor(i / blockSize) * 4;
-      const pixelIndex = blockY * (width * 4) + blockX;
-
-      if (pixelIndex + 3 < data.length) {
-        const avgR = (data[pixelIndex] + data[pixelIndex + 4] + data[pixelIndex + (width * 4)] + data[pixelIndex + (width * 4) + 4]) / 4;
-        const avgG = (data[pixelIndex + 1] + data[pixelIndex + 5] + data[pixelIndex + (width * 4) + 1] + data[pixelIndex + (width * 4) + 5]) / 4;
-        const avgB = (data[pixelIndex + 2] + data[pixelIndex + 6] + data[pixelIndex + (width * 4) + 2] + data[pixelIndex + (width * 4) + 6]) / 4;
-
-        for (let j = 0; j < blockSize * 4; j++) {
-          if (pixelIndex + j < data.length) {
-            if (j % 4 === 0) data[pixelIndex + j] = avgR;
-            else if (j % 4 === 1) data[pixelIndex + j] = avgG;
-            else if (j % 4 === 2) data[pixelIndex + j] = avgB;
-          }
-        }
-      }
+    if (clampedWidth <= 0 || clampedHeight <= 0) {
+      return;
     }
 
-    // Create a small canvas for the pixelated block
-    const blockCanvas = document.createElement('canvas');
-    blockCanvas.width = width;
-    blockCanvas.height = height;
-    const blockCtx = blockCanvas.getContext('2d');
-    blockCtx.putImageData(imageData, 0, 0);
+    // Convert to natural video coordinates
+    // Note: Since video is flipped horizontally with CSS, we need to flip the X coordinate
+    const natX = Math.round((videoDisplayWidth - clampedX - clampedWidth) * scaleX);
+    const natY = Math.round(clampedY * scaleY);
+    const natWidth = Math.round(clampedWidth * scaleX);
+    const natHeight = Math.round(clampedHeight * scaleY);
 
-    // Scale and draw the pixelated block to the main canvas
-    // This creates the pixelation effect
+    // Create temporary canvas to extract and pixelate the face region
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = natWidth;
+    tempCanvas.height = natHeight;
+    const tempCtx = tempCanvas.getContext('2d');
+
+    // Draw the face region from video (already flipped by CSS, so draw directly)
+    tempCtx.drawImage(
+      videoElement,
+      natX, natY, natWidth, natHeight,
+      0, 0, natWidth, natHeight
+    );
+
+    // Apply pixelation: resize down then up
+    const blockSize = Math.max(2, Math.ceil(pixelSize));
+    const smallWidth = Math.max(1, Math.floor(natWidth / blockSize));
+    const smallHeight = Math.max(1, Math.floor(natHeight / blockSize));
+
+    const smallCanvas = document.createElement('canvas');
+    smallCanvas.width = smallWidth;
+    smallCanvas.height = smallHeight;
+    const smallCtx = smallCanvas.getContext('2d');
+
+    // Draw scaled down (creates pixelation effect)
+    smallCtx.imageSmoothingEnabled = false;
+    smallCtx.drawImage(tempCanvas, 0, 0, smallWidth, smallHeight);
+
+    // Draw pixelated region back to pixelation canvas at screen coordinates
     pixelationCtx.save();
-    pixelationCtx.scale(pixelSize / blockSize, pixelSize / blockSize);
-    pixelationCtx.drawImage(blockCanvas, Math.floor(x / pixelSize) * pixelSize, Math.floor(y / pixelSize) * pixelSize);
+    pixelationCtx.imageSmoothingEnabled = false; // Disable smoothing for crisp pixels
+    pixelationCtx.drawImage(
+      smallCanvas,
+      0, 0, smallWidth, smallHeight,
+      screenX, screenY, screenWidth, screenHeight
+    );
     pixelationCtx.restore();
   } catch (error) {
     console.error('[FaceDetection] Error in pixelateRegion:', error);
@@ -450,12 +504,139 @@ function updatePixelationOverlay() {
 }
 
 /**
+ * Update blur overlay based on detected faces
+ * Uses the same positioning calculation as Flutter to match face detection boxes exactly
+ */
+function updateBlurOverlay() {
+  if (!blurOverlayContainer || !pixelationEnabled || !videoElement) {
+    // Remove all blur overlays if disabled
+    if (blurOverlayContainer) {
+      blurOverlayContainer.innerHTML = '';
+      blurOverlays = [];
+    }
+    return;
+  }
+
+  // Clear existing overlays
+  blurOverlayContainer.innerHTML = '';
+  blurOverlays = [];
+
+  if (detectedFaces.length === 0) {
+    return;
+  }
+
+  // Use Flutter-provided canvas dimensions and offset (same as face detection boxes)
+  const canvasWidth = overrideDisplayWidth > 0 ? overrideDisplayWidth : 640;
+  const canvasHeight = overrideDisplayHeight > 0 ? overrideDisplayHeight : 480;
+
+  // Get video natural dimensions (Flutter's _videoSize - these are the natural video dimensions)
+  const videoNatWidth = videoElement.videoWidth;
+  const videoNatHeight = videoElement.videoHeight;
+
+  if (videoNatWidth === 0 || videoNatHeight === 0) {
+    return;
+  }
+
+  // Calculate scale factors EXACTLY like Flutter does:
+  // scaleX = _canvasWidth / _videoSize.width
+  // scaleY = _canvasHeight / _videoSize.height
+  // where _videoSize is the natural video dimensions
+  const scaleX = canvasWidth / videoNatWidth;
+  const scaleY = canvasHeight / videoNatHeight;
+
+  // Video bounds for clipping (canvas area)
+  const videoLeft = canvasOffsetX;
+  const videoTop = canvasOffsetY;
+  const videoRight = canvasOffsetX + canvasWidth;
+  const videoBottom = canvasOffsetY + canvasHeight;
+
+  // Calculate blur amount from level (1-100)
+  // Level 1 = minimal blur (0.5px), Level 100 = heavy blur (50px)
+  const blurAmount = (pixelationLevel / 2).toFixed(1);
+
+  // Create blur overlay for each detected face
+  // Use the EXACT same positioning calculation as Flutter:
+  // left: canvasOffset.dx + (face.left * scaleX)
+  // top: canvasOffset.dy + (face.top * scaleY)
+  // width: face.width * scaleX
+  // height: face.height * scaleY
+  // Note: face coordinates from JavaScript are in display space (640x480),
+  // but Flutter treats them as natural dimensions and scales them
+  // So we need to treat them the same way Flutter does
+  for (const face of detectedFaces) {
+    // Scale face coordinates EXACTLY like Flutter does
+    // Flutter: face.left * scaleX where scaleX = _canvasWidth / _videoSize.width
+    const scaledLeft = face.x * scaleX;
+    const scaledTop = face.y * scaleY;
+    const scaledWidth = face.width * scaleX;
+    const scaledHeight = face.height * scaleY;
+
+    // Add canvas offset (same as Flutter: canvasOffset.dx + scaledLeft)
+    let faceX = canvasOffsetX + scaledLeft;
+    let faceY = canvasOffsetY + scaledTop;
+    let faceWidth = scaledWidth;
+    let faceHeight = scaledHeight;
+
+    // Clip to video bounds (same as detection boxes are clipped by Flutter Stack)
+    // Clamp position and size to stay within video area
+    if (faceX < videoLeft) {
+      const diff = videoLeft - faceX;
+      faceWidth = Math.max(0, faceWidth - diff);
+      faceX = videoLeft;
+    }
+    if (faceY < videoTop) {
+      const diff = videoTop - faceY;
+      faceHeight = Math.max(0, faceHeight - diff);
+      faceY = videoTop;
+    }
+    if (faceX + faceWidth > videoRight) {
+      faceWidth = Math.max(0, videoRight - faceX);
+    }
+    if (faceY + faceHeight > videoBottom) {
+      faceHeight = Math.max(0, videoBottom - faceY);
+    }
+
+    // Skip if clipped to zero size
+    if (faceWidth <= 0 || faceHeight <= 0) {
+      continue;
+    }
+
+    // Calculate border radius (15% of width, matching mobile implementation)
+    const borderRadius = Math.min(faceWidth * 0.15, faceHeight * 0.15).toFixed(1);
+
+    // Create blur overlay div
+    const blurDiv = document.createElement('div');
+    blurDiv.style.position = 'fixed';
+    blurDiv.style.left = `${faceX}px`;
+    blurDiv.style.top = `${faceY}px`;
+    blurDiv.style.width = `${faceWidth}px`;
+    blurDiv.style.height = `${faceHeight}px`;
+    blurDiv.style.borderRadius = `${borderRadius}px`;
+    blurDiv.style.backdropFilter = `blur(${blurAmount}px)`;
+    blurDiv.style.webkitBackdropFilter = `blur(${blurAmount}px)`; // Safari support
+    blurDiv.style.backgroundColor = 'transparent';
+    blurDiv.style.pointerEvents = 'none';
+    blurDiv.style.overflow = 'hidden';
+
+    blurOverlayContainer.appendChild(blurDiv);
+    blurOverlays.push(blurDiv);
+  }
+
+  console.log(`[FaceDetection] Updated blur overlay: ${blurOverlays.length} faces, blur: ${blurAmount}px, canvas: ${canvasWidth}x${canvasHeight} @ (${canvasOffsetX},${canvasOffsetY})`);
+}
+
+/**
  * Set pixelation settings from Flutter
  */
-window.setPixelationSettings = function(enabled, level) {
+window.setPixelationSettings = function (enabled, level) {
   console.log('[FaceDetection] Setting pixelation:', enabled, 'level:', level);
   pixelationEnabled = enabled;
   pixelationLevel = Math.max(1, Math.min(100, level));
+  // Immediately update the overlays if faces are already detected
+  if (detectedFaces && detectedFaces.length > 0) {
+    updatePixelationOverlay();
+    updateBlurOverlay();
+  }
 };
 
 /**
@@ -466,9 +647,10 @@ async function startApp() {
   console.log('[FaceDetection] ===== STARTUP SEQUENCE =====');
 
   try {
-    // Step 0: Initialize pixelation canvas
-    console.log('[FaceDetection] Step 0: Initializing pixelation canvas...');
+    // Step 0: Initialize pixelation canvas and blur overlay
+    console.log('[FaceDetection] Step 0: Initializing pixelation canvas and blur overlay...');
     initializePixelationCanvas();
+    initializeBlurOverlay();
 
     // Step 1: Initialize MediaPipe
     console.log('[FaceDetection] Step 1: Initializing MediaPipe...');
@@ -489,6 +671,9 @@ async function startApp() {
 
       // Update pixelation overlay
       updatePixelationOverlay();
+
+      // Update blur overlay
+      updateBlurOverlay();
 
       console.log('[FaceDetection] Dispatching facesDetected event with', faces.length, 'faces');
       const event = new CustomEvent('facesDetected', {
