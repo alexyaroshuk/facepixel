@@ -7,6 +7,7 @@ import AVFoundation
 @main
 @objc class AppDelegate: FlutterAppDelegate {
   private var faceDetector: FaceDetector?
+  private let detectionQueue = DispatchQueue(label: "com.facepixel.facedetection", qos: .userInitiated)
 
   override func application(
     _ application: UIApplication,
@@ -75,7 +76,7 @@ import AVFoundation
           let height = args["height"] as? Int,
           let rotation = args["rotation"] as? Int else {
       NSLog("❌ processFrame: Failed to parse arguments")
-      result(["success": false])
+      result(["success": false, "faces": []])
       return
     }
 
@@ -89,8 +90,9 @@ import AVFoundation
     let imageData = frameBytes.data
     NSLog("📷 processFrame: Received frame \(width)x\(height), rotation: \(rotation)°, data size: \(imageData.count)")
 
-    // ML Kit requires background thread - dispatch async
-    DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+    // CRITICAL: Use serial queue to process frames sequentially (matching Android behavior)
+    // This prevents multiple detections running in parallel and results arriving out of order
+    detectionQueue.async { [weak self] in
       NSLog("📷 processFrame: Running on background thread")
 
       // Auto-detect pixel format based on data size
@@ -113,7 +115,7 @@ import AVFoundation
       } else {
         NSLog("❌ processFrame: Unknown format, data size: \(imageData.count), expected BGRA: \(expectedBGRASize), YUV: \(expectedYUVSize)")
         DispatchQueue.main.async {
-          result(["success": false])
+          result(["success": false, "faces": []])
         }
         return
       }
@@ -143,7 +145,7 @@ import AVFoundation
       guard status == kCVReturnSuccess, let buffer = pixelBuffer else {
         NSLog("❌ processFrame: Failed to create CVPixelBuffer, status: \(status)")
         DispatchQueue.main.async {
-          result(["success": false])
+          result(["success": false, "faces": []])
         }
         return
       }
@@ -161,7 +163,7 @@ import AVFoundation
       guard formatStatus == noErr, let formatDescription = formatDesc else {
         NSLog("❌ processFrame: Failed to create CMVideoFormatDescription, status: \(formatStatus)")
         DispatchQueue.main.async {
-          result(["success": false])
+          result(["success": false, "faces": []])
         }
         return
       }
@@ -187,7 +189,7 @@ import AVFoundation
       guard sampleStatus == noErr, let smplBuffer = sampleBuffer else {
         NSLog("❌ processFrame: Failed to create CMSampleBuffer, status: \(sampleStatus)")
         DispatchQueue.main.async {
-          result(["success": false])
+          result(["success": false, "faces": []])
         }
         return
       }
