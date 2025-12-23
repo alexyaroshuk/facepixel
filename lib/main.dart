@@ -609,21 +609,22 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Face Pixelation'),
-        backgroundColor: Colors.grey[700],
+        backgroundColor: Colors.black,
         foregroundColor: Colors.white,
+        elevation: 0,
         actions: [
           // Pixelation toggle
           IconButton(
             icon: Icon(
-              _pixelationEnabled ? Icons.blur_on : Icons.blur_off,
-              color: _pixelationEnabled ? Colors.cyan : Colors.grey,
+              _pixelationEnabled ? Icons.privacy_tip : Icons.privacy_tip_outlined,
+              color: _pixelationEnabled ? Colors.white : Colors.grey,
             ),
             onPressed: () {
               setState(() {
                 _pixelationEnabled = !_pixelationEnabled;
               });
             },
-            tooltip: 'Toggle Pixelation',
+            tooltip: 'Toggle Blur',
           ),
           // Debug UI toggle
           IconButton(
@@ -748,8 +749,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
 
-                // Face detection boxes - flat list, no nested Stacks
-                if (_detectedFaces.isNotEmpty &&
+                // Face detection boxes - only show when blur is disabled (for reference)
+                if (!_pixelationEnabled &&
+                    _detectedFaces.isNotEmpty &&
                     _detectionCanvasSize != Size.zero)
                   ..._detectedFaces.map((face) {
                     final box = _transformFaceCoordinates(face);
@@ -760,7 +762,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       height: box.height,
                       child: Container(
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.green, width: 2),
+                          border: Border.all(color: Colors.white70, width: 1),
                         ),
                       ),
                     );
@@ -817,7 +819,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             Text(
                               _debugMessage,
                               style: const TextStyle(
-                                color: Colors.green,
+                                color: Colors.white,
                                 fontFamily: 'monospace',
                                 fontSize: 11,
                               ),
@@ -826,7 +828,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             Text(
                               'Screen: ${bodySize.width.toInt()}x${bodySize.height.toInt()}',
                               style: const TextStyle(
-                                color: Colors.lightBlue,
+                                color: Colors.grey,
                                 fontFamily: 'monospace',
                                 fontSize: 11,
                               ),
@@ -834,7 +836,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             Text(
                               'Preview size: ${(_controller.value.previewSize?.width.toInt() ?? 0)}x${(_controller.value.previewSize?.height.toInt() ?? 0)}',
                               style: const TextStyle(
-                                color: Colors.lightGreen,
+                                color: Colors.grey,
                                 fontFamily: 'monospace',
                                 fontSize: 11,
                               ),
@@ -842,7 +844,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             Text(
                               'Frame data: ${_imageSize.width.toInt()}x${_imageSize.height.toInt()}',
                               style: const TextStyle(
-                                color: Colors.yellow,
+                                color: Colors.grey,
                                 fontFamily: 'monospace',
                                 fontSize: 11,
                               ),
@@ -850,7 +852,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             Text(
                               'Video area: ${_detectionCanvasSize.width.toInt()}x${_detectionCanvasSize.height.toInt()}',
                               style: const TextStyle(
-                                color: Colors.cyan,
+                                color: Colors.grey,
                                 fontFamily: 'monospace',
                                 fontSize: 11,
                               ),
@@ -858,7 +860,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             Text(
                               'Video offset: (${_detectionCanvasOffset.dx.toInt()}, ${_detectionCanvasOffset.dy.toInt()})',
                               style: const TextStyle(
-                                color: Colors.cyan,
+                                color: Colors.grey,
                                 fontFamily: 'monospace',
                                 fontSize: 11,
                               ),
@@ -1104,7 +1106,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.blur_on, color: Colors.cyan),
+                              const Icon(Icons.privacy_tip, color: Colors.white),
                               const SizedBox(width: 8),
                               const Text(
                                 'Blur Strength',
@@ -1117,7 +1119,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               Text(
                                 _pixelationLevel.toString(),
                                 style: const TextStyle(
-                                  color: Colors.cyan,
+                                  color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -1130,8 +1132,8 @@ class _MyHomePageState extends State<MyHomePage> {
                             max: 100,
                             divisions: 99,
                             label: _pixelationLevel.toString(),
-                            activeColor: Colors.cyan,
-                            inactiveColor: Colors.grey[700],
+                            activeColor: Colors.white,
+                            inactiveColor: Colors.grey[800],
                             onChanged: (value) {
                               setState(() {
                                 _pixelationLevel = value.toInt();

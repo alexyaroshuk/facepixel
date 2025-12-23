@@ -170,15 +170,16 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Face Pixelation (Web)'),
-        backgroundColor: Colors.grey[700],
+        title: const Text('Face Pixelation'),
+        backgroundColor: Colors.black,
         foregroundColor: Colors.white,
+        elevation: 0,
         actions: [
           // Pixelation toggle
           IconButton(
             icon: Icon(
-              _pixelationEnabled ? Icons.blur_on : Icons.blur_off,
-              color: _pixelationEnabled ? Colors.cyan : Colors.grey,
+              _pixelationEnabled ? Icons.privacy_tip : Icons.privacy_tip_outlined,
+              color: _pixelationEnabled ? Colors.white : Colors.grey,
             ),
             onPressed: () {
               setState(() {
@@ -186,7 +187,7 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
               });
               _applyPixelation();
             },
-            tooltip: 'Toggle Pixelation',
+            tooltip: 'Toggle Blur',
           ),
           // Debug UI toggle
           IconButton(
@@ -270,8 +271,8 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                     ),
                   ),
 
-                // Face detection boxes - positioned relative to canvas
-                if (_videoSize != Size.zero)
+                // Face detection boxes - only show when blur is disabled (for reference)
+                if (!_pixelationEnabled && _videoSize != Size.zero)
                   ..._detectedFaces.map((face) {
                     // Scale boxes to fixed canvas size
                     final scaleX = _canvasWidth / _videoSize.width;
@@ -284,7 +285,7 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                       height: face.height * scaleY,
                       child: Container(
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.green, width: 2),
+                          border: Border.all(color: Colors.white70, width: 1),
                         ),
                       ),
                     );
@@ -314,7 +315,7 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                             Text(
                               _debugMessage,
                               style: const TextStyle(
-                                color: Colors.green,
+                                color: Colors.white,
                                 fontFamily: 'monospace',
                                 fontSize: 11,
                               ),
@@ -323,7 +324,7 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                             Text(
                               'Screen: ${screenSize.width.toInt()}x${screenSize.height.toInt()}',
                               style: const TextStyle(
-                                color: Colors.lightBlue,
+                                color: Colors.grey,
                                 fontFamily: 'monospace',
                                 fontSize: 11,
                               ),
@@ -331,7 +332,7 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                             Text(
                               'Video size: ${_videoSize.width.toInt()}x${_videoSize.height.toInt()}',
                               style: const TextStyle(
-                                color: Colors.yellow,
+                                color: Colors.grey,
                                 fontFamily: 'monospace',
                                 fontSize: 11,
                               ),
@@ -339,7 +340,7 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                             Text(
                               'Canvas (fixed): ${_canvasWidth.toInt()}x${_canvasHeight.toInt()}',
                               style: const TextStyle(
-                                color: Colors.cyan,
+                                color: Colors.grey,
                                 fontFamily: 'monospace',
                                 fontSize: 11,
                               ),
@@ -347,7 +348,7 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                             Text(
                               'Canvas offset: (${canvasOffset.dx.toInt()}, ${canvasOffset.dy.toInt()})',
                               style: const TextStyle(
-                                color: Colors.cyan,
+                                color: Colors.grey,
                                 fontFamily: 'monospace',
                                 fontSize: 11,
                               ),
@@ -413,10 +414,10 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.blur_on, color: Colors.cyan),
+                              const Icon(Icons.privacy_tip, color: Colors.white),
                               const SizedBox(width: 8),
                               const Text(
-                                'Pixelation Level',
+                                'Blur Strength',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -426,7 +427,7 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                               Text(
                                 _pixelationLevel.toString(),
                                 style: const TextStyle(
-                                  color: Colors.cyan,
+                                  color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -439,8 +440,8 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                             max: 100,
                             divisions: 99,
                             label: _pixelationLevel.toString(),
-                            activeColor: Colors.cyan,
-                            inactiveColor: Colors.grey[700],
+                            activeColor: Colors.white,
+                            inactiveColor: Colors.grey[800],
                             onChanged: (value) {
                               setState(() {
                                 _pixelationLevel = value.toInt();
