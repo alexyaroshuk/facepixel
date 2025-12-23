@@ -117,7 +117,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _showRedBorder = true;
   bool _showTealBorder = true;
   bool _showTestPanel = false;
-  bool _showDebugUI = true;
+  bool _showDebugUI = false;
   int? _overrideRotation; // Override rotation for testing
 
   // Pixelation settings
