@@ -138,16 +138,12 @@ async function initializeCamera() {
  * Detection loop - runs on every animation frame
  */
 async function detectFrame() {
-  console.log('[FaceDetection] detectFrame called');
-
   if (!detectionLoop || !faceDetector || !videoElement) {
-    console.log('[FaceDetection] detectFrame early return:', { detectionLoop, hasFaceDetector: !!faceDetector, hasVideoElement: !!videoElement });
     return;
   }
 
   // Only process if video is ready and has new frame
   if (videoElement.readyState < 2) {
-    console.log('[FaceDetection] Video not ready, readyState:', videoElement.readyState);
     if (detectionLoop) {
       requestAnimationFrame(detectFrame);
     }
@@ -155,11 +151,14 @@ async function detectFrame() {
   }
 
   const currentTime = videoElement.currentTime;
+  let faces = [];
+  let shouldDispatchCallback = false;
 
   // Only detect if we have a new frame (avoid processing same frame twice)
   if (currentTime !== lastVideoTime) {
     lastVideoTime = currentTime;
     frameCounter++;
+    shouldDispatchCallback = true;
 
     try {
       console.log('[FaceDetection] Running detection at time:', currentTime);
@@ -169,7 +168,6 @@ async function detectFrame() {
       console.log('[FaceDetection] Detections:', detections);
 
       // Convert detections to our face format
-      const faces = [];
       if (detections && detections.detections) {
         const videoNatWidth = videoElement.videoWidth;
         const videoNatHeight = videoElement.videoHeight;
@@ -244,19 +242,29 @@ async function detectFrame() {
           face.width = Math.max(0, Math.min(face.width, videoNatWidth - face.x));
           face.height = Math.max(0, Math.min(face.height, videoNatHeight - face.y));
 
-          faces.push(face);
-          console.log('[FaceDetection] Scaled face:', face);
+          // Only include faces that are meaningfully visible (not mostly off-screen)
+          // Skip if face is too small after clamping (less than 20x20 or off-screen)
+          if (face.width > 20 && face.height > 20) {
+            faces.push(face);
+            console.log('[FaceDetection] Scaled face:', face);
+          }
         }
-      }
-
-      // Call callback with detected faces
-      if (onFacesDetectedCallback) {
-        onFacesDetectedCallback(faces);
       }
     } catch (error) {
       console.error('[FaceDetection] Detection error:', error);
       console.error('[FaceDetection] Error stack:', error.stack);
     }
+  }
+
+  // CRITICAL: Only update UI when we have processed a new frame
+  // This prevents clearing boxes when the video frame hasn't changed
+  if (shouldDispatchCallback && onFacesDetectedCallback) {
+    if (faces.length === 0) {
+      console.log('[FaceDetection] Calling callback with EMPTY faces array - should clear boxes');
+    } else {
+      console.log('[FaceDetection] Calling callback with', faces.length, 'detected faces');
+    }
+    onFacesDetectedCallback(faces);
   }
 
   // Continue loop
@@ -675,7 +683,11 @@ async function startApp() {
       // Update blur overlay
       updateBlurOverlay();
 
-      console.log('[FaceDetection] Dispatching facesDetected event with', faces.length, 'faces');
+      if (faces.length === 0) {
+        console.log('[FaceDetection] 🗑️ DISPATCHING EVENT WITH EMPTY ARRAY - boxes should clear');
+      } else {
+        console.log('[FaceDetection] Dispatching facesDetected event with', faces.length, 'faces');
+      }
       const event = new CustomEvent('facesDetected', {
         detail: { faces: faces }
       });

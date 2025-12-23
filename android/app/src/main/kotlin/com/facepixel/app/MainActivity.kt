@@ -68,11 +68,24 @@ class MainActivity : FlutterActivity() {
                                 "processingTime" to processingResult.processingTime
                             ))
                         } else {
-                            result.error("PROCESSOR_ERROR", "Frame processor not initialized", null)
+                            // CRITICAL: Return success=false with empty faces array instead of error
+                            // This ensures Dart code can handle it gracefully without exceptions
+                            Log.e("MainActivity", "Frame processor not initialized")
+                            result.success(mapOf(
+                                "success" to false,
+                                "faces" to emptyList<Any>(),
+                                "processingTime" to 0L
+                            ))
                         }
                     } catch (e: Exception) {
                         Log.e("MainActivity", "Frame processing error: ${e.message}", e)
-                        result.error("PROCESS_ERROR", e.message, null)
+                        // CRITICAL: Return success=false with empty faces array instead of error
+                        // This ensures Dart code can handle it gracefully without exceptions
+                        result.success(mapOf(
+                            "success" to false,
+                            "faces" to emptyList<Any>(),
+                            "processingTime" to 0L
+                        ))
                     }
                 }
                 "setPixelationLevel" -> {

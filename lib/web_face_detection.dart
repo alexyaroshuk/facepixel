@@ -230,7 +230,7 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
           return Container(
             width: screenSize.width,
             height: screenSize.height,
-            color: Colors.black,
+            color: const Color(0xFF1A1A1A),
             child: Stack(
               children: [
                 // Red border - video stream area (for debugging)
@@ -294,6 +294,32 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                 // Backdrop blur overlay is handled by JavaScript (CSS backdrop-filter)
                 // See web/face_detection.js updateBlurOverlay() function
 
+                // Face count display above video stream
+                Positioned(
+                  top: canvasOffset.dy - 40,
+                  left: canvasOffset.dx,
+                  right: screenSize.width - canvasOffset.dx - _canvasWidth,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black87,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        'Faces: ${_detectedFaces.length}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
 
                 // Debug overlay
                 if (_showDebugUI)

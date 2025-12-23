@@ -431,8 +431,10 @@ class _MyHomePageState extends State<MyHomePage> {
       }
 
       // Convert face data to Face objects
+      List<Face> faces = [];
+
       if (facesList.isNotEmpty) {
-        final faces = facesList
+        faces = facesList
             .map(
               (f) => Face(
                 x: (f['x'] as num).toDouble(),
@@ -442,25 +444,38 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             )
             .toList();
+      }
 
-        if (mounted && !_isSwitchingCamera) {
-          try {
-            final previewSize = _controller.value.previewSize;
-            setState(() {
-              _detectedFaces = faces;
-              final w = previewSize?.width.toInt() ?? 0;
-              final h = previewSize?.height.toInt() ?? 0;
-              final platform = kIsWeb ? 'Web' : 'Native';
-              _debugMessage =
-                  'Faces: ${faces.length} | Image: ${_lastImageWidth}x$_lastImageHeight | Preview: ${w}x$h | FPS: ${_fps.toStringAsFixed(1)} | $platform';
-            });
-          } catch (e) {
-            print('⚠️ Flutter: Error updating UI with face results: $e');
-          }
+      // Always update state, even if no faces are detected (to clear old faces)
+      if (mounted && !_isSwitchingCamera) {
+        try {
+          final previewSize = _controller.value.previewSize;
+          setState(() {
+            _detectedFaces = faces;
+            final w = previewSize?.width.toInt() ?? 0;
+            final h = previewSize?.height.toInt() ?? 0;
+            final platform = kIsWeb ? 'Web' : 'Native';
+            _debugMessage =
+                'Faces: ${faces.length} | Image: ${_lastImageWidth}x$_lastImageHeight | Preview: ${w}x$h | FPS: ${_fps.toStringAsFixed(1)} | $platform';
+          });
+        } catch (e) {
+          print('⚠️ Flutter: Error updating UI with face results: $e');
         }
       }
     } catch (e) {
       print('❌ Flutter: Exception in _processFrame: $e');
+      // CRITICAL: Clear detected faces on error to prevent stale boxes
+      // This ensures boxes disappear if detection fails
+      if (mounted && !_isSwitchingCamera) {
+        try {
+          setState(() {
+            _detectedFaces = [];
+            _debugMessage = 'Face detection error - boxes cleared';
+          });
+        } catch (_) {
+          // Ignore setState errors during cleanup
+        }
+      }
     } finally {
       _isProcessing = false;
     }
@@ -687,7 +702,7 @@ class _MyHomePageState extends State<MyHomePage> {
           return Container(
             width: bodySize.width,
             height: bodySize.height,
-            color: Colors.black,
+            color: const Color(0xFF1A1A1A),
             child: Stack(
               children: [
                 // CENTERED VIDEO PREVIEW - Preserves aspect ratio

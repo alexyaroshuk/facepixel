@@ -210,12 +210,19 @@ import AVFoundation
         for (index, face) in faces.enumerated() {
           let boundingBox = face.frame
           NSLog("📍 Face \(index): (\(boundingBox.origin.x), \(boundingBox.origin.y)) \(boundingBox.width)x\(boundingBox.height)")
-          faceArray.append([
-            "x": NSNumber(value: Float(boundingBox.origin.x)),
-            "y": NSNumber(value: Float(boundingBox.origin.y)),
-            "width": NSNumber(value: Float(boundingBox.width)),
-            "height": NSNumber(value: Float(boundingBox.height))
-          ])
+
+          // Only include faces that are meaningfully visible (not mostly off-screen)
+          // Skip if face is too small (less than 20x20) - prevents lingering boxes at edges
+          if boundingBox.width >= 20 && boundingBox.height >= 20 {
+            faceArray.append([
+              "x": NSNumber(value: Float(boundingBox.origin.x)),
+              "y": NSNumber(value: Float(boundingBox.origin.y)),
+              "width": NSNumber(value: Float(boundingBox.width)),
+              "height": NSNumber(value: Float(boundingBox.height))
+            ])
+          } else {
+            NSLog("📍 Face \(index): Filtered out - too small (\(boundingBox.width)x\(boundingBox.height))")
+          }
         }
 
         // CRITICAL: Flutter result callback MUST be called on main thread
@@ -226,7 +233,7 @@ import AVFoundation
       } catch {
         NSLog("❌ processFrame: Face detection error - \(error.localizedDescription)")
         DispatchQueue.main.async {
-          result(["success": false])
+          result(["success": false, "faces": []])
         }
       }
     }

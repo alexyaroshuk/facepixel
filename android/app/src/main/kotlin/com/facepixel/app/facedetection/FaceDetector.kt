@@ -58,7 +58,15 @@ class FaceDetector {
                     )
                     Log.d(tag, "  Face[$face]: LEFT=${bbox.left} TOP=${bbox.top} RIGHT=${bbox.right} BOTTOM=${bbox.bottom}")
                     Log.d(tag, "  -> RectData: x=${rect.x} y=${rect.y} w=${rect.width} h=${rect.height}")
-                    rect
+
+                    // Only include faces that are meaningfully visible (not mostly off-screen)
+                    // Skip if face is too small (less than 20x20) - prevents lingering boxes at edges
+                    if (rect.width >= 20 && rect.height >= 20) {
+                        rect
+                    } else {
+                        Log.d(tag, "  -> Filtered out: face too small (${rect.width}x${rect.height})")
+                        null
+                    }
                 } catch (e: Exception) {
                     Log.e(tag, "Error extracting face bounds: ${e.message}")
                     null
