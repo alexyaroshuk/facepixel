@@ -700,10 +700,16 @@ async function startApp() {
     detectFrame();
 
     console.log('[FaceDetection] ===== STARTUP COMPLETE =====');
+
+    // Signal to Dart that detector is ready
+    console.log('[FaceDetection] Dispatching detectorReady event...');
+    window.dispatchEvent(new CustomEvent('detectorReady', { detail: { success: true } }));
   } catch (error) {
     console.error('[FaceDetection] ===== STARTUP FAILED =====');
     console.error('[FaceDetection] Error:', error);
     console.error('[FaceDetection] Stack:', error.stack);
+    // Signal to Dart that detector initialization failed
+    window.dispatchEvent(new CustomEvent('detectorReady', { detail: { success: false, error: error.message } }));
   }
 }
 

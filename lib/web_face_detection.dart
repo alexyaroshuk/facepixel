@@ -30,11 +30,24 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
   bool _showTealBorder = true;
   bool _pixelationEnabled = false;
   int _pixelationLevel = 10;
+  bool _faceDetectionInitialized = false;
 
   @override
   void initState() {
     super.initState();
     _initializeWebCamera();
+
+    // Safety timeout: if not initialized after 15 seconds, force show app
+    Future.delayed(const Duration(seconds: 15), () {
+      if (mounted && !_faceDetectionInitialized) {
+        // ignore: avoid_print
+        print('🌐 Web: Initialization timeout - forcing UI to show');
+        setState(() {
+          _faceDetectionInitialized = true;
+          _debugMessage = "Initialized (timeout)";
+        });
+      }
+    });
   }
 
   Future<void> _initializeWebCamera() async {
@@ -99,7 +112,35 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
     // ignore: avoid_print
     print('🌐 Web: Setting up face detection...');
 
-    // FIRST: Set up event listener BEFORE starting JS
+    // FIRST: Set up detector ready listener
+    html.window.addEventListener('detectorReady', (html.Event event) {
+      final customEvent = event as html.CustomEvent;
+      final detail = customEvent.detail;
+      final success = detail?['success'] as bool? ?? false;
+
+      if (success) {
+        // ignore: avoid_print
+        print('🌐 Web: MediaPipe detector ready!');
+        if (mounted) {
+          setState(() {
+            _faceDetectionInitialized = true;
+            _debugMessage = "Ready (Web/MediaPipe)";
+          });
+        }
+      } else {
+        final error = detail?['error'] as String? ?? 'Unknown error';
+        // ignore: avoid_print
+        print('🌐 Web: MediaPipe detector initialization failed: $error');
+        if (mounted) {
+          setState(() {
+            _faceDetectionInitialized = true;
+            _debugMessage = "Init failed: $error";
+          });
+        }
+      }
+    });
+
+    // SECOND: Set up event listener for faces detected
     html.window.addEventListener('facesDetected', (html.Event event) {
       final customEvent = event as html.CustomEvent;
       final detail = customEvent.detail;
@@ -113,9 +154,9 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
     });
 
     // ignore: avoid_print
-    print('🌐 Web: Event listener registered');
+    print('🌐 Web: Event listeners registered');
 
-    // SECOND: Call startApp() in JavaScript to initialize MediaPipe and camera
+    // THIRD: Call startApp() in JavaScript to initialize MediaPipe and camera
     try {
       // Call the startApp() function we defined in face_detection.js
       js_util.callMethod(html.window, 'startApp', []);
@@ -124,6 +165,12 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
     } catch (e) {
       // ignore: avoid_print
       print('🌐 Web: Error calling startApp(): $e');
+      if (mounted) {
+        setState(() {
+          _faceDetectionInitialized = true;
+          _debugMessage = "Init failed: $e";
+        });
+      }
     }
   }
 
@@ -168,38 +215,45 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
 
   @override
   Widget build(BuildContext context) {
+    // Show loading overlay while face detection initializes
+    // But still render the video element in background so initialization can proceed
+    final screenSize = MediaQuery.of(context).size;
+    final canvasOffset = _calculateCanvasOffset(screenSize);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Face Pixelation'),
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         elevation: 0,
-        actions: [
-          // Pixelation toggle
-          IconButton(
-            icon: Icon(
-              _pixelationEnabled ? Icons.privacy_tip : Icons.privacy_tip_outlined,
-              color: _pixelationEnabled ? Colors.white : Colors.grey,
-            ),
-            onPressed: () {
-              setState(() {
-                _pixelationEnabled = !_pixelationEnabled;
-              });
-              _applyPixelation();
-            },
-            tooltip: 'Toggle Blur',
-          ),
-          // Debug UI toggle
-          IconButton(
-            icon: Icon(_showDebugUI ? Icons.info : Icons.info_outline),
-            onPressed: () {
-              setState(() {
-                _showDebugUI = !_showDebugUI;
-              });
-            },
-            tooltip: 'Toggle Debug UI',
-          ),
-        ],
+        actions: !_faceDetectionInitialized
+            ? null
+            : [
+                // Pixelation toggle
+                IconButton(
+                  icon: Icon(
+                    _pixelationEnabled ? Icons.privacy_tip : Icons.privacy_tip_outlined,
+                    color: _pixelationEnabled ? Colors.white : Colors.grey,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _pixelationEnabled = !_pixelationEnabled;
+                    });
+                    _applyPixelation();
+                  },
+                  tooltip: 'Toggle Blur',
+                ),
+                // Debug UI toggle
+                IconButton(
+                  icon: Icon(_showDebugUI ? Icons.info : Icons.info_outline),
+                  onPressed: () {
+                    setState(() {
+                      _showDebugUI = !_showDebugUI;
+                    });
+                  },
+                  tooltip: 'Toggle Debug UI',
+                ),
+              ],
       ),
       body: Builder(
         builder: (context) {
@@ -207,25 +261,25 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
           final canvasOffset = _calculateCanvasOffset(screenSize);
 
           // Account for AppBar height when passing to JavaScript
-          // MediaQuery.of(context).size returns body size (below AppBar)
-          // But JavaScript uses position: fixed which is viewport-relative (includes AppBar)
           final appBarHeight = AppBar().preferredSize.height;
           final statusBarHeight = MediaQuery.of(context).padding.top;
           final adjustedCanvasOffsetY = canvasOffset.dy + appBarHeight + statusBarHeight;
 
           // Sync canvas dimensions and offset with JavaScript (fixed dimensions)
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            try {
-              js_util.callMethod(
-                html.window,
-                'updateCanvasDimensions',
-                [_canvasWidth, _canvasHeight, canvasOffset.dx, adjustedCanvasOffsetY],
-              );
-            } catch (e) {
-              // ignore: avoid_print
-              print('🌐 Web: Error updating canvas dimensions: $e');
-            }
-          });
+          if (_faceDetectionInitialized) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              try {
+                js_util.callMethod(
+                  html.window,
+                  'updateCanvasDimensions',
+                  [_canvasWidth, _canvasHeight, canvasOffset.dx, adjustedCanvasOffsetY],
+                );
+              } catch (e) {
+                // ignore: avoid_print
+                print('🌐 Web: Error updating canvas dimensions: $e');
+              }
+            });
+          }
 
           return Container(
             width: screenSize.width,
@@ -233,8 +287,17 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
             color: const Color(0xFF1A1A1A),
             child: Stack(
               children: [
+                // Video element - always render so camera initialization can proceed
+                Positioned(
+                  left: canvasOffset.dx,
+                  top: canvasOffset.dy,
+                  width: _canvasWidth,
+                  height: _canvasHeight,
+                  child: HtmlElementView(viewType: _videoViewType),
+                ),
+
                 // Red border - video stream area (for debugging)
-                if (_showRedBorder)
+                if (_faceDetectionInitialized && _showRedBorder)
                   Positioned(
                     left: canvasOffset.dx,
                     top: canvasOffset.dy,
@@ -247,17 +310,8 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                     ),
                   ),
 
-                // Video element - positioned within the canvas
-                Positioned(
-                  left: canvasOffset.dx,
-                  top: canvasOffset.dy,
-                  width: _canvasWidth,
-                  height: _canvasHeight,
-                  child: HtmlElementView(viewType: _videoViewType),
-                ),
-
                 // Teal detection canvas area (for debugging)
-                if (_showTealBorder)
+                if (_faceDetectionInitialized && _showTealBorder)
                   Positioned(
                     left: canvasOffset.dx,
                     top: canvasOffset.dy,
@@ -271,8 +325,62 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                     ),
                   ),
 
-                // Face detection boxes - only show when blur is disabled (for reference)
-                if (!_pixelationEnabled && _videoSize != Size.zero)
+                // Show loading overlay on top while initializing
+                if (!_faceDetectionInitialized)
+                  Container(
+                    color: Colors.black.withValues(alpha: 0.7),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                          SizedBox(height: 24),
+                          Text(
+                            'Initializing face detection...',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                // Face count display above video stream (only when initialized)
+                if (_faceDetectionInitialized)
+                  Positioned(
+                    top: canvasOffset.dy - 40,
+                    left: canvasOffset.dx,
+                    right: screenSize.width - canvasOffset.dx - _canvasWidth,
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black87,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          'Faces: ${_detectedFaces.length}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                // Face detection boxes - only show when initialized and blur is disabled
+                if (_faceDetectionInitialized &&
+                    !_pixelationEnabled &&
+                    _videoSize != Size.zero)
                   ..._detectedFaces.map((face) {
                     // Scale boxes to fixed canvas size
                     final scaleX = _canvasWidth / _videoSize.width;
@@ -291,38 +399,8 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                     );
                   }),
 
-                // Backdrop blur overlay is handled by JavaScript (CSS backdrop-filter)
-                // See web/face_detection.js updateBlurOverlay() function
-
-                // Face count display above video stream
-                Positioned(
-                  top: canvasOffset.dy - 40,
-                  left: canvasOffset.dx,
-                  right: screenSize.width - canvasOffset.dx - _canvasWidth,
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black87,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        'Faces: ${_detectedFaces.length}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Debug overlay
-                if (_showDebugUI)
+                // Debug overlay (only when initialized)
+                if (_faceDetectionInitialized && _showDebugUI)
                   Positioned(
                     top: 8,
                     left: 8,
@@ -423,8 +501,8 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                     ),
                   ),
 
-                // Pixelation level slider control
-                if (_pixelationEnabled)
+                // Pixelation level slider control (only when initialized and enabled)
+                if (_faceDetectionInitialized && _pixelationEnabled)
                   Positioned(
                     bottom: 16,
                     left: 16,

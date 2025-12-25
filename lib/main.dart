@@ -105,6 +105,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _isSwitchingCamera = false;
   int _lastImageWidth = 0;
   int _lastImageHeight = 0;
+  bool _faceDetectionInitialized = false;
 
   // Image dimensions (from camera frames)
   Size _imageSize = Size.zero;
@@ -219,6 +220,17 @@ class _MyHomePageState extends State<MyHomePage> {
     _initializeCamera();
     print('🔧 Flutter: Calling _initializeNativeFaceDetection()');
     _initializeNativeFaceDetection();
+
+    // Safety timeout: if not initialized after 15 seconds, force show app
+    Future.delayed(const Duration(seconds: 15), () {
+      if (mounted && !_faceDetectionInitialized) {
+        print('📷 Flutter: Face detection initialization timeout - forcing UI to show');
+        setState(() {
+          _faceDetectionInitialized = true;
+          _debugMessage = "Initialized (timeout)";
+        });
+      }
+    });
   }
 
   Future<void> _initializeNativeFaceDetection() async {
@@ -229,6 +241,11 @@ class _MyHomePageState extends State<MyHomePage> {
       print(
         '🌐 Flutter: Running on web - face detection handled by WebFaceDetectionView',
       );
+      if (mounted) {
+        setState(() {
+          _faceDetectionInitialized = true;
+        });
+      }
       return;
     }
 
@@ -241,20 +258,29 @@ class _MyHomePageState extends State<MyHomePage> {
       print('🚀 Flutter: Got result from initializeFaceDetection: $result');
       if (result) {
         print('✅ Flutter: Face detection initialized successfully');
-        setState(() {
-          _debugMessage = "Ready (ML Kit)";
-        });
+        if (mounted) {
+          setState(() {
+            _faceDetectionInitialized = true;
+            _debugMessage = "Ready (ML Kit)";
+          });
+        }
       } else {
         print('❌ Flutter: Face detection initialization returned false');
-        setState(() {
-          _debugMessage = "Init failed: returned false";
-        });
+        if (mounted) {
+          setState(() {
+            _faceDetectionInitialized = true;
+            _debugMessage = "Init failed: returned false";
+          });
+        }
       }
     } catch (e) {
       print('❌ Flutter: Exception in _initializeNativeFaceDetection: $e');
-      setState(() {
-        _debugMessage = "Init failed: $e";
-      });
+      if (mounted) {
+        setState(() {
+          _faceDetectionInitialized = true;
+          _debugMessage = "Init failed: $e";
+        });
+      }
     }
   }
 
@@ -625,6 +651,51 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     if (!_controller.value.isInitialized || _isSwitchingCamera) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    // Show loading overlay while face detection initializes
+    if (!_faceDetectionInitialized) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Face Pixelation'),
+          backgroundColor: Colors.black,
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
+        body: Stack(
+          children: [
+            // Show camera preview in background
+            Container(
+              color: const Color(0xFF1A1A1A),
+              child: Center(
+                child: CameraPreview(_controller),
+              ),
+            ),
+            // Loading overlay
+            Container(
+              color: Colors.black.withValues(alpha: 0.6),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                    SizedBox(height: 24),
+                    Text(
+                      'Initializing face detection...',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
     return Scaffold(

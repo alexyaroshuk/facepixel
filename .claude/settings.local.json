@@ -12,7 +12,8 @@
       "WebSearch",
       "WebFetch(domain:developers.google.com)",
       "WebFetch(domain:github.com)",
-      "Bash(tee:*)"
+      "Bash(tee:*)",
+      "Bash(tree:*)"
     ]
   }
 }
