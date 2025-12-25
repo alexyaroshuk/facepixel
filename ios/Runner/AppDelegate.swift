@@ -148,7 +148,6 @@ import AVFoundation
 
         // Create VisionImage directly from CVPixelBuffer (simpler than CMSampleBuffer path)
         let visionImage = VisionImage(buffer: buffer)
-        visionImage.orientation = self?.getImageOrientation(from: rotation) ?? .up
 
         NSLog("📍 processFrame: Running SYNCHRONOUS face detection on background thread")
         let faces = try detector.results(in: visionImage)
@@ -182,21 +181,6 @@ import AVFoundation
           result(["success": false, "faces": []])
         }
       }
-    }
-  }
-
-  private func getImageOrientation(from rotation: Int) -> UIImage.Orientation {
-    switch rotation {
-    case 0:
-      return .up
-    case 90:
-      return .right
-    case 180:
-      return .down
-    case 270:
-      return .left
-    default:
-      return .up
     }
   }
 
