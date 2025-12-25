@@ -51,20 +51,15 @@ import AVFoundation
 
   private func initializeFaceDetection(result: @escaping FlutterResult) {
     NSLog("🔧 initializeFaceDetection: Starting")
-    do {
-      let options = FaceDetectorOptions()
-      options.performanceMode = .fast
-      options.landmarkMode = .none
-      options.classificationMode = .none
-      options.minFaceSize = CGFloat(0.01)
+    let options = FaceDetectorOptions()
+    options.performanceMode = .fast
+    options.landmarkMode = .none
+    options.classificationMode = .none
+    options.minFaceSize = CGFloat(0.01)
 
-      faceDetector = FaceDetector.faceDetector(options: options)
-      NSLog("✅ initializeFaceDetection: FaceDetector created successfully")
-      result(true)
-    } catch {
-      NSLog("❌ initializeFaceDetection: Error - \(error.localizedDescription)")
-      result(false)
-    }
+    faceDetector = FaceDetector.faceDetector(options: options)
+    NSLog("✅ initializeFaceDetection: FaceDetector created successfully")
+    result(true)
   }
 
   private func processFrame(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -198,7 +193,14 @@ import AVFoundation
       NSLog("✅ processFrame: VisionImage created with orientation \(rotation)°")
       NSLog("📍 processFrame: Starting SYNCHRONOUS face detection")
 
-      let faces = try faceDetector.results(in: visionImage)
+      // Guard against detector being nil
+      guard let detector = faceDetector else {
+        NSLog("⚠️ processFrame: Face detector not available")
+        result(["success": false, "faces": []])
+        return
+      }
+
+      let faces = try detector.results(in: visionImage)
       NSLog("✅ processFrame: Face detection completed, found \(faces.count) faces")
 
       var faceArray: [[String: NSNumber]] = []
