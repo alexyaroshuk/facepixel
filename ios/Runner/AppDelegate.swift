@@ -3,6 +3,7 @@ import UIKit
 import MLKitFaceDetection
 import MLKitVision
 import AVFoundation
+import CoreMedia
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -146,8 +147,31 @@ import AVFoundation
 
         NSLog("✅ processFrame: CVPixelBuffer created successfully")
 
-        // Create VisionImage directly from CVPixelBuffer (simpler than CMSampleBuffer path)
-        let visionImage = VisionImage(buffer: buffer)
+        // Create CMSampleBuffer from CVPixelBuffer for VisionImage
+        var formatDescription: CMVideoFormatDescription?
+        CMVideoFormatDescriptionCreateForImageBuffer(allocator: kCFAllocatorDefault, imageBuffer: buffer, formatDescriptionOut: &formatDescription)
+
+        guard let formatDesc = formatDescription else {
+          NSLog("❌ processFrame: Failed to create video format description")
+          DispatchQueue.main.async {
+            result(["success": false, "faces": []])
+          }
+          return
+        }
+
+        var sampleBuffer: CMSampleBuffer?
+        var timingInfo = CMSampleTimingInfo(duration: CMTimeMake(value: 1, timescale: 30), presentationTimeStamp: CMTimeMake(value: 0, timescale: 1), decodeTimeStamp: CMTimeMake(value: 0, timescale: 1))
+        CMSampleBufferCreateForImageBuffer(allocator: kCFAllocatorDefault, imageBuffer: buffer, dataReady: true, makeDataReadyCallback: nil, refcon: nil, formatDescription: formatDesc, sampleTiming: &timingInfo, sampleBufferOut: &sampleBuffer)
+
+        guard let smplBuffer = sampleBuffer else {
+          NSLog("❌ processFrame: Failed to create sample buffer")
+          DispatchQueue.main.async {
+            result(["success": false, "faces": []])
+          }
+          return
+        }
+
+        let visionImage = VisionImage(buffer: smplBuffer)
 
         NSLog("📍 processFrame: Running SYNCHRONOUS face detection on background thread")
         let faces = try detector.results(in: visionImage)
