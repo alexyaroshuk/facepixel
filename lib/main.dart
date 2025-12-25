@@ -106,6 +106,8 @@ class _MyHomePageState extends State<MyHomePage> {
   int _lastImageWidth = 0;
   int _lastImageHeight = 0;
   bool _faceDetectionInitialized = false;
+  bool _cameraPermissionDenied = false;
+  bool _controllerInitialized = false;
 
   // Image dimensions (from camera frames)
   Size _imageSize = Size.zero;
@@ -115,10 +117,6 @@ class _MyHomePageState extends State<MyHomePage> {
   Offset _detectionCanvasOffset = Offset.zero;
 
   // Debug visualization
-  bool _showRedBorder = true;
-  bool _showTealBorder = true;
-  bool _showTestPanel = false;
-  bool _showDebugUI = false;
   int? _overrideRotation; // Override rotation for testing
 
   // Pixelation settings
@@ -216,10 +214,14 @@ class _MyHomePageState extends State<MyHomePage> {
     } else {
       print('🔧 Flutter: No front camera found, using camera at index 0');
     }
-    print('🔧 Flutter: Calling _initializeCamera()');
-    _initializeCamera();
-    print('🔧 Flutter: Calling _initializeNativeFaceDetection()');
-    _initializeNativeFaceDetection();
+
+    // Defer initialization so UI loads first
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      print('🔧 Flutter: Calling _initializeCamera()');
+      _initializeCamera();
+      print('🔧 Flutter: Calling _initializeNativeFaceDetection()');
+      _initializeNativeFaceDetection();
+    });
 
     // Safety timeout: if not initialized after 15 seconds, force show app
     Future.delayed(const Duration(seconds: 15), () {
@@ -331,15 +333,26 @@ class _MyHomePageState extends State<MyHomePage> {
 
       setState(() {
         _isSwitchingCamera = false;
+        _cameraPermissionDenied = false;
+        _controllerInitialized = true;
       });
 
       // Start image stream AFTER camera is stable
       await _startImageStream();
     } catch (e) {
       print('❌ Flutter: Camera init error: $e');
+
+      // Check if this is a permission error
+      final isPermissionError = e.toString().toLowerCase().contains('permission') ||
+                                e.toString().toLowerCase().contains('denied');
+
       setState(() {
         _debugMessage = "Camera error: $e";
         _isSwitchingCamera = false;
+        _controllerInitialized = false;
+        if (isPermissionError) {
+          _cameraPermissionDenied = true;
+        }
       });
     }
   }
@@ -643,14 +656,95 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void dispose() {
-    _controller.dispose();
+    if (_controllerInitialized) {
+      _controller.dispose();
+    }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_controller.value.isInitialized || _isSwitchingCamera) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    // Show permission denied screen if camera access was denied (check this first before accessing _controller)
+    if (_cameraPermissionDenied) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Face Pixelation'),
+          backgroundColor: Colors.black,
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
+        body: Container(
+          color: const Color(0xFF1A1A1A),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.lock_outline,
+                  size: 64,
+                  color: Colors.red,
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Camera Access Denied',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 32),
+                  child: Text(
+                    'This app requires camera access to detect and pixelate faces. Please enable camera permissions in your device settings.',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 14,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // Retry camera initialization
+                    setState(() {
+                      _cameraPermissionDenied = false;
+                    });
+                    _initializeCamera();
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Try Again'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (!_controllerInitialized || !_controller.value.isInitialized || _isSwitchingCamera) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Face Pixelation'),
+          backgroundColor: Colors.black,
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
     }
 
     // Show loading overlay while face detection initializes
@@ -718,16 +812,6 @@ class _MyHomePageState extends State<MyHomePage> {
             },
             tooltip: 'Toggle Blur',
           ),
-          // Debug UI toggle
-          IconButton(
-            icon: Icon(_showDebugUI ? Icons.info : Icons.info_outline),
-            onPressed: () {
-              setState(() {
-                _showDebugUI = !_showDebugUI;
-              });
-            },
-            tooltip: 'Toggle Debug UI',
-          ),
           // Camera switch button
           if (widget.cameras.length > 1)
             Padding(
@@ -764,13 +848,6 @@ class _MyHomePageState extends State<MyHomePage> {
             _updateDetectionCanvasDimensions(bodySize);
           });
 
-          // ⚠️ DEBUG: Log what we're rendering
-          if (_showRedBorder || _showTealBorder) {
-            // ignore: avoid_print
-            print(
-              '🎨 BUILD: screenSize=${screenSize.width.toInt()}x${screenSize.height.toInt()} | bodySize=${bodySize.width.toInt()}x${bodySize.height.toInt()} | appBarHeight=${appBarHeight.toInt()}',
-            );
-          }
 
           // Calculate video dimensions that preserve aspect ratio
           final videoDimensions = _calculateVideoDimensions(bodySize);
@@ -788,29 +865,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   top: videoOffset.dy,
                   width: videoDimensions.width,
                   height: videoDimensions.height,
-                  child: Container(
-                    decoration: _showRedBorder
-                        ? BoxDecoration(
-                            border: Border.all(color: Colors.red, width: 5),
-                          )
-                        : null,
-                    child: CameraPreview(_controller),
-                  ),
+                  child: CameraPreview(_controller),
                 ),
-
-                // TEAL BORDER - overlays on top of video
-                if (_showTealBorder)
-                  Positioned(
-                    left: videoOffset.dx,
-                    top: videoOffset.dy,
-                    width: videoDimensions.width,
-                    height: videoDimensions.height,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.cyan, width: 3),
-                      ),
-                    ),
-                  ),
 
                 // Face count above video stream
                 Positioned(
@@ -891,295 +947,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     );
                   }),
 
-                // Status overlay with detailed debug info
-                if (_showDebugUI)
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    right: 8,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black87,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.all(8),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              _debugMessage,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontFamily: 'monospace',
-                                fontSize: 11,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Screen: ${bodySize.width.toInt()}x${bodySize.height.toInt()}',
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontFamily: 'monospace',
-                                fontSize: 11,
-                              ),
-                            ),
-                            Text(
-                              'Preview size: ${(_controller.value.previewSize?.width.toInt() ?? 0)}x${(_controller.value.previewSize?.height.toInt() ?? 0)}',
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontFamily: 'monospace',
-                                fontSize: 11,
-                              ),
-                            ),
-                            Text(
-                              'Frame data: ${_imageSize.width.toInt()}x${_imageSize.height.toInt()}',
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontFamily: 'monospace',
-                                fontSize: 11,
-                              ),
-                            ),
-                            Text(
-                              'Video area: ${_detectionCanvasSize.width.toInt()}x${_detectionCanvasSize.height.toInt()}',
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontFamily: 'monospace',
-                                fontSize: 11,
-                              ),
-                            ),
-                            Text(
-                              'Video offset: (${_detectionCanvasOffset.dx.toInt()}, ${_detectionCanvasOffset.dy.toInt()})',
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontFamily: 'monospace',
-                                fontSize: 11,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Rotation: ${_calculateMLKitRotation()}°${_overrideRotation != null ? ' (OVERRIDE)' : ''}',
-                              style: TextStyle(
-                                color: _overrideRotation != null
-                                    ? Colors.orange
-                                    : Colors.lightGreen,
-                                fontFamily: 'monospace',
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _isProcessing ? 'Processing...' : 'Ready',
-                              style: TextStyle(
-                                color: _isProcessing
-                                    ? Colors.orange
-                                    : Colors.green,
-                                fontSize: 12,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            // Aspect ratios
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Colors.grey,
-                                  width: 1,
-                                ),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    'Camera aspect: ${(_imageSize.width / _imageSize.height).toStringAsFixed(3)}',
-                                    style: const TextStyle(
-                                      color: Colors.yellow,
-                                      fontFamily: 'monospace',
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Video aspect: ${(_detectionCanvasSize.width / _detectionCanvasSize.height).toStringAsFixed(3)}',
-                                    style: const TextStyle(
-                                      color: Colors.cyan,
-                                      fontFamily: 'monospace',
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _showRedBorder = !_showRedBorder;
-                                    });
-                                  },
-                                  child: Text(
-                                    '🔴 Red: ${_showRedBorder ? 'ON' : 'OFF'}',
-                                    style: TextStyle(
-                                      color: _showRedBorder
-                                          ? Colors.red
-                                          : Colors.grey,
-                                      fontFamily: 'monospace',
-                                      fontSize: 10,
-                                      fontWeight: _showRedBorder
-                                          ? FontWeight.bold
-                                          : FontWeight.normal,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _showTealBorder = !_showTealBorder;
-                                    });
-                                  },
-                                  child: Text(
-                                    '🔷 Teal: ${_showTealBorder ? 'ON' : 'OFF'}',
-                                    style: TextStyle(
-                                      color: _showTealBorder
-                                          ? Colors.cyan
-                                          : Colors.grey,
-                                      fontFamily: 'monospace',
-                                      fontSize: 10,
-                                      fontWeight: _showTealBorder
-                                          ? FontWeight.bold
-                                          : FontWeight.normal,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _showTestPanel = !_showTestPanel;
-                                    });
-                                  },
-                                  child: Text(
-                                    'Test: ${_showTestPanel ? 'ON' : 'OFF'}',
-                                    style: TextStyle(
-                                      color: _showTestPanel
-                                          ? Colors.orange
-                                          : Colors.lightBlue,
-                                      fontFamily: 'monospace',
-                                      fontSize: 10,
-                                      fontWeight: _showTestPanel
-                                          ? FontWeight.bold
-                                          : FontWeight.normal,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                // Test panel - rotation testing buttons
-                if (_showTestPanel)
-                  Positioned(
-                    bottom: 16,
-                    left: 16,
-                    right: 16,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black87,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.orange, width: 2),
-                      ),
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '🔄 ROTATION TEST PANEL',
-                            style: const TextStyle(
-                              color: Colors.orange,
-                              fontFamily: 'monospace',
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Current: ${_overrideRotation ?? 'AUTO'} | Detected faces: ${_detectedFaces.length}',
-                            style: TextStyle(
-                              color: _detectedFaces.isNotEmpty
-                                  ? Colors.lightGreen
-                                  : Colors.red,
-                              fontFamily: 'monospace',
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              _buildRotationButton(0),
-                              _buildRotationButton(90),
-                              _buildRotationButton(180),
-                              _buildRotationButton(270),
-                              ElevatedButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _overrideRotation = null;
-                                  });
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.grey[700],
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 8,
-                                  ),
-                                ),
-                                child: const Text(
-                                  'AUTO',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[900],
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              _overrideRotation != null
-                                  ? '⚠️ Testing rotation: $_overrideRotation°\nLook for faces in logcat'
-                                  : '✓ Using auto-calculated rotation\nNo override active',
-                              style: TextStyle(
-                                color: _overrideRotation != null
-                                    ? Colors.orange
-                                    : Colors.lightGreen,
-                                fontFamily: 'monospace',
-                                fontSize: 10,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
 
                 // Blur level slider control
                 if (_pixelationEnabled)
