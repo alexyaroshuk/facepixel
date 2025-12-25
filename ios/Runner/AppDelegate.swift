@@ -134,16 +134,14 @@ import AVFoundation
         }
 
         // Lock buffer and copy frame data into it
-        CVPixelBufferLockBaseAddress(buffer, .readAndWrite)
+        CVPixelBufferLockBaseAddress(buffer, [])
 
         if let baseAddress = CVPixelBufferGetBaseAddress(buffer) {
-          let bytesPerRowActual = CVPixelBufferGetBytesPerRow(buffer)
-
-          // Copy data plane by plane for proper handling
+          // Copy data into the pixel buffer we allocated
           memcpy(baseAddress, (imageData as NSData).bytes, imageData.count)
         }
 
-        CVPixelBufferUnlockBaseAddress(buffer, .readAndWrite)
+        CVPixelBufferUnlockBaseAddress(buffer, [])
 
         // Create CMVideoFormatDescription
         var formatDesc: CMVideoFormatDescription?
