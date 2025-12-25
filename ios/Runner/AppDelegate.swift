@@ -122,8 +122,17 @@ import AVFoundation
 
       NSLog("📷 processFrame: Using format \(pixelFormat), bytesPerRow=\(bytesPerRow)")
 
-      // Create CVPixelBuffer
+      // Create CVPixelBuffer with copied data to avoid memory ownership issues
+      // CRITICAL: Must copy the frame data because Flutter's frame lifecycle is independent
+      // and the async detection queue may process frames out of order or with delays
+      // Without proper memory management, the underlying data can be deallocated
+      // while the VisionImage/CVPixelBuffer is still in use, causing intermittent detection failures
       var pixelBuffer: CVPixelBuffer?
+
+      // Create a pool to hold the data alive during processing
+      // This ensures the frame data persists for the entire detection cycle
+      let frameDataHolder = NSMutableData(data: imageData)
+
       let options: [String: Any] = [
         kCVPixelBufferCGImageCompatibilityKey as String: true,
         kCVPixelBufferCGBitmapContextCompatibilityKey as String: true
@@ -134,7 +143,7 @@ import AVFoundation
         width,
         height,
         pixelFormat,
-        UnsafeMutableRawPointer(mutating: (imageData as NSData).bytes),
+        frameDataHolder.mutableBytes,
         bytesPerRow,
         nil,
         nil,
