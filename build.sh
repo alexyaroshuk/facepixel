@@ -9,9 +9,7 @@ export PATH="/tmp/flutter/bin:$PATH"
 echo "Verifying Flutter installation..."
 flutter --version
 
-echo "Navigating to project directory..."
-cd $VERCEL_PROJECT_DIR
-
+echo "Current directory: $(pwd)"
 echo "Getting dependencies..."
 flutter pub get
 
