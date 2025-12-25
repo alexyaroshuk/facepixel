@@ -51,20 +51,15 @@ import AVFoundation
   }
 
   private func initializeFaceDetection(result: @escaping FlutterResult) {
-    NSLog("🔧 initializeFaceDetection: Starting")
+    NSLog("🔧 initializeFaceDetection: Starting on main thread")
+    let options = FaceDetectorOptions()
+    options.performanceMode = .fast
+    options.landmarkMode = .none
+    options.classificationMode = .none
+    options.minFaceSize = CGFloat(0.01)
 
-    // CRITICAL: FaceDetector creation MUST happen on background thread
-    detectionQueue.sync {
-      let options = FaceDetectorOptions()
-      options.performanceMode = .fast
-      options.landmarkMode = .none
-      options.classificationMode = .none
-      options.minFaceSize = CGFloat(0.01)
-
-      faceDetector = FaceDetector.faceDetector(options: options)
-      NSLog("✅ initializeFaceDetection: FaceDetector created successfully on background thread")
-    }
-
+    faceDetector = FaceDetector.faceDetector(options: options)
+    NSLog("✅ initializeFaceDetection: FaceDetector created successfully")
     result(true)
   }
 
