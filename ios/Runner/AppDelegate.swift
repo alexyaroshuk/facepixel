@@ -89,7 +89,11 @@ import AVFoundation
       NSLog("📷 processFrame: Running on background thread")
 
       do {
-        // Auto-detect pixel format based on data size
+        // FOLLOW ANDROID PATTERN: Keep frame data alive, create image, detect faces
+        // Keep frame data in memory - critical for CVPixelBuffer to access it safely
+        let frameDataHolder = NSData(bytes: (imageData as NSData).bytes, length: imageData.count)
+
+        // Auto-detect pixel format - same logic as Android
         let expectedBGRASize = width * height * 4
         let expectedYUVSize = width * height * 3 / 2
 
@@ -97,31 +101,38 @@ import AVFoundation
         let bytesPerRow: Int
 
         if imageData.count == expectedBGRASize {
-          NSLog("📷 processFrame: Detected BGRA8888 format")
+          NSLog("📷 processFrame: BGRA8888 format, width=\(width) height=\(height)")
           pixelFormat = kCVPixelFormatType_32BGRA
           bytesPerRow = width * 4
         } else if imageData.count >= expectedYUVSize && imageData.count <= expectedYUVSize + 100 {
-          NSLog("📷 processFrame: Detected YUV420 format")
+          NSLog("📷 processFrame: YUV420 format, width=\(width) height=\(height)")
           pixelFormat = kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
           bytesPerRow = width
         } else {
-          NSLog("❌ processFrame: Unknown format, data size: \(imageData.count)")
+          NSLog("❌ processFrame: Unknown format, data size: \(imageData.count), expected BGRA: \(expectedBGRASize), YUV: \(expectedYUVSize)")
           DispatchQueue.main.async {
             result(["success": false, "faces": []])
           }
           return
         }
 
-        // Create CVPixelBuffer - MUST allocate memory we own (not pointer to external data)
-        // The frame data from Flutter can be deallocated at any time, so we must copy it
+        // Create CVPixelBuffer from frame data pointer (frameDataHolder keeps data alive)
         var pixelBuffer: CVPixelBuffer?
+        let options: [String: Any] = [
+          kCVPixelBufferCGImageCompatibilityKey as String: true,
+          kCVPixelBufferCGBitmapContextCompatibilityKey as String: true
+        ]
 
-        let status = CVPixelBufferCreate(
+        let status = CVPixelBufferCreateWithBytes(
           kCFAllocatorDefault,
           width,
           height,
           pixelFormat,
+          UnsafeMutableRawPointer(mutating: frameDataHolder.bytes),
+          bytesPerRow,
           nil,
+          nil,
+          options as CFDictionary,
           &pixelBuffer
         )
 
@@ -133,61 +144,13 @@ import AVFoundation
           return
         }
 
-        // Lock buffer and copy frame data into it
-        CVPixelBufferLockBaseAddress(buffer, [])
+        NSLog("✅ processFrame: CVPixelBuffer created successfully")
 
-        if let baseAddress = CVPixelBufferGetBaseAddress(buffer) {
-          // Copy data into the pixel buffer we allocated
-          memcpy(baseAddress, (imageData as NSData).bytes, imageData.count)
-        }
-
-        CVPixelBufferUnlockBaseAddress(buffer, [])
-
-        // Create CMVideoFormatDescription
-        var formatDesc: CMVideoFormatDescription?
-        let formatStatus = CMVideoFormatDescriptionCreateForImageBuffer(
-          allocator: kCFAllocatorDefault,
-          imageBuffer: buffer,
-          formatDescriptionOut: &formatDesc
-        )
-
-        guard formatStatus == noErr, let formatDescription = formatDesc else {
-          NSLog("❌ processFrame: Failed to create CMVideoFormatDescription")
-          DispatchQueue.main.async {
-            result(["success": false, "faces": []])
-          }
-          return
-        }
-
-        // Create CMSampleBuffer
-        var sampleBuffer: CMSampleBuffer?
-        var timingInfo = CMSampleTimingInfo(
-          duration: CMTime(value: 1, timescale: 30),
-          presentationTimeStamp: CMTime.zero,
-          decodeTimeStamp: CMTime.invalid
-        )
-
-        let sampleStatus = CMSampleBufferCreateReadyWithImageBuffer(
-          allocator: kCFAllocatorDefault,
-          imageBuffer: buffer,
-          formatDescription: formatDescription,
-          sampleTiming: &timingInfo,
-          sampleBufferOut: &sampleBuffer
-        )
-
-        guard sampleStatus == noErr, let smplBuffer = sampleBuffer else {
-          NSLog("❌ processFrame: Failed to create CMSampleBuffer")
-          DispatchQueue.main.async {
-            result(["success": false, "faces": []])
-          }
-          return
-        }
-
-        // Create VisionImage
-        let visionImage = VisionImage(buffer: smplBuffer)
+        // Create VisionImage directly from CVPixelBuffer (simpler than CMSampleBuffer path)
+        let visionImage = VisionImage(buffer: buffer)
         visionImage.orientation = self?.getImageOrientation(from: rotation) ?? .up
 
-        NSLog("📍 processFrame: Running face detection on background thread")
+        NSLog("📍 processFrame: Running SYNCHRONOUS face detection on background thread")
         let faces = try detector.results(in: visionImage)
         NSLog("✅ processFrame: Face detection completed, found \(faces.count) faces")
 
@@ -197,6 +160,7 @@ import AVFoundation
           let boundingBox = face.frame
           NSLog("📍 Face \(index): x=\(boundingBox.origin.x) y=\(boundingBox.origin.y) w=\(boundingBox.width) h=\(boundingBox.height)")
 
+          // Only include meaningfully visible faces
           if boundingBox.width >= 20 && boundingBox.height >= 20 {
             faceArray.append([
               "x": NSNumber(value: Float(boundingBox.origin.x)),
@@ -204,13 +168,11 @@ import AVFoundation
               "width": NSNumber(value: Float(boundingBox.width)),
               "height": NSNumber(value: Float(boundingBox.height))
             ])
-          } else {
-            NSLog("📍 Face \(index): Filtered out - too small")
           }
         }
 
         DispatchQueue.main.async {
-          NSLog("📲 processFrame: Returning results")
+          NSLog("📲 processFrame: Returning \(faceArray.count) faces to Flutter")
           result(["success": true, "faces": faceArray])
         }
 
