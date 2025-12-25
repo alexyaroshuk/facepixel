@@ -7,7 +7,6 @@ import AVFoundation
 @main
 @objc class AppDelegate: FlutterAppDelegate {
   private var faceDetector: FaceDetector?
-  private let detectionQueue = DispatchQueue(label: "com.facepixel.facedetection", qos: .userInitiated)
 
   override func application(
     _ application: UIApplication,
@@ -90,11 +89,13 @@ import AVFoundation
     let imageData = frameBytes.data
     NSLog("📷 processFrame: Received frame \(width)x\(height), rotation: \(rotation)°, data size: \(imageData.count)")
 
-    // CRITICAL: Use serial queue to process frames sequentially (matching Android behavior)
-    // This prevents multiple detections running in parallel and results arriving out of order
-    detectionQueue.async { [weak self] in
-      NSLog("📷 processFrame: Running on background thread")
+    // CRITICAL: Process frames SYNCHRONOUSLY like Android, not asynchronously with a queue
+    // Android uses Tasks.await() to block and return results immediately
+    // iOS must do the same to prevent frame queue backup and state inconsistency
+    // Asynchronous dispatch queues cause frames to pile up, results to return out of order,
+    // and face boxes to flicker as stale results are applied to new frames
 
+    do {
       // Auto-detect pixel format based on data size
       // BGRA8888: 4 bytes per pixel
       // YUV420: ~1.5 bytes per pixel (Y plane + UV planes)
@@ -114,23 +115,14 @@ import AVFoundation
         bytesPerRow = width
       } else {
         NSLog("❌ processFrame: Unknown format, data size: \(imageData.count), expected BGRA: \(expectedBGRASize), YUV: \(expectedYUVSize)")
-        DispatchQueue.main.async {
-          result(["success": false, "faces": []])
-        }
+        result(["success": false, "faces": []])
         return
       }
 
       NSLog("📷 processFrame: Using format \(pixelFormat), bytesPerRow=\(bytesPerRow)")
 
-      // Create CVPixelBuffer with copied data to avoid memory ownership issues
-      // CRITICAL: Must copy the frame data because Flutter's frame lifecycle is independent
-      // and the async detection queue may process frames out of order or with delays
-      // Without proper memory management, the underlying data can be deallocated
-      // while the VisionImage/CVPixelBuffer is still in use, causing intermittent detection failures
+      // Create CVPixelBuffer from frame data
       var pixelBuffer: CVPixelBuffer?
-
-      // Create a pool to hold the data alive during processing
-      // This ensures the frame data persists for the entire detection cycle
       let frameDataHolder = NSMutableData(data: imageData)
 
       let options: [String: Any] = [
@@ -153,15 +145,13 @@ import AVFoundation
 
       guard status == kCVReturnSuccess, let buffer = pixelBuffer else {
         NSLog("❌ processFrame: Failed to create CVPixelBuffer, status: \(status)")
-        DispatchQueue.main.async {
-          result(["success": false, "faces": []])
-        }
+        result(["success": false, "faces": []])
         return
       }
 
       NSLog("✅ processFrame: CVPixelBuffer created")
 
-      // Create CMVideoFormatDescription from CVPixelBuffer
+      // Create CMVideoFormatDescription
       var formatDesc: CMVideoFormatDescription?
       let formatStatus = CMVideoFormatDescriptionCreateForImageBuffer(
         allocator: kCFAllocatorDefault,
@@ -171,15 +161,13 @@ import AVFoundation
 
       guard formatStatus == noErr, let formatDescription = formatDesc else {
         NSLog("❌ processFrame: Failed to create CMVideoFormatDescription, status: \(formatStatus)")
-        DispatchQueue.main.async {
-          result(["success": false, "faces": []])
-        }
+        result(["success": false, "faces": []])
         return
       }
 
       NSLog("✅ processFrame: CMVideoFormatDescription created")
 
-      // Create CMSampleBuffer from CVPixelBuffer
+      // Create CMSampleBuffer
       var sampleBuffer: CMSampleBuffer?
       var timingInfo = CMSampleTimingInfo(
         duration: CMTime(value: 1, timescale: 30),
@@ -197,56 +185,47 @@ import AVFoundation
 
       guard sampleStatus == noErr, let smplBuffer = sampleBuffer else {
         NSLog("❌ processFrame: Failed to create CMSampleBuffer, status: \(sampleStatus)")
-        DispatchQueue.main.async {
-          result(["success": false, "faces": []])
-        }
+        result(["success": false, "faces": []])
         return
       }
 
       NSLog("✅ processFrame: CMSampleBuffer created")
 
-      // Create VisionImage from CMSampleBuffer
+      // Create VisionImage and process synchronously
       let visionImage = VisionImage(buffer: smplBuffer)
-      visionImage.orientation = self?.getImageOrientation(from: rotation) ?? .up
+      visionImage.orientation = getImageOrientation(from: rotation)
 
       NSLog("✅ processFrame: VisionImage created with orientation \(rotation)°")
+      NSLog("📍 processFrame: Starting SYNCHRONOUS face detection")
 
-      // Detect faces (on background thread as required by ML Kit)
-      do {
-        NSLog("📍 processFrame: Starting face detection")
-        let faces = try detector.results(in: visionImage)
-        NSLog("✅ processFrame: Face detection completed, found \(faces.count) faces")
-        var faceArray: [[String: NSNumber]] = []
+      let faces = try faceDetector.results(in: visionImage)
+      NSLog("✅ processFrame: Face detection completed, found \(faces.count) faces")
 
-        for (index, face) in faces.enumerated() {
-          let boundingBox = face.frame
-          NSLog("📍 Face \(index): (\(boundingBox.origin.x), \(boundingBox.origin.y)) \(boundingBox.width)x\(boundingBox.height)")
+      var faceArray: [[String: NSNumber]] = []
 
-          // Only include faces that are meaningfully visible (not mostly off-screen)
-          // Skip if face is too small (less than 20x20) - prevents lingering boxes at edges
-          if boundingBox.width >= 20 && boundingBox.height >= 20 {
-            faceArray.append([
-              "x": NSNumber(value: Float(boundingBox.origin.x)),
-              "y": NSNumber(value: Float(boundingBox.origin.y)),
-              "width": NSNumber(value: Float(boundingBox.width)),
-              "height": NSNumber(value: Float(boundingBox.height))
-            ])
-          } else {
-            NSLog("📍 Face \(index): Filtered out - too small (\(boundingBox.width)x\(boundingBox.height))")
-          }
-        }
+      for (index, face) in faces.enumerated() {
+        let boundingBox = face.frame
+        NSLog("📍 Face \(index): (\(boundingBox.origin.x), \(boundingBox.origin.y)) \(boundingBox.width)x\(boundingBox.height)")
 
-        // CRITICAL: Flutter result callback MUST be called on main thread
-        DispatchQueue.main.async {
-          NSLog("📲 processFrame: Calling result callback on main thread")
-          result(["success": true, "faces": faceArray])
-        }
-      } catch {
-        NSLog("❌ processFrame: Face detection error - \(error.localizedDescription)")
-        DispatchQueue.main.async {
-          result(["success": false, "faces": []])
+        // Only include faces that are meaningfully visible
+        if boundingBox.width >= 20 && boundingBox.height >= 20 {
+          faceArray.append([
+            "x": NSNumber(value: Float(boundingBox.origin.x)),
+            "y": NSNumber(value: Float(boundingBox.origin.y)),
+            "width": NSNumber(value: Float(boundingBox.width)),
+            "height": NSNumber(value: Float(boundingBox.height))
+          ])
+        } else {
+          NSLog("📍 Face \(index): Filtered out - too small (\(boundingBox.width)x\(boundingBox.height))")
         }
       }
+
+      NSLog("📲 processFrame: Returning results immediately")
+      result(["success": true, "faces": faceArray])
+
+    } catch {
+      NSLog("❌ processFrame: Face detection error - \(error.localizedDescription)")
+      result(["success": false, "faces": []])
     }
   }
 
