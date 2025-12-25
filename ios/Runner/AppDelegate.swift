@@ -7,6 +7,7 @@ import AVFoundation
 @main
 @objc class AppDelegate: FlutterAppDelegate {
   private var faceDetector: FaceDetector?
+  private let detectionQueue = DispatchQueue(label: "com.facepixel.facedetection", qos: .userInitiated)
 
   override func application(
     _ application: UIApplication,
@@ -74,7 +75,6 @@ import AVFoundation
       return
     }
 
-    // Guard against detector being nil during camera switch cleanup
     guard let detector = faceDetector else {
       NSLog("⚠️ processFrame: Face detector not available (may be during camera switch)")
       result(["success": false, "faces": []])
@@ -84,151 +84,144 @@ import AVFoundation
     let imageData = frameBytes.data
     NSLog("📷 processFrame: Received frame \(width)x\(height), rotation: \(rotation)°, data size: \(imageData.count)")
 
-    // CRITICAL: Process frames SYNCHRONOUSLY like Android, not asynchronously with a queue
-    // Android uses Tasks.await() to block and return results immediately
-    // iOS must do the same to prevent frame queue backup and state inconsistency
-    // Asynchronous dispatch queues cause frames to pile up, results to return out of order,
-    // and face boxes to flicker as stale results are applied to new frames
+    // CRITICAL: Process frames SYNCHRONOUSLY using a semaphore to block the main thread
+    // ML Kit REQUIRES face detection to run on a background thread
+    // Android uses Tasks.await() which blocks the thread, we use a semaphore for equivalent behavior
+    // This prevents frame queue backup and ensures results are returned in order
 
-    do {
-      // Auto-detect pixel format based on data size
-      // BGRA8888: 4 bytes per pixel
-      // YUV420: ~1.5 bytes per pixel (Y plane + UV planes)
-      let expectedBGRASize = width * height * 4
-      let expectedYUVSize = width * height * 3 / 2
+    var detectionResult: [[String: NSNumber]] = []
+    var detectionSuccess = false
+    let semaphore = DispatchSemaphore(value: 0)
 
-      let pixelFormat: OSType
-      let bytesPerRow: Int
+    detectionQueue.async { [weak self] in
+      do {
+        // Auto-detect pixel format based on data size
+        let expectedBGRASize = width * height * 4
+        let expectedYUVSize = width * height * 3 / 2
 
-      if imageData.count == expectedBGRASize {
-        NSLog("📷 processFrame: Detected BGRA8888 format")
-        pixelFormat = kCVPixelFormatType_32BGRA
-        bytesPerRow = width * 4
-      } else if imageData.count >= expectedYUVSize && imageData.count <= expectedYUVSize + 100 {
-        NSLog("📷 processFrame: Detected YUV420 format")
-        pixelFormat = kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
-        bytesPerRow = width
-      } else {
-        NSLog("❌ processFrame: Unknown format, data size: \(imageData.count), expected BGRA: \(expectedBGRASize), YUV: \(expectedYUVSize)")
-        result(["success": false, "faces": []])
-        return
-      }
+        let pixelFormat: OSType
+        let bytesPerRow: Int
 
-      NSLog("📷 processFrame: Using format \(pixelFormat), bytesPerRow=\(bytesPerRow)")
-
-      // Create CVPixelBuffer from frame data
-      var pixelBuffer: CVPixelBuffer?
-      let frameDataHolder = NSMutableData(data: imageData)
-
-      let options: [String: Any] = [
-        kCVPixelBufferCGImageCompatibilityKey as String: true,
-        kCVPixelBufferCGBitmapContextCompatibilityKey as String: true
-      ]
-
-      let status = CVPixelBufferCreateWithBytes(
-        kCFAllocatorDefault,
-        width,
-        height,
-        pixelFormat,
-        frameDataHolder.mutableBytes,
-        bytesPerRow,
-        nil,
-        nil,
-        options as CFDictionary,
-        &pixelBuffer
-      )
-
-      guard status == kCVReturnSuccess, let buffer = pixelBuffer else {
-        NSLog("❌ processFrame: Failed to create CVPixelBuffer, status: \(status)")
-        result(["success": false, "faces": []])
-        return
-      }
-
-      NSLog("✅ processFrame: CVPixelBuffer created")
-
-      // Create CMVideoFormatDescription
-      var formatDesc: CMVideoFormatDescription?
-      let formatStatus = CMVideoFormatDescriptionCreateForImageBuffer(
-        allocator: kCFAllocatorDefault,
-        imageBuffer: buffer,
-        formatDescriptionOut: &formatDesc
-      )
-
-      guard formatStatus == noErr, let formatDescription = formatDesc else {
-        NSLog("❌ processFrame: Failed to create CMVideoFormatDescription, status: \(formatStatus)")
-        result(["success": false, "faces": []])
-        return
-      }
-
-      NSLog("✅ processFrame: CMVideoFormatDescription created")
-
-      // Create CMSampleBuffer
-      var sampleBuffer: CMSampleBuffer?
-      var timingInfo = CMSampleTimingInfo(
-        duration: CMTime(value: 1, timescale: 30),
-        presentationTimeStamp: CMTime.zero,
-        decodeTimeStamp: CMTime.invalid
-      )
-
-      let sampleStatus = CMSampleBufferCreateReadyWithImageBuffer(
-        allocator: kCFAllocatorDefault,
-        imageBuffer: buffer,
-        formatDescription: formatDescription,
-        sampleTiming: &timingInfo,
-        sampleBufferOut: &sampleBuffer
-      )
-
-      guard sampleStatus == noErr, let smplBuffer = sampleBuffer else {
-        NSLog("❌ processFrame: Failed to create CMSampleBuffer, status: \(sampleStatus)")
-        result(["success": false, "faces": []])
-        return
-      }
-
-      NSLog("✅ processFrame: CMSampleBuffer created")
-
-      // Create VisionImage and process synchronously
-      let visionImage = VisionImage(buffer: smplBuffer)
-      visionImage.orientation = getImageOrientation(from: rotation)
-
-      NSLog("✅ processFrame: VisionImage created with orientation \(rotation)°")
-      NSLog("📍 processFrame: Starting SYNCHRONOUS face detection")
-
-      // Guard against detector being nil
-      guard let detector = faceDetector else {
-        NSLog("⚠️ processFrame: Face detector not available")
-        result(["success": false, "faces": []])
-        return
-      }
-
-      let faces = try detector.results(in: visionImage)
-      NSLog("✅ processFrame: Face detection completed, found \(faces.count) faces")
-
-      var faceArray: [[String: NSNumber]] = []
-
-      for (index, face) in faces.enumerated() {
-        let boundingBox = face.frame
-        NSLog("📍 Face \(index): (\(boundingBox.origin.x), \(boundingBox.origin.y)) \(boundingBox.width)x\(boundingBox.height)")
-
-        // Only include faces that are meaningfully visible
-        if boundingBox.width >= 20 && boundingBox.height >= 20 {
-          faceArray.append([
-            "x": NSNumber(value: Float(boundingBox.origin.x)),
-            "y": NSNumber(value: Float(boundingBox.origin.y)),
-            "width": NSNumber(value: Float(boundingBox.width)),
-            "height": NSNumber(value: Float(boundingBox.height))
-          ])
+        if imageData.count == expectedBGRASize {
+          NSLog("📷 processFrame: Detected BGRA8888 format")
+          pixelFormat = kCVPixelFormatType_32BGRA
+          bytesPerRow = width * 4
+        } else if imageData.count >= expectedYUVSize && imageData.count <= expectedYUVSize + 100 {
+          NSLog("📷 processFrame: Detected YUV420 format")
+          pixelFormat = kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
+          bytesPerRow = width
         } else {
-          NSLog("📍 Face \(index): Filtered out - too small (\(boundingBox.width)x\(boundingBox.height))")
+          NSLog("❌ processFrame: Unknown format, data size: \(imageData.count)")
+          semaphore.signal()
+          return
         }
+
+        // Create CVPixelBuffer
+        var pixelBuffer: CVPixelBuffer?
+        let frameDataHolder = NSMutableData(data: imageData)
+
+        let options: [String: Any] = [
+          kCVPixelBufferCGImageCompatibilityKey as String: true,
+          kCVPixelBufferCGBitmapContextCompatibilityKey as String: true
+        ]
+
+        let status = CVPixelBufferCreateWithBytes(
+          kCFAllocatorDefault,
+          width,
+          height,
+          pixelFormat,
+          frameDataHolder.mutableBytes,
+          bytesPerRow,
+          nil,
+          nil,
+          options as CFDictionary,
+          &pixelBuffer
+        )
+
+        guard status == kCVReturnSuccess, let buffer = pixelBuffer else {
+          NSLog("❌ processFrame: Failed to create CVPixelBuffer, status: \(status)")
+          semaphore.signal()
+          return
+        }
+
+        // Create CMVideoFormatDescription
+        var formatDesc: CMVideoFormatDescription?
+        let formatStatus = CMVideoFormatDescriptionCreateForImageBuffer(
+          allocator: kCFAllocatorDefault,
+          imageBuffer: buffer,
+          formatDescriptionOut: &formatDesc
+        )
+
+        guard formatStatus == noErr, let formatDescription = formatDesc else {
+          NSLog("❌ processFrame: Failed to create CMVideoFormatDescription")
+          semaphore.signal()
+          return
+        }
+
+        // Create CMSampleBuffer
+        var sampleBuffer: CMSampleBuffer?
+        var timingInfo = CMSampleTimingInfo(
+          duration: CMTime(value: 1, timescale: 30),
+          presentationTimeStamp: CMTime.zero,
+          decodeTimeStamp: CMTime.invalid
+        )
+
+        let sampleStatus = CMSampleBufferCreateReadyWithImageBuffer(
+          allocator: kCFAllocatorDefault,
+          imageBuffer: buffer,
+          formatDescription: formatDescription,
+          sampleTiming: &timingInfo,
+          sampleBufferOut: &sampleBuffer
+        )
+
+        guard sampleStatus == noErr, let smplBuffer = sampleBuffer else {
+          NSLog("❌ processFrame: Failed to create CMSampleBuffer")
+          semaphore.signal()
+          return
+        }
+
+        // Create VisionImage - ON BACKGROUND THREAD (required by ML Kit)
+        let visionImage = VisionImage(buffer: smplBuffer)
+        visionImage.orientation = self?.getImageOrientation(from: rotation) ?? .up
+
+        NSLog("📍 processFrame: Running face detection on background thread")
+        let faces = try detector.results(in: visionImage)
+        NSLog("✅ processFrame: Face detection completed, found \(faces.count) faces")
+
+        // Convert faces to result format
+        for (index, face) in faces.enumerated() {
+          let boundingBox = face.frame
+          NSLog("📍 Face \(index): x=\(boundingBox.origin.x) y=\(boundingBox.origin.y) w=\(boundingBox.width) h=\(boundingBox.height)")
+
+          // Only include faces that are meaningfully visible
+          if boundingBox.width >= 20 && boundingBox.height >= 20 {
+            detectionResult.append([
+              "x": NSNumber(value: Float(boundingBox.origin.x)),
+              "y": NSNumber(value: Float(boundingBox.origin.y)),
+              "width": NSNumber(value: Float(boundingBox.width)),
+              "height": NSNumber(value: Float(boundingBox.height))
+            ])
+          } else {
+            NSLog("📍 Face \(index): Filtered out - too small")
+          }
+        }
+
+        detectionSuccess = true
+
+      } catch {
+        NSLog("❌ processFrame: Face detection error - \(error.localizedDescription)")
+        detectionSuccess = false
       }
 
-      NSLog("📲 processFrame: Returning results immediately")
-      result(["success": true, "faces": faceArray])
-
-    } catch {
-      NSLog("❌ processFrame: Face detection error - \(error.localizedDescription)")
-      result(["success": false, "faces": []])
+      // Signal the semaphore to unblock the main thread
+      semaphore.signal()
     }
+
+    // BLOCK the main thread until detection is done (equivalent to Android's Tasks.await())
+    _ = semaphore.wait(timeout: .now() + 5)  // 5 second timeout
+
+    NSLog("📲 processFrame: Returning results synchronously")
+    result(["success": detectionSuccess, "faces": detectionResult])
   }
 
   private func getImageOrientation(from rotation: Int) -> UIImage.Orientation {
