@@ -84,16 +84,15 @@ import AVFoundation
     let imageData = frameBytes.data
     NSLog("📷 processFrame: Received frame \(width)x\(height), rotation: \(rotation)°, data size: \(imageData.count)")
 
-    // CRITICAL: Process frames SYNCHRONOUSLY using a semaphore to block the main thread
-    // ML Kit REQUIRES face detection to run on a background thread
-    // Android uses Tasks.await() which blocks the thread, we use a semaphore for equivalent behavior
-    // This prevents frame queue backup and ensures results are returned in order
+    // CRITICAL: Process frames SYNCHRONOUSLY on background thread WITHOUT queuing
+    // Use sync dispatch (not async) to execute immediately without queue buildup
+    // This matches Android's behavior: detector.results() runs synchronously and returns immediately
+    // ML Kit REQUIRES background thread, sync dispatch satisfies this without async queue problems
 
     var detectionResult: [[String: NSNumber]] = []
     var detectionSuccess = false
-    let semaphore = DispatchSemaphore(value: 0)
 
-    detectionQueue.async { [weak self] in
+    detectionQueue.sync { [weak self] in
       do {
         // Auto-detect pixel format based on data size
         let expectedBGRASize = width * height * 4
@@ -112,7 +111,6 @@ import AVFoundation
           bytesPerRow = width
         } else {
           NSLog("❌ processFrame: Unknown format, data size: \(imageData.count)")
-          semaphore.signal()
           return
         }
 
@@ -140,7 +138,6 @@ import AVFoundation
 
         guard status == kCVReturnSuccess, let buffer = pixelBuffer else {
           NSLog("❌ processFrame: Failed to create CVPixelBuffer, status: \(status)")
-          semaphore.signal()
           return
         }
 
@@ -154,7 +151,6 @@ import AVFoundation
 
         guard formatStatus == noErr, let formatDescription = formatDesc else {
           NSLog("❌ processFrame: Failed to create CMVideoFormatDescription")
-          semaphore.signal()
           return
         }
 
@@ -176,15 +172,14 @@ import AVFoundation
 
         guard sampleStatus == noErr, let smplBuffer = sampleBuffer else {
           NSLog("❌ processFrame: Failed to create CMSampleBuffer")
-          semaphore.signal()
           return
         }
 
-        // Create VisionImage - ON BACKGROUND THREAD (required by ML Kit)
+        // Create VisionImage and run detection - ON BACKGROUND THREAD (required by ML Kit)
         let visionImage = VisionImage(buffer: smplBuffer)
         visionImage.orientation = self?.getImageOrientation(from: rotation) ?? .up
 
-        NSLog("📍 processFrame: Running face detection on background thread")
+        NSLog("📍 processFrame: Running SYNCHRONOUS face detection on background thread")
         let faces = try detector.results(in: visionImage)
         NSLog("✅ processFrame: Face detection completed, found \(faces.count) faces")
 
@@ -212,13 +207,7 @@ import AVFoundation
         NSLog("❌ processFrame: Face detection error - \(error.localizedDescription)")
         detectionSuccess = false
       }
-
-      // Signal the semaphore to unblock the main thread
-      semaphore.signal()
     }
-
-    // BLOCK the main thread until detection is done (equivalent to Android's Tasks.await())
-    _ = semaphore.wait(timeout: .now() + 5)  // 5 second timeout
 
     NSLog("📲 processFrame: Returning results synchronously")
     result(["success": detectionSuccess, "faces": detectionResult])
