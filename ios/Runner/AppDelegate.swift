@@ -112,25 +112,16 @@ import AVFoundation
           return
         }
 
-        // Create CVPixelBuffer
+        // Create CVPixelBuffer - MUST allocate memory we own (not pointer to external data)
+        // The frame data from Flutter can be deallocated at any time, so we must copy it
         var pixelBuffer: CVPixelBuffer?
-        let frameDataHolder = NSMutableData(data: imageData)
 
-        let options: [String: Any] = [
-          kCVPixelBufferCGImageCompatibilityKey as String: true,
-          kCVPixelBufferCGBitmapContextCompatibilityKey as String: true
-        ]
-
-        let status = CVPixelBufferCreateWithBytes(
+        let status = CVPixelBufferCreate(
           kCFAllocatorDefault,
           width,
           height,
           pixelFormat,
-          frameDataHolder.mutableBytes,
-          bytesPerRow,
           nil,
-          nil,
-          options as CFDictionary,
           &pixelBuffer
         )
 
@@ -141,6 +132,18 @@ import AVFoundation
           }
           return
         }
+
+        // Lock buffer and copy frame data into it
+        CVPixelBufferLockBaseAddress(buffer, .readAndWrite)
+
+        if let baseAddress = CVPixelBufferGetBaseAddress(buffer) {
+          let bytesPerRowActual = CVPixelBufferGetBytesPerRow(buffer)
+
+          // Copy data plane by plane for proper handling
+          memcpy(baseAddress, (imageData as NSData).bytes, imageData.count)
+        }
+
+        CVPixelBufferUnlockBaseAddress(buffer, .readAndWrite)
 
         // Create CMVideoFormatDescription
         var formatDesc: CMVideoFormatDescription?

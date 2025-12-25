@@ -444,6 +444,12 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             )
             .toList();
+
+        // DEBUG: Log each detected face
+        for (int i = 0; i < faces.length; i++) {
+          final face = faces[i];
+          print('🎯 DART FACE $i: x=${face.x.toInt()} y=${face.y.toInt()} w=${face.width.toInt()} h=${face.height.toInt()}');
+        }
       }
 
       // Always update state, even if no faces are detected (to clear old faces)
