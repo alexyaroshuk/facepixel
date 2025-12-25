@@ -84,15 +84,10 @@ import AVFoundation
     let imageData = frameBytes.data
     NSLog("📷 processFrame: Received frame \(width)x\(height), rotation: \(rotation)°, data size: \(imageData.count)")
 
-    // CRITICAL: Process frames SYNCHRONOUSLY on background thread WITHOUT queuing
-    // Use sync dispatch (not async) to execute immediately without queue buildup
-    // This matches Android's behavior: detector.results() runs synchronously and returns immediately
-    // ML Kit REQUIRES background thread, sync dispatch satisfies this without async queue problems
+    // Use serial queue to process frames sequentially
+    detectionQueue.async { [weak self] in
+      NSLog("📷 processFrame: Running on background thread")
 
-    var detectionResult: [[String: NSNumber]] = []
-    var detectionSuccess = false
-
-    detectionQueue.sync { [weak self] in
       do {
         // Auto-detect pixel format based on data size
         let expectedBGRASize = width * height * 4
@@ -111,6 +106,9 @@ import AVFoundation
           bytesPerRow = width
         } else {
           NSLog("❌ processFrame: Unknown format, data size: \(imageData.count)")
+          DispatchQueue.main.async {
+            result(["success": false, "faces": []])
+          }
           return
         }
 
@@ -138,6 +136,9 @@ import AVFoundation
 
         guard status == kCVReturnSuccess, let buffer = pixelBuffer else {
           NSLog("❌ processFrame: Failed to create CVPixelBuffer, status: \(status)")
+          DispatchQueue.main.async {
+            result(["success": false, "faces": []])
+          }
           return
         }
 
@@ -151,6 +152,9 @@ import AVFoundation
 
         guard formatStatus == noErr, let formatDescription = formatDesc else {
           NSLog("❌ processFrame: Failed to create CMVideoFormatDescription")
+          DispatchQueue.main.async {
+            result(["success": false, "faces": []])
+          }
           return
         }
 
@@ -172,25 +176,28 @@ import AVFoundation
 
         guard sampleStatus == noErr, let smplBuffer = sampleBuffer else {
           NSLog("❌ processFrame: Failed to create CMSampleBuffer")
+          DispatchQueue.main.async {
+            result(["success": false, "faces": []])
+          }
           return
         }
 
-        // Create VisionImage and run detection - ON BACKGROUND THREAD (required by ML Kit)
+        // Create VisionImage
         let visionImage = VisionImage(buffer: smplBuffer)
         visionImage.orientation = self?.getImageOrientation(from: rotation) ?? .up
 
-        NSLog("📍 processFrame: Running SYNCHRONOUS face detection on background thread")
+        NSLog("📍 processFrame: Running face detection on background thread")
         let faces = try detector.results(in: visionImage)
         NSLog("✅ processFrame: Face detection completed, found \(faces.count) faces")
 
-        // Convert faces to result format
+        var faceArray: [[String: NSNumber]] = []
+
         for (index, face) in faces.enumerated() {
           let boundingBox = face.frame
           NSLog("📍 Face \(index): x=\(boundingBox.origin.x) y=\(boundingBox.origin.y) w=\(boundingBox.width) h=\(boundingBox.height)")
 
-          // Only include faces that are meaningfully visible
           if boundingBox.width >= 20 && boundingBox.height >= 20 {
-            detectionResult.append([
+            faceArray.append([
               "x": NSNumber(value: Float(boundingBox.origin.x)),
               "y": NSNumber(value: Float(boundingBox.origin.y)),
               "width": NSNumber(value: Float(boundingBox.width)),
@@ -201,16 +208,18 @@ import AVFoundation
           }
         }
 
-        detectionSuccess = true
+        DispatchQueue.main.async {
+          NSLog("📲 processFrame: Returning results")
+          result(["success": true, "faces": faceArray])
+        }
 
       } catch {
         NSLog("❌ processFrame: Face detection error - \(error.localizedDescription)")
-        detectionSuccess = false
+        DispatchQueue.main.async {
+          result(["success": false, "faces": []])
+        }
       }
     }
-
-    NSLog("📲 processFrame: Returning results synchronously")
-    result(["success": detectionSuccess, "faces": detectionResult])
   }
 
   private func getImageOrientation(from rotation: Int) -> UIImage.Orientation {

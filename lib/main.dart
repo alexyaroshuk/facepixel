@@ -463,14 +463,14 @@ class _MyHomePageState extends State<MyHomePage> {
         }
       }
     } catch (e) {
-      print('❌ Flutter: Exception in _processFrame: $e');
-      // CRITICAL: Clear detected faces on error to prevent stale boxes
-      // This ensures boxes disappear if detection fails
+      print('❌ Flutter: EXCEPTION in _processFrame: $e');
+      print('❌ Flutter: Stack trace: ${StackTrace.current}');
+      // CRITICAL: Only clear faces if detection truly failed
+      // Don't clear on transient errors
       if (mounted && !_isSwitchingCamera) {
         try {
           setState(() {
-            _detectedFaces = [];
-            _debugMessage = 'Face detection error - boxes cleared';
+            _debugMessage = 'Error: $e';
           });
         } catch (_) {
           // Ignore setState errors during cleanup
