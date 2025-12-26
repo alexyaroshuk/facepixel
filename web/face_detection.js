@@ -642,7 +642,7 @@ window.setPixelationSettings = function (enabled, level) {
   pixelationLevel = Math.max(1, Math.min(100, level));
   // Immediately update the overlays if faces are already detected
   if (detectedFaces && detectedFaces.length > 0) {
-    updatePixelationOverlay();
+    // updatePixelationOverlay(); // Disabled - pixelation box not needed
     updateBlurOverlay();
   }
 };
@@ -674,11 +674,11 @@ async function startApp() {
     // Step 3: Set up callback to dispatch events and update pixelation
     console.log('[FaceDetection] Step 3: Setting up callback...');
     onFacesDetectedCallback = (faces) => {
-      // Store faces for pixelation overlay
+      // Store faces for blur overlay
       detectedFaces = faces;
 
-      // Update pixelation overlay
-      updatePixelationOverlay();
+      // Note: Pixelation overlay disabled - only blur is shown
+      // updatePixelationOverlay();
 
       // Update blur overlay
       updateBlurOverlay();

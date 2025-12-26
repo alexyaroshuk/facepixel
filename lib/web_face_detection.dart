@@ -2,10 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 // Web-specific imports - safe because this file is deferred and only loaded on web
-// ignore: deprecated_member_use, avoid_web_libraries_in_flutter
 import 'dart:js_util' as js_util;
 import 'dart:ui_web' as ui_web;
-// ignore: deprecated_member_use, avoid_web_libraries_in_flutter
 import 'dart:html' as html;
 
 /// Web-specific face detection widget using HTML video element and MediaPipe
@@ -22,119 +20,67 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
   static const double _canvasHeight = 480.0; // Fixed canvas height (4:3 aspect ratio)
 
   List<FaceBox> _detectedFaces = [];
-  // ignore: unused_field
   String _debugMessage = "Initializing...";
   int _frameCount = 0;
   DateTime _lastFpsTime = DateTime.now();
   double _fps = 0;
   Size _videoSize = Size.zero;
+  bool _showDebugUI = false;
+  bool _showRedBorder = false;  // Disabled for production
+  bool _showTealBorder = false;  // Disabled for production
   bool _pixelationEnabled = false;
   int _pixelationLevel = 10;
-  bool _faceDetectionInitialized = false;
-  bool _cameraPermissionDenied = false;
-  bool _cameraRequested = false;
+  bool _permissionDenied = false;
+  String _permissionErrorMessage = "Camera permission denied";
 
   @override
   void initState() {
     super.initState();
-    // ignore: avoid_print
-    print('🌐 Web: WebFaceDetectionView.initState() called');
-
-    // Register the video element factory (doesn't create element yet)
-    _registerVideoElementFactory();
-
-    // Request camera automatically
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _requestCameraAccess();
-      }
-    });
+    _initializeWebCamera();
   }
 
-  void _registerVideoElementFactory() {
+  Future<void> _initializeWebCamera() async {
     // Register the video element factory
     ui_web.platformViewRegistry.registerViewFactory(
       _videoViewType,
       (int viewId) {
         final video = html.VideoElement()
-          ..id = 'webcam'
+          ..id = 'webcam'  // Must match the ID that face_detection.js expects
           ..autoplay = true
-          ..muted = true
-          ..attributes['playsinline'] = 'true'
-          ..attributes['crossorigin'] = 'anonymous'
           ..style.width = '100%'
           ..style.height = '100%'
-          ..style.objectFit = 'cover'
-          ..style.transform = 'scaleX(-1)';
+          ..style.objectFit = 'cover';
 
-        // Request camera access when element is created
-        // ignore: avoid_print
-        print('🌐 Web: Platform view factory called, requesting camera...');
+        // Request camera access
         html.window.navigator.mediaDevices
             ?.getUserMedia({'video': true, 'audio': false}).then((stream) {
-          if (!mounted) return;
-
-          // ignore: avoid_print
-          print('🌐 Web: Got camera stream, setting srcObject...');
           video.srcObject = stream;
 
-          // Wait for video to actually have dimensions (not just metadata)
-          var checkDimensionsCount = 0;
-          void checkVideoDimensions() {
-            checkDimensionsCount++;
-            if (video.videoWidth > 0 && video.videoHeight > 0) {
-              // Video has actual dimensions now
-              if (!mounted) return;
+          // Wait for video to be ready
+          video.onLoadedMetadata.listen((_) {
+            setState(() {
+              _videoSize = Size(
+                video.videoWidth.toDouble(),
+                video.videoHeight.toDouble(),
+              );
+              _debugMessage = "Ready (Web/MediaPipe)";
+            });
 
-              // ignore: avoid_print
-              print('🌐 Web: Video dimensions available: ${video.videoWidth}x${video.videoHeight}');
-              setState(() {
-                _videoSize = Size(
-                  video.videoWidth.toDouble(),
-                  video.videoHeight.toDouble(),
-                );
-                _debugMessage = "Ready (Web/MediaPipe)";
-              });
-
-              // Start face detection
-              _startFaceDetection();
-            } else if (checkDimensionsCount < 50) {
-              // Keep checking for dimensions (up to 50 times = 2.5 seconds)
-              Future.delayed(const Duration(milliseconds: 50), checkVideoDimensions);
-            } else {
-              // Timeout - just start anyway
-              if (!mounted) return;
-              // ignore: avoid_print
-              print('🌐 Web: Video dimensions timeout, starting detection anyway...');
-              setState(() {
-                _videoSize = Size(
-                  video.videoWidth.toDouble(),
-                  video.videoHeight.toDouble(),
-                );
-              });
-              _startFaceDetection();
-            }
-          }
-
-          // Start checking dimensions immediately
-          checkVideoDimensions();
+            // Start face detection
+            _startFaceDetection();
+          });
         }).catchError((error) {
-          if (!mounted) return;
-
-          // Check if this is a permission error
-          final isPermissionError = error.toString().toLowerCase().contains('permission') ||
-                                    error.toString().toLowerCase().contains('notallowed') ||
-                                    error.toString().toLowerCase().contains('denied');
-
-          // ignore: avoid_print
-          print('🌐 Web: Camera error: $error');
+          final errorMsg = error.toString().toLowerCase();
+          final isPermissionError = errorMsg.contains('permission') ||
+                                   errorMsg.contains('notallowed') ||
+                                   errorMsg.contains('denied');
 
           setState(() {
-            _debugMessage = "Camera error: $error";
             if (isPermissionError) {
-              _cameraPermissionDenied = true;
-              _cameraRequested = false;
+              _permissionDenied = true;
+              _permissionErrorMessage = "Camera access was denied. Please enable camera permissions in your browser settings.";
             }
+            _debugMessage = "Camera error: $error";
           });
         });
 
@@ -164,28 +110,25 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
     // ignore: avoid_print
     print('🌐 Web: Setting up face detection...');
 
-    // Set up event listener for detected faces FIRST (before calling JavaScript)
+    // FIRST: Set up event listener BEFORE starting JS
     html.window.addEventListener('facesDetected', (html.Event event) {
-      // ignore: avoid_print
-      print('🌐 Web: RECEIVED facesDetected event from JavaScript!');
       final customEvent = event as html.CustomEvent;
       final detail = customEvent.detail;
       if (detail != null && detail['faces'] != null) {
         final faces = detail['faces'] as List;
-        // ignore: avoid_print
-        print('🌐 Web: Processing ${faces.length} detected faces');
         _onFacesDetected(faces);
       } else {
         // ignore: avoid_print
-        print('🌐 Web: facesDetected event has no faces data');
+        print('🌐 Web: Received facesDetected event with null detail');
       }
     });
 
     // ignore: avoid_print
-    print('🌐 Web: Event listener registered, now calling startApp()...');
+    print('🌐 Web: Event listener registered');
 
-    // Call JavaScript to initialize MediaPipe and start detection
+    // SECOND: Call startApp() in JavaScript to initialize MediaPipe and camera
     try {
+      // Call the startApp() function we defined in face_detection.js
       js_util.callMethod(html.window, 'startApp', []);
       // ignore: avoid_print
       print('🌐 Web: Called JavaScript startApp()');
@@ -226,6 +169,7 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
     });
   }
 
+
   /// Calculate canvas offset to center fixed-size canvas in available space
   Offset _calculateCanvasOffset(Size screenSize) {
     final offsetX = (screenSize.width - _canvasWidth) / 2;
@@ -233,21 +177,10 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
     return Offset(offsetX, offsetY);
   }
 
-  Future<void> _requestCameraAccess() async {
-    if (!mounted) return;
-
-    setState(() {
-      _cameraRequested = true;
-    });
-
-    // ignore: avoid_print
-    print('🌐 Web: User requesting camera access...');
-  }
-
   @override
   Widget build(BuildContext context) {
-    // Show permission denied screen if access was denied
-    if (_cameraPermissionDenied) {
+    // Show permission denied screen
+    if (_permissionDenied) {
       return Scaffold(
         appBar: AppBar(
           title: const Text('Face Pixelation'),
@@ -276,12 +209,12 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 12),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 32),
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Text(
-                    'This app requires camera access. Please enable camera permissions in your browser settings.',
-                    style: TextStyle(
+                    _permissionErrorMessage,
+                    style: const TextStyle(
                       color: Colors.grey,
                       fontSize: 14,
                     ),
@@ -315,21 +248,20 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
-          // Pixelation toggle (only show after camera is working)
-          if (_cameraRequested)
-            IconButton(
-              icon: Icon(
-                _pixelationEnabled ? Icons.privacy_tip : Icons.privacy_tip_outlined,
-                color: _pixelationEnabled ? Colors.white : Colors.grey,
-              ),
-              onPressed: () {
-                setState(() {
-                  _pixelationEnabled = !_pixelationEnabled;
-                });
-                _applyPixelation();
-              },
-              tooltip: 'Toggle Blur',
+          // Pixelation toggle
+          IconButton(
+            icon: Icon(
+              _pixelationEnabled ? Icons.privacy_tip : Icons.privacy_tip_outlined,
+              color: _pixelationEnabled ? Colors.white : Colors.grey,
             ),
+            onPressed: () {
+              setState(() {
+                _pixelationEnabled = !_pixelationEnabled;
+              });
+              _applyPixelation();
+            },
+            tooltip: 'Toggle Blur',
+          ),
         ],
       ),
       body: Builder(
@@ -337,129 +269,73 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
           final screenSize = MediaQuery.of(context).size;
           final canvasOffset = _calculateCanvasOffset(screenSize);
 
+          // Account for AppBar height when passing to JavaScript
+          // MediaQuery.of(context).size returns body size (below AppBar)
+          // But JavaScript uses position: fixed which is viewport-relative (includes AppBar)
+          final appBarHeight = AppBar().preferredSize.height;
+          final statusBarHeight = MediaQuery.of(context).padding.top;
+          final adjustedCanvasOffsetY = canvasOffset.dy + appBarHeight + statusBarHeight;
+
+          // Sync canvas dimensions and offset with JavaScript (fixed dimensions)
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            try {
+              js_util.callMethod(
+                html.window,
+                'updateCanvasDimensions',
+                [_canvasWidth, _canvasHeight, canvasOffset.dx, adjustedCanvasOffsetY],
+              );
+            } catch (e) {
+              // ignore: avoid_print
+              print('🌐 Web: Error updating canvas dimensions: $e');
+            }
+          });
+
           return Container(
             width: screenSize.width,
             height: screenSize.height,
             color: const Color(0xFF1A1A1A),
             child: Stack(
               children: [
-                // Background color
-                Positioned.fill(
-                  child: Container(
-                    color: const Color(0xFF1A1A1A),
-                  ),
-                ),
-
-                // If camera not requested yet, show welcome screen
-                if (!_cameraRequested)
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.videocam,
-                          size: 64,
-                          color: Colors.deepPurple,
-                        ),
-                        const SizedBox(height: 24),
-                        const Text(
-                          'Face Pixelation',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 32),
-                          child: Text(
-                            'Real-time face detection and pixelation for privacy',
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 14,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        const SizedBox(height: 40),
-                        const Text(
-                          'Please allow camera access when prompted by your browser',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                // Video element - only render after camera is requested
-                if (_cameraRequested)
+                // Red border - video stream area (for debugging)
+                if (_showRedBorder)
                   Positioned(
                     left: canvasOffset.dx,
                     top: canvasOffset.dy,
                     width: _canvasWidth,
                     height: _canvasHeight,
-                    child: HtmlElementView(viewType: _videoViewType),
-                  ),
-                // Show loading overlay on top while initializing (after camera requested)
-                if (_cameraRequested && _videoSize == Size.zero)
-                  Container(
-                    color: Colors.black.withValues(alpha: 0.7),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                          SizedBox(height: 24),
-                          Text(
-                            'Initializing face detection...',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.red, width: 5),
                       ),
                     ),
                   ),
 
-                // Face count display above video stream (only when initialized)
-                if (_cameraRequested && _videoSize != Size.zero)
+                // Video element - positioned within the canvas
+                Positioned(
+                  left: canvasOffset.dx,
+                  top: canvasOffset.dy,
+                  width: _canvasWidth,
+                  height: _canvasHeight,
+                  child: HtmlElementView(viewType: _videoViewType),
+                ),
+
+                // Teal detection canvas area (for debugging)
+                if (_showTealBorder)
                   Positioned(
-                    top: canvasOffset.dy - 40,
                     left: canvasOffset.dx,
-                    right: screenSize.width - canvasOffset.dx - _canvasWidth,
-                    child: Center(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black87,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          'Faces: ${_detectedFaces.length}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                    top: canvasOffset.dy,
+                    width: _canvasWidth,
+                    height: _canvasHeight,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.teal.withValues(alpha: 0.1),
+                        border: Border.all(color: Colors.cyan, width: 3),
                       ),
                     ),
                   ),
 
-                // Face detection boxes - only show when blur is disabled
-                if (_cameraRequested &&
-                    _videoSize != Size.zero &&
-                    !_pixelationEnabled &&
-                    _detectedFaces.isNotEmpty)
+                // Face detection boxes - only show when blur is disabled (for reference)
+                if (!_pixelationEnabled && _videoSize != Size.zero)
                   ..._detectedFaces.map((face) {
                     // Scale boxes to fixed canvas size
                     final scaleX = _canvasWidth / _videoSize.width;
@@ -478,8 +354,140 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                     );
                   }),
 
-                // Pixelation level slider control (only when enabled)
-                if (_cameraRequested && _videoSize != Size.zero && _pixelationEnabled)
+                // Backdrop blur overlay is handled by JavaScript (CSS backdrop-filter)
+                // See web/face_detection.js updateBlurOverlay() function
+
+                // Face count display above video stream
+                Positioned(
+                  top: canvasOffset.dy - 40,
+                  left: canvasOffset.dx,
+                  right: screenSize.width - canvasOffset.dx - _canvasWidth,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black87,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        'Faces: ${_detectedFaces.length}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Debug overlay
+                if (_showDebugUI)
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    right: 8,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black87,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.all(8),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              _debugMessage,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontFamily: 'monospace',
+                                fontSize: 11,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Screen: ${screenSize.width.toInt()}x${screenSize.height.toInt()}',
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontFamily: 'monospace',
+                                fontSize: 11,
+                              ),
+                            ),
+                            Text(
+                              'Video size: ${_videoSize.width.toInt()}x${_videoSize.height.toInt()}',
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontFamily: 'monospace',
+                                fontSize: 11,
+                              ),
+                            ),
+                            Text(
+                              'Canvas (fixed): ${_canvasWidth.toInt()}x${_canvasHeight.toInt()}',
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontFamily: 'monospace',
+                                fontSize: 11,
+                              ),
+                            ),
+                            Text(
+                              'Canvas offset: (${canvasOffset.dx.toInt()}, ${canvasOffset.dy.toInt()})',
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontFamily: 'monospace',
+                                fontSize: 11,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _showRedBorder = !_showRedBorder;
+                                    });
+                                  },
+                                  child: Text(
+                                    '🔴 Red: ${_showRedBorder ? 'ON' : 'OFF'}',
+                                    style: TextStyle(
+                                      color: _showRedBorder ? Colors.red : Colors.grey,
+                                      fontFamily: 'monospace',
+                                      fontSize: 10,
+                                      fontWeight: _showRedBorder ? FontWeight.bold : FontWeight.normal,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _showTealBorder = !_showTealBorder;
+                                    });
+                                  },
+                                  child: Text(
+                                    '🔷 Teal: ${_showTealBorder ? 'ON' : 'OFF'}',
+                                    style: TextStyle(
+                                      color: _showTealBorder ? Colors.cyan : Colors.grey,
+                                      fontFamily: 'monospace',
+                                      fontSize: 10,
+                                      fontWeight: _showTealBorder ? FontWeight.bold : FontWeight.normal,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                // Pixelation level slider control
+                if (_pixelationEnabled)
                   Positioned(
                     bottom: 16,
                     left: 16,
