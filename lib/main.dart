@@ -15,14 +15,22 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   print('🟢 Flutter: WidgetsFlutterBinding ensured');
 
-  final cameras = await availableCameras();
-  print('🟢 Flutter: Found ${cameras.length} cameras');
-  for (int i = 0; i < cameras.length; i++) {
-    final camera = cameras[i];
-    final lensDir = camera.lensDirection == CameraLensDirection.front
-        ? 'FRONT'
-        : 'BACK';
-    print('  - Camera $i: $lensDir');
+  // Only enumerate cameras on native platforms (iOS/Android)
+  // Web implementation uses MediaPipe directly via JavaScript, doesn't need camera plugin
+  late List<CameraDescription> cameras;
+  if (kIsWeb) {
+    cameras = [];
+    print('🟢 Flutter: Web platform - skipping camera enumeration (uses MediaPipe)');
+  } else {
+    cameras = await availableCameras();
+    print('🟢 Flutter: Found ${cameras.length} cameras');
+    for (int i = 0; i < cameras.length; i++) {
+      final camera = cameras[i];
+      final lensDir = camera.lensDirection == CameraLensDirection.front
+          ? 'FRONT'
+          : 'BACK';
+      print('  - Camera $i: $lensDir');
+    }
   }
 
   print('🟢 Flutter: Calling runApp()');
@@ -108,6 +116,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _faceDetectionInitialized = false;
   bool _cameraPermissionDenied = false;
   bool _controllerInitialized = false;
+  bool _cameraRequested = false;
 
   // Image dimensions (from camera frames)
   Size _imageSize = Size.zero;
@@ -215,12 +224,15 @@ class _MyHomePageState extends State<MyHomePage> {
       print('🔧 Flutter: No front camera found, using camera at index 0');
     }
 
-    // Defer initialization so UI loads first
+    // Mark as ready without requesting camera permission yet
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      print('🔧 Flutter: Calling _initializeCamera()');
-      _initializeCamera();
-      print('🔧 Flutter: Calling _initializeNativeFaceDetection()');
-      _initializeNativeFaceDetection();
+      print('🔧 Flutter: UI ready, waiting for user to enable camera');
+      if (mounted) {
+        setState(() {
+          _faceDetectionInitialized = true;
+          _debugMessage = "Ready - Tap 'Enable Camera' to start";
+        });
+      }
     });
 
     // Safety timeout: if not initialized after 15 seconds, force show app
@@ -284,6 +296,17 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       }
     }
+  }
+
+  Future<void> _requestCameraAccess() async {
+    print('🔧 Flutter: User requesting camera access');
+    if (mounted) {
+      setState(() {
+        _cameraRequested = true;
+      });
+    }
+    await _initializeCamera();
+    await _initializeNativeFaceDetection();
   }
 
   Future<void> _initializeCamera() async {
@@ -712,8 +735,9 @@ class _MyHomePageState extends State<MyHomePage> {
                     // Retry camera initialization
                     setState(() {
                       _cameraPermissionDenied = false;
+                      _cameraRequested = false;
                     });
-                    _initializeCamera();
+                    _requestCameraAccess();
                   },
                   icon: const Icon(Icons.refresh),
                   label: const Text('Try Again'),
@@ -733,7 +757,8 @@ class _MyHomePageState extends State<MyHomePage> {
       );
     }
 
-    if (!_controllerInitialized || !_controller.value.isInitialized || _isSwitchingCamera) {
+    // If camera requested but not yet initialized, show loading
+    if (_cameraRequested && (!_controllerInitialized || (_controllerInitialized && !_controller.value.isInitialized) || _isSwitchingCamera)) {
       return Scaffold(
         appBar: AppBar(
           title: const Text('Face Pixelation'),
@@ -747,8 +772,8 @@ class _MyHomePageState extends State<MyHomePage> {
       );
     }
 
-    // Show loading overlay while face detection initializes
-    if (!_faceDetectionInitialized) {
+    // Show loading overlay while face detection initializes (after camera is requested)
+    if (_cameraRequested && !_faceDetectionInitialized) {
       return Scaffold(
         appBar: AppBar(
           title: const Text('Face Pixelation'),
@@ -792,6 +817,84 @@ class _MyHomePageState extends State<MyHomePage> {
       );
     }
 
+    // If camera not requested yet, show welcome screen
+    if (!_cameraRequested) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Face Pixelation'),
+          backgroundColor: Colors.black,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton.icon(
+                onPressed: _requestCameraAccess,
+                icon: const Icon(Icons.videocam),
+                label: const Text('Enable Camera'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepPurple,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+        body: Container(
+          color: const Color(0xFF1A1A1A),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.videocam,
+                  size: 64,
+                  color: Colors.deepPurple,
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Face Pixelation',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 32),
+                  child: Text(
+                    'Real-time face detection and pixelation for privacy',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 14,
+                      textBaseline: TextBaseline.alphabetic,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 40),
+                ElevatedButton.icon(
+                  onPressed: _requestCameraAccess,
+                  icon: const Icon(Icons.videocam),
+                  label: const Text('Enable Camera'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 16,
+                    ),
+                    textStyle: const TextStyle(fontSize: 16),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Face Pixelation'),
@@ -799,21 +902,22 @@ class _MyHomePageState extends State<MyHomePage> {
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
-          // Pixelation toggle
-          IconButton(
-            icon: Icon(
-              _pixelationEnabled ? Icons.privacy_tip : Icons.privacy_tip_outlined,
-              color: _pixelationEnabled ? Colors.white : Colors.grey,
+          // Pixelation toggle (only show after camera is working)
+          if (_cameraRequested && !_cameraPermissionDenied)
+            IconButton(
+              icon: Icon(
+                _pixelationEnabled ? Icons.privacy_tip : Icons.privacy_tip_outlined,
+                color: _pixelationEnabled ? Colors.white : Colors.grey,
+              ),
+              onPressed: () {
+                setState(() {
+                  _pixelationEnabled = !_pixelationEnabled;
+                });
+              },
+              tooltip: 'Toggle Blur',
             ),
-            onPressed: () {
-              setState(() {
-                _pixelationEnabled = !_pixelationEnabled;
-              });
-            },
-            tooltip: 'Toggle Blur',
-          ),
           // Camera switch button
-          if (widget.cameras.length > 1)
+          if (_cameraRequested && !_cameraPermissionDenied && widget.cameras.length > 1)
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Center(
