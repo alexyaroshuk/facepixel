@@ -705,7 +705,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 const Icon(
                   Icons.lock_outline,
                   size: 64,
-                  color: Colors.red,
+                  color: Colors.white,
                 ),
                 const SizedBox(height: 24),
                 const Text(
@@ -730,7 +730,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
                 const SizedBox(height: 32),
-                ElevatedButton.icon(
+                ElevatedButton(
                   onPressed: () {
                     // Retry camera initialization
                     setState(() {
@@ -739,16 +739,15 @@ class _MyHomePageState extends State<MyHomePage> {
                     });
                     _requestCameraAccess();
                   },
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Try Again'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 32,
                       vertical: 12,
                     ),
                   ),
+                  child: const Text('Try Again'),
                 ),
               ],
             ),
@@ -828,14 +827,17 @@ class _MyHomePageState extends State<MyHomePage> {
           actions: [
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton.icon(
+              child: ElevatedButton(
                 onPressed: _requestCameraAccess,
-                icon: const Icon(Icons.videocam),
-                label: const Text('Enable Camera'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple,
-                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                 ),
+                child: const Text('Enable Camera'),
               ),
             ),
           ],
@@ -849,7 +851,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 const Icon(
                   Icons.videocam,
                   size: 64,
-                  color: Colors.deepPurple,
+                  color: Colors.white,
                 ),
                 const SizedBox(height: 24),
                 const Text(
@@ -868,25 +870,22 @@ class _MyHomePageState extends State<MyHomePage> {
                     style: TextStyle(
                       color: Colors.grey,
                       fontSize: 14,
-                      textBaseline: TextBaseline.alphabetic,
                     ),
                     textAlign: TextAlign.center,
                   ),
                 ),
                 const SizedBox(height: 40),
-                ElevatedButton.icon(
+                ElevatedButton(
                   onPressed: _requestCameraAccess,
-                  icon: const Icon(Icons.videocam),
-                  label: const Text('Enable Camera'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 32,
                       vertical: 16,
                     ),
-                    textStyle: const TextStyle(fontSize: 16),
                   ),
+                  child: const Text('Enable Camera'),
                 ),
               ],
             ),

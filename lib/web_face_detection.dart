@@ -32,11 +32,23 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
   int _pixelationLevel = 10;
   bool _permissionDenied = false;
   String _permissionErrorMessage = "Camera permission denied";
+  bool _cameraRequested = false;  // Track if user has requested camera access
 
   @override
   void initState() {
     super.initState();
-    _initializeWebCamera();
+    // Don't initialize camera here - wait for user to click button
+    print('🌐 Web: Waiting for user to enable camera');
+  }
+
+  Future<void> _requestCameraAccess() async {
+    print('🌐 Web: User requesting camera access');
+    if (mounted) {
+      setState(() {
+        _cameraRequested = true;
+      });
+    }
+    await _initializeWebCamera();
   }
 
   Future<void> _initializeWebCamera() async {
@@ -197,7 +209,7 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                 const Icon(
                   Icons.lock_outline,
                   size: 64,
-                  color: Colors.red,
+                  color: Colors.white,
                 ),
                 const SizedBox(height: 24),
                 const Text(
@@ -229,10 +241,92 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                     style: TextStyle(
                       color: Colors.grey,
                       fontSize: 12,
-                      fontStyle: FontStyle.italic,
                     ),
                     textAlign: TextAlign.center,
                   ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Note: If _cameraRequested is true, we skip the welcome screen
+    // and build the main video scaffold below (which includes HtmlElementView)
+    // This allows the permission prompt to appear. The loading overlay is shown
+    // in the main scaffold's Stack when _videoSize == Size.zero
+
+    // Show welcome screen if camera hasn't been requested yet
+    if (!_cameraRequested) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Face Pixelation'),
+          backgroundColor: Colors.black,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton(
+                onPressed: _requestCameraAccess,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                ),
+                child: const Text('Enable Camera'),
+              ),
+            ),
+          ],
+        ),
+        body: Container(
+          color: const Color(0xFF1A1A1A),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.videocam,
+                  size: 64,
+                  color: Colors.white,
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Face Pixelation',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 32),
+                  child: Text(
+                    'Real-time face detection and pixelation for privacy',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 14,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 40),
+                ElevatedButton(
+                  onPressed: _requestCameraAccess,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 16,
+                    ),
+                  ),
+                  child: const Text('Enable Camera'),
                 ),
               ],
             ),
@@ -247,22 +341,6 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         elevation: 0,
-        actions: [
-          // Pixelation toggle
-          IconButton(
-            icon: Icon(
-              _pixelationEnabled ? Icons.privacy_tip : Icons.privacy_tip_outlined,
-              color: _pixelationEnabled ? Colors.white : Colors.grey,
-            ),
-            onPressed: () {
-              setState(() {
-                _pixelationEnabled = !_pixelationEnabled;
-              });
-              _applyPixelation();
-            },
-            tooltip: 'Toggle Blur',
-          ),
-        ],
       ),
       body: Builder(
         builder: (context) {
@@ -357,30 +435,54 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                 // Backdrop blur overlay is handled by JavaScript (CSS backdrop-filter)
                 // See web/face_detection.js updateBlurOverlay() function
 
-                // Face count display above video stream
+                // Control bar above video stream
                 Positioned(
-                  top: canvasOffset.dy - 40,
+                  top: canvasOffset.dy - 50,
                   left: canvasOffset.dx,
-                  right: screenSize.width - canvasOffset.dx - _canvasWidth,
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black87,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        'Faces: ${_detectedFaces.length}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                  width: _canvasWidth,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Faces count (left)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black87,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'Faces: ${_detectedFaces.length}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                          ),
                         ),
                       ),
-                    ),
+                      // Blur toggle button (right)
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            _pixelationEnabled = !_pixelationEnabled;
+                          });
+                          _applyPixelation();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _pixelationEnabled ? Colors.white : Colors.black87,
+                          foregroundColor: _pixelationEnabled ? Colors.black : Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                        ),
+                        child: const Text(
+                          'Toggle Blur',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
 
@@ -558,6 +660,30 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                                   ),
                                 ),
                               ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                // Loading overlay while camera is initializing
+                if (_cameraRequested && _videoSize == Size.zero)
+                  Container(
+                    color: Colors.black.withValues(alpha: 0.6),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                          SizedBox(height: 24),
+                          Text(
+                            'Requesting camera access...',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
                             ),
                           ),
                         ],
