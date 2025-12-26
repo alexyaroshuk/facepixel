@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 // Web-specific imports - safe because this file is deferred and only loaded on web
 // ignore: deprecated_member_use, avoid_web_libraries_in_flutter
 import 'dart:js_util' as js_util;
+import 'dart:ui_web' as ui_web;
 // ignore: deprecated_member_use, avoid_web_libraries_in_flutter
 import 'dart:html' as html;
 
@@ -16,6 +17,7 @@ class WebFaceDetectionView extends StatefulWidget {
 }
 
 class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
+  static const String _videoViewType = 'face-detection-video';
   static const double _canvasWidth = 640.0;  // Fixed canvas width
   static const double _canvasHeight = 480.0; // Fixed canvas height (4:3 aspect ratio)
 
@@ -38,160 +40,107 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
     // ignore: avoid_print
     print('🌐 Web: WebFaceDetectionView.initState() called');
 
-    // Mark as ready (HTML video element already exists)
+    // Register the video element factory (doesn't create element yet)
+    _registerVideoElementFactory();
+
+    // Request camera automatically
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // ignore: avoid_print
-      print('🌐 Web: HTML video element is ready for camera stream');
       if (mounted) {
-        setState(() {
-          _faceDetectionInitialized = true;
-          _debugMessage = "Ready - Click 'Enable Camera' to start";
-        });
+        _requestCameraAccess();
       }
     });
   }
 
-  Future<void> _requestCameraAccess() async {
-    if (!mounted) return;
+  void _registerVideoElementFactory() {
+    // Register the video element factory
+    ui_web.platformViewRegistry.registerViewFactory(
+      _videoViewType,
+      (int viewId) {
+        final video = html.VideoElement()
+          ..id = 'webcam'
+          ..autoplay = true
+          ..muted = true
+          ..attributes['playsinline'] = 'true'
+          ..attributes['crossorigin'] = 'anonymous'
+          ..style.width = '100%'
+          ..style.height = '100%'
+          ..style.objectFit = 'cover'
+          ..style.transform = 'scaleX(-1)';
 
-    setState(() {
-      _cameraRequested = true;
-    });
-
-    // ignore: avoid_print
-    print('🌐 Web: User requesting camera access...');
-
-    // Wait for the widget to rebuild and video element to be created
-    // This ensures the HtmlElementView has rendered before we request getUserMedia
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _attachCameraStream();
-    });
-  }
-
-  Future<void> _attachCameraStream() async {
-    if (!mounted) return;
-
-    // ignore: avoid_print
-    print('🌐 Web: Requesting getUserMedia after widget rebuild...');
-
-    // Check if video element exists before requesting
-    var videoElement = html.document.getElementById('webcam') as html.VideoElement?;
-    // ignore: avoid_print
-    print('🌐 Web: Video element exists in DOM: ${videoElement != null}');
-    if (videoElement != null) {
-      // ignore: avoid_print
-      print('🌐 Web: Video element found: id=${videoElement.id}, width=${videoElement.style.width}, height=${videoElement.style.height}');
-    }
-
-    // Request camera access
-    html.window.navigator.mediaDevices
-        ?.getUserMedia({'video': true, 'audio': false}).then((stream) {
-      if (!mounted) return;
-
-      // ignore: avoid_print
-      print('🌐 Web: getUserMedia succeeded, got stream');
-
-      videoElement = html.document.getElementById('webcam') as html.VideoElement?;
-
-      if (videoElement != null) {
+        // Request camera access when element is created
         // ignore: avoid_print
-        print('🌐 Web: Setting srcObject on video element...');
-
-        // Debug: Check stream details
-        final videoTracks = stream.getVideoTracks();
-        // ignore: avoid_print
-        print('🌐 Web: Stream has ${videoTracks.length} video tracks');
-        if (videoTracks.isNotEmpty) {
-          // ignore: avoid_print
-          print('🌐 Web: First video track enabled=${videoTracks[0].enabled}, readyState=${videoTracks[0].readyState}');
-        }
-
-        videoElement!.srcObject = stream;
-
-        // ignore: avoid_print
-        print('🌐 Web: srcObject set. Video element width=${videoElement!.width}, height=${videoElement!.height}, videoWidth=${videoElement!.videoWidth}, videoHeight=${videoElement!.videoHeight}');
-
-        // Ensure video element is visible (not hidden)
-        videoElement!.style.display = 'block';
-        videoElement!.style.visibility = 'visible';
-        videoElement!.style.opacity = '1';
-
-        // Add a small delay to ensure the video element is fully ready
-        Future.delayed(const Duration(milliseconds: 100), () {
+        print('🌐 Web: Platform view factory called, requesting camera...');
+        html.window.navigator.mediaDevices
+            ?.getUserMedia({'video': true, 'audio': false}).then((stream) {
           if (!mounted) return;
 
           // ignore: avoid_print
-          print('🌐 Web: After delay - videoWidth=${videoElement!.videoWidth}, videoHeight=${videoElement!.videoHeight}');
+          print('🌐 Web: Got camera stream, setting srcObject...');
+          video.srcObject = stream;
 
-          // Try to play manually
-          final playPromise = videoElement!.play();
-          playPromise.then((_) {
-            // ignore: avoid_print
-            print('🌐 Web: Video play() succeeded');
-            // Debug: Check if video is actually playing
-            Future.delayed(const Duration(milliseconds: 500), () {
+          // Wait for video to actually have dimensions (not just metadata)
+          var checkDimensionsCount = 0;
+          void checkVideoDimensions() {
+            checkDimensionsCount++;
+            if (video.videoWidth > 0 && video.videoHeight > 0) {
+              // Video has actual dimensions now
+              if (!mounted) return;
+
               // ignore: avoid_print
-              print('🌐 Web: After play - videoWidth=${videoElement!.videoWidth}, videoHeight=${videoElement!.videoHeight}, paused=${videoElement!.paused}');
-            });
-          }).catchError((e) {
-            // ignore: avoid_print
-            print('🌐 Web: Video play() failed: $e');
-          });
-        });
+              print('🌐 Web: Video dimensions available: ${video.videoWidth}x${video.videoHeight}');
+              setState(() {
+                _videoSize = Size(
+                  video.videoWidth.toDouble(),
+                  video.videoHeight.toDouble(),
+                );
+                _debugMessage = "Ready (Web/MediaPipe)";
+              });
 
-        // Wait for video to be ready (only listen once, then cancel)
-        StreamSubscription? metadataListener;
-        metadataListener = videoElement!.onLoadedMetadata.listen((_) {
+              // Start face detection
+              _startFaceDetection();
+            } else if (checkDimensionsCount < 50) {
+              // Keep checking for dimensions (up to 50 times = 2.5 seconds)
+              Future.delayed(const Duration(milliseconds: 50), checkVideoDimensions);
+            } else {
+              // Timeout - just start anyway
+              if (!mounted) return;
+              // ignore: avoid_print
+              print('🌐 Web: Video dimensions timeout, starting detection anyway...');
+              setState(() {
+                _videoSize = Size(
+                  video.videoWidth.toDouble(),
+                  video.videoHeight.toDouble(),
+                );
+              });
+              _startFaceDetection();
+            }
+          }
+
+          // Start checking dimensions immediately
+          checkVideoDimensions();
+        }).catchError((error) {
           if (!mounted) return;
 
+          // Check if this is a permission error
+          final isPermissionError = error.toString().toLowerCase().contains('permission') ||
+                                    error.toString().toLowerCase().contains('notallowed') ||
+                                    error.toString().toLowerCase().contains('denied');
+
           // ignore: avoid_print
-          print('🌐 Web: Video metadata loaded! videoWidth=${videoElement!.videoWidth}, videoHeight=${videoElement!.videoHeight}');
+          print('🌐 Web: Camera error: $error');
 
           setState(() {
-            _videoSize = Size(
-              videoElement!.videoWidth.toDouble(),
-              videoElement!.videoHeight.toDouble(),
-            );
-            _debugMessage = "Ready (Web/MediaPipe)";
-            _cameraPermissionDenied = false;
+            _debugMessage = "Camera error: $error";
+            if (isPermissionError) {
+              _cameraPermissionDenied = true;
+              _cameraRequested = false;
+            }
           });
-
-          // Start face detection (only once)
-          _startFaceDetection();
-
-          // Cancel the listener to prevent repeated calls
-          metadataListener?.cancel();
         });
-      } else {
-        // ignore: avoid_print
-        print('🌐 Web: ERROR - Video element not found in DOM after getUserMedia');
-        if (mounted) {
-          setState(() {
-            _debugMessage = "ERROR: Video element not found in DOM";
-            _cameraPermissionDenied = true;
-            _cameraRequested = false;
-          });
-        }
-      }
-    }).catchError((error) {
-      if (!mounted) return;
 
-      // Check if this is a permission error
-      final isPermissionError = error.toString().toLowerCase().contains('permission') ||
-                                error.toString().toLowerCase().contains('notallowed') ||
-                                error.toString().toLowerCase().contains('denied');
-
-      // ignore: avoid_print
-      print('🌐 Web: Camera error: $error');
-
-      setState(() {
-        _debugMessage = "Camera error: $error";
-        if (isPermissionError) {
-          _cameraPermissionDenied = true;
-          _cameraRequested = false; // Reset so user can try again
-        }
-      });
-    });
+        return video;
+      },
+    );
   }
 
   /// Apply pixelation using JavaScript overlay
@@ -215,65 +164,34 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
     // ignore: avoid_print
     print('🌐 Web: Setting up face detection...');
 
-    // FIRST: Set up detector ready listener
-    html.window.addEventListener('detectorReady', (html.Event event) {
-      final customEvent = event as html.CustomEvent;
-      final detail = customEvent.detail;
-      final success = detail?['success'] as bool? ?? false;
-
-      if (success) {
-        // ignore: avoid_print
-        print('🌐 Web: MediaPipe detector ready!');
-        if (mounted) {
-          setState(() {
-            _faceDetectionInitialized = true;
-            _debugMessage = "Ready (Web/MediaPipe)";
-          });
-        }
-      } else {
-        final error = detail?['error'] as String? ?? 'Unknown error';
-        // ignore: avoid_print
-        print('🌐 Web: MediaPipe detector initialization failed: $error');
-        if (mounted) {
-          setState(() {
-            _faceDetectionInitialized = true;
-            _debugMessage = "Init failed: $error";
-          });
-        }
-      }
-    });
-
-    // SECOND: Set up event listener for faces detected
+    // Set up event listener for detected faces FIRST (before calling JavaScript)
     html.window.addEventListener('facesDetected', (html.Event event) {
+      // ignore: avoid_print
+      print('🌐 Web: RECEIVED facesDetected event from JavaScript!');
       final customEvent = event as html.CustomEvent;
       final detail = customEvent.detail;
       if (detail != null && detail['faces'] != null) {
         final faces = detail['faces'] as List;
+        // ignore: avoid_print
+        print('🌐 Web: Processing ${faces.length} detected faces');
         _onFacesDetected(faces);
       } else {
         // ignore: avoid_print
-        print('🌐 Web: Received facesDetected event with null detail');
+        print('🌐 Web: facesDetected event has no faces data');
       }
     });
 
     // ignore: avoid_print
-    print('🌐 Web: Event listeners registered');
+    print('🌐 Web: Event listener registered, now calling startApp()...');
 
-    // THIRD: Call startApp() in JavaScript to initialize MediaPipe and camera
+    // Call JavaScript to initialize MediaPipe and start detection
     try {
-      // Call the startApp() function we defined in face_detection.js
       js_util.callMethod(html.window, 'startApp', []);
       // ignore: avoid_print
       print('🌐 Web: Called JavaScript startApp()');
     } catch (e) {
       // ignore: avoid_print
       print('🌐 Web: Error calling startApp(): $e');
-      if (mounted) {
-        setState(() {
-          _faceDetectionInitialized = true;
-          _debugMessage = "Init failed: $e";
-        });
-      }
     }
   }
 
@@ -308,7 +226,6 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
     });
   }
 
-
   /// Calculate canvas offset to center fixed-size canvas in available space
   Offset _calculateCanvasOffset(Size screenSize) {
     final offsetX = (screenSize.width - _canvasWidth) / 2;
@@ -316,8 +233,81 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
     return Offset(offsetX, offsetY);
   }
 
+  Future<void> _requestCameraAccess() async {
+    if (!mounted) return;
+
+    setState(() {
+      _cameraRequested = true;
+    });
+
+    // ignore: avoid_print
+    print('🌐 Web: User requesting camera access...');
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Show permission denied screen if access was denied
+    if (_cameraPermissionDenied) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Face Pixelation'),
+          backgroundColor: Colors.black,
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
+        body: Container(
+          color: const Color(0xFF1A1A1A),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.lock_outline,
+                  size: 64,
+                  color: Colors.red,
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Camera Access Denied',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 32),
+                  child: Text(
+                    'This app requires camera access. Please enable camera permissions in your browser settings.',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 14,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 32),
+                  child: Text(
+                    'Then refresh the page to try again.',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Face Pixelation'),
@@ -325,22 +315,8 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
-          // Enable camera button (if not requested yet)
-          if (_faceDetectionInitialized && !_cameraRequested)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton.icon(
-                onPressed: _requestCameraAccess,
-                icon: const Icon(Icons.videocam),
-                label: const Text('Enable Camera'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple,
-                  foregroundColor: Colors.white,
-                ),
-              ),
-            ),
           // Pixelation toggle (only show after camera is working)
-          if (_cameraRequested && !_cameraPermissionDenied)
+          if (_cameraRequested)
             IconButton(
               icon: Icon(
                 _pixelationEnabled ? Icons.privacy_tip : Icons.privacy_tip_outlined,
@@ -360,27 +336,6 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
         builder: (context) {
           final screenSize = MediaQuery.of(context).size;
           final canvasOffset = _calculateCanvasOffset(screenSize);
-
-          // Account for AppBar height when passing to JavaScript
-          final appBarHeight = AppBar().preferredSize.height;
-          final statusBarHeight = MediaQuery.of(context).padding.top;
-          final adjustedCanvasOffsetY = canvasOffset.dy + appBarHeight + statusBarHeight;
-
-          // Sync canvas dimensions and offset with JavaScript (fixed dimensions)
-          if (_faceDetectionInitialized && _cameraRequested) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              try {
-                js_util.callMethod(
-                  html.window,
-                  'updateCanvasDimensions',
-                  [_canvasWidth, _canvasHeight, canvasOffset.dx, adjustedCanvasOffsetY],
-                );
-              } catch (e) {
-                // ignore: avoid_print
-                print('🌐 Web: Error updating canvas dimensions: $e');
-              }
-            });
-          }
 
           return Container(
             width: screenSize.width,
@@ -428,89 +383,28 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                           ),
                         ),
                         const SizedBox(height: 40),
-                        ElevatedButton.icon(
-                          onPressed: _requestCameraAccess,
-                          icon: const Icon(Icons.videocam),
-                          label: const Text('Enable Camera'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepPurple,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 32,
-                              vertical: 16,
-                            ),
-                            textStyle: const TextStyle(fontSize: 16),
+                        const Text(
+                          'Please allow camera access when prompted by your browser',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 12,
                           ),
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
                   ),
-
-                // Video element is rendered via HTML (index.html), not Flutter widget
-                // Show permission denied overlay if camera access was denied
-                if (_cameraPermissionDenied)
-                  Container(
-                    color: Colors.black.withValues(alpha: 0.7),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.lock_outline,
-                            size: 64,
-                            color: Colors.red,
-                          ),
-                          const SizedBox(height: 24),
-                          const Text(
-                            'Camera Access Denied',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 12),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 32),
-                            child: Text(
-                              'This app requires camera access to detect and pixelate faces. Please allow camera access when prompted by your browser.',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 14,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          const SizedBox(height: 32),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              // Retry camera initialization
-                              // ignore: avoid_print
-                              print('🌐 Web: User clicked Try Again');
-                              setState(() {
-                                _cameraPermissionDenied = false;
-                                _cameraRequested = false;
-                              });
-                              _requestCameraAccess();
-                            },
-                            icon: const Icon(Icons.refresh),
-                            label: const Text('Try Again'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.deepPurple,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 32,
-                                vertical: 12,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
+                // Video element - only render after camera is requested
+                if (_cameraRequested)
+                  Positioned(
+                    left: canvasOffset.dx,
+                    top: canvasOffset.dy,
+                    width: _canvasWidth,
+                    height: _canvasHeight,
+                    child: HtmlElementView(viewType: _videoViewType),
+                  ),
                 // Show loading overlay on top while initializing (after camera requested)
-                else if (_cameraRequested && !_faceDetectionInitialized)
+                if (_cameraRequested && _videoSize == Size.zero)
                   Container(
                     color: Colors.black.withValues(alpha: 0.7),
                     child: Center(
@@ -533,8 +427,8 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                     ),
                   ),
 
-                // Face count display above video stream (only when initialized and camera requested)
-                if (_cameraRequested && _faceDetectionInitialized)
+                // Face count display above video stream (only when initialized)
+                if (_cameraRequested && _videoSize != Size.zero)
                   Positioned(
                     top: canvasOffset.dy - 40,
                     left: canvasOffset.dx,
@@ -561,11 +455,11 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                     ),
                   ),
 
-                // Face detection boxes - only show when camera requested, initialized, and blur is disabled
+                // Face detection boxes - only show when blur is disabled
                 if (_cameraRequested &&
-                    _faceDetectionInitialized &&
+                    _videoSize != Size.zero &&
                     !_pixelationEnabled &&
-                    _videoSize != Size.zero)
+                    _detectedFaces.isNotEmpty)
                   ..._detectedFaces.map((face) {
                     // Scale boxes to fixed canvas size
                     final scaleX = _canvasWidth / _videoSize.width;
@@ -584,8 +478,8 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                     );
                   }),
 
-                // Pixelation level slider control (only when camera requested, initialized, and enabled)
-                if (_cameraRequested && _faceDetectionInitialized && _pixelationEnabled)
+                // Pixelation level slider control (only when enabled)
+                if (_cameraRequested && _videoSize != Size.zero && _pixelationEnabled)
                   Positioned(
                     bottom: 16,
                     left: 16,

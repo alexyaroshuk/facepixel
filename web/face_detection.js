@@ -215,6 +215,7 @@ async function detectFrame() {
           console.log('[FaceDetection] Processing', detections.detections.length, 'faces');
           console.log('[FaceDetection] Natural resolution:', videoNatWidth, 'x', videoNatHeight);
           console.log('[FaceDetection] Display resolution:', videoDisplayWidth, 'x', videoDisplayHeight);
+          console.log('[FaceDetection] Display rect:', { top: rect.top, left: rect.left, width: rect.width, height: rect.height });
           console.log('[FaceDetection] Scale:', scaleX, 'x', scaleY);
         }
 
@@ -649,7 +650,6 @@ window.setPixelationSettings = function (enabled, level) {
 /**
  * Main initialization sequence
  * This is called from Dart when the app is ready
- * Note: Camera initialization is handled by Dart code, not here
  */
 async function startApp() {
   console.log('[FaceDetection] ===== STARTUP SEQUENCE =====');
@@ -667,13 +667,9 @@ async function startApp() {
       throw new Error('MediaPipe initialization failed');
     }
 
-    // Step 2: Get video element (already initialized by Dart code)
-    console.log('[FaceDetection] Step 2: Getting video element...');
-    videoElement = document.getElementById('webcam');
-    if (!videoElement) {
-      throw new Error('Video element #webcam not found - Dart code should have created it');
-    }
-    console.log('[FaceDetection] Video element found, dimensions:', videoElement.videoWidth, 'x', videoElement.videoHeight);
+    // Step 2: Initialize camera
+    console.log('[FaceDetection] Step 2: Initializing camera...');
+    await initializeCamera();
 
     // Step 3: Set up callback to dispatch events and update pixelation
     console.log('[FaceDetection] Step 3: Setting up callback...');
@@ -704,16 +700,10 @@ async function startApp() {
     detectFrame();
 
     console.log('[FaceDetection] ===== STARTUP COMPLETE =====');
-
-    // Signal to Dart that detector is ready
-    console.log('[FaceDetection] Dispatching detectorReady event...');
-    window.dispatchEvent(new CustomEvent('detectorReady', { detail: { success: true } }));
   } catch (error) {
     console.error('[FaceDetection] ===== STARTUP FAILED =====');
     console.error('[FaceDetection] Error:', error);
     console.error('[FaceDetection] Stack:', error.stack);
-    // Signal to Dart that detector initialization failed
-    window.dispatchEvent(new CustomEvent('detectorReady', { detail: { success: false, error: error.message } }));
   }
 }
 
