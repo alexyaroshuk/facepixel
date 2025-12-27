@@ -408,57 +408,80 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                   ),
 
                 // Face detection boxes - only show when blur is disabled (for reference)
-                if (!_pixelationEnabled && _videoSize != Size.zero)
+                if (!_pixelationEnabled && _videoSize != Size.zero) ...[
                   ..._detectedFaces.map((face) {
                     // Scale boxes to fixed canvas size
                     final scaleX = _canvasWidth / _videoSize.width;
                     final scaleY = _canvasHeight / _videoSize.height;
 
+                    final boxLeft = canvasOffset.dx + (face.left * scaleX);
+                    final boxTop = canvasOffset.dy + (face.top * scaleY);
+                    final boxWidth = face.width * scaleX;
+                    final boxHeight = face.height * scaleY;
+
                     return Positioned(
-                      left: canvasOffset.dx + (face.left * scaleX),
-                      top: canvasOffset.dy + (face.top * scaleY),
-                      width: face.width * scaleX,
-                      height: face.height * scaleY,
-                      child: Stack(
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.black, width: 3),
-                            ),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.white, width: 3),
-                              ),
-                            ),
+                      left: boxLeft,
+                      top: boxTop,
+                      width: boxWidth,
+                      height: boxHeight,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.black, width: 1),
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.white, width: 1),
                           ),
-                          // Confidence score label
-                          if (_showConfidence)
-                            Positioned(
-                              top: 4,
-                              right: 4,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.black87,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  '${(face.confidence * 100).toStringAsFixed(0)}%',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
+                        ),
                       ),
                     );
                   }),
+                  // Confidence labels above boxes with stroke effect
+                  if (_showConfidence)
+                    ..._detectedFaces.map((face) {
+                      final scaleX = _canvasWidth / _videoSize.width;
+                      final scaleY = _canvasHeight / _videoSize.height;
+
+                      final boxLeft = canvasOffset.dx + (face.left * scaleX);
+                      final boxTop = canvasOffset.dy + (face.top * scaleY);
+                      final boxWidth = face.width * scaleX;
+                      final confidenceText = '${(face.confidence * 100).toStringAsFixed(0)}%';
+
+                      return Stack(
+                        children: [
+                          // Black stroke
+                          Positioned(
+                            left: boxLeft + boxWidth - 40,
+                            top: boxTop - 20,
+                            child: Text(
+                              confidenceText,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                foreground: Paint()
+                                  ..strokeWidth = 3
+                                  ..color = Colors.black
+                                  ..style = PaintingStyle.stroke,
+                              ),
+                            ),
+                          ),
+                          // White text on top
+                          Positioned(
+                            left: boxLeft + boxWidth - 40,
+                            top: boxTop - 20,
+                            child: Text(
+                              confidenceText,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }),
+                ],
 
                 // Backdrop blur overlay is handled by JavaScript (CSS backdrop-filter)
                 // See web/face_detection.js updateBlurOverlay() function
