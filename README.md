@@ -2,6 +2,10 @@
 
 A real-time face detection and privacy protection app built with Flutter. Detects faces in camera feeds and applies pixelation/blur effects to protect identity and privacy.
 
+## Live Demo
+
+Try the app now: [https://facepixel.vercel.app/](https://facepixel.vercel.app/)
+
 ## Features
 
 - **Real-Time Face Detection**: Detects faces from live camera feeds using on-device ML
