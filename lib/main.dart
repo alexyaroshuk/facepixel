@@ -980,7 +980,12 @@ class _MyHomePageState extends State<MyHomePage> {
                       height: box.height,
                       child: Container(
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.white70, width: 1),
+                          border: Border.all(color: Colors.black, width: 3),
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.white, width: 3),
+                          ),
                         ),
                       ),
                     );
