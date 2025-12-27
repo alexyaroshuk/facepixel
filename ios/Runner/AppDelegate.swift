@@ -178,7 +178,7 @@ func AppLog(_ message: String, tag: String = "AppDelegate") {
           // Only include meaningfully visible faces
           if boundingBox.width >= 20 && boundingBox.height >= 20 {
             // Estimate confidence based on face size
-            let confidence = estimateFaceConfidence(width: boundingBox.width, height: boundingBox.height)
+            let confidence = self?.estimateFaceConfidence(width: boundingBox.width, height: boundingBox.height) ?? 0.5
 
             faceArray.append([
               "x": NSNumber(value: Float(boundingBox.origin.x)),
