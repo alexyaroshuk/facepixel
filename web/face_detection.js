@@ -3,6 +3,9 @@
  * Official implementation matching https://codepen.io/mediapipe-preview/pen/OJByWQr
  */
 
+// Import logger utility
+// Note: This file should be loaded after logger.js in index.html
+
 let FaceDetector = null;
 let FilesetResolver = null;
 let faceDetector = null;
@@ -24,17 +27,16 @@ let pixelationLevel = 10;
 let blurOverlayContainer = null;
 let blurOverlays = [];
 
-console.log('[FaceDetection] Script loaded. Loading MediaPipe library as ES module...');
+AppLogger.info('Script loaded', 'web');
 
 /**
  * Load MediaPipe library dynamically as ES module
  */
 async function loadMediaPipeLibrary() {
-  console.log('[FaceDetection] Dynamically importing @mediapipe/tasks-vision...');
+  AppLogger.info('Importing MediaPipe library', 'web');
 
   try {
     const vision = await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/vision_bundle.js');
-    console.log('[FaceDetection] ES module imported:', vision);
 
     FaceDetector = vision.FaceDetector;
     FilesetResolver = vision.FilesetResolver;
@@ -43,10 +45,10 @@ async function loadMediaPipeLibrary() {
       throw new Error('FaceDetector or FilesetResolver not exported from module');
     }
 
-    console.log('[FaceDetection] MediaPipe library loaded successfully!');
+    AppLogger.info('MediaPipe library loaded', 'web');
     return true;
   } catch (error) {
-    console.error('[FaceDetection] Failed to load MediaPipe library:', error);
+    AppLogger.error('Failed to load MediaPipe library', 'web', error);
     throw error;
   }
 }
@@ -55,25 +57,22 @@ async function loadMediaPipeLibrary() {
  * Initialize MediaPipe Face Detection using the new tasks-vision API
  */
 async function initializeFaceDetection() {
-  console.log('[FaceDetection] ===== INIT START =====');
-  console.log('[FaceDetection] Initializing MediaPipe Face Detection (NEW API)...');
+  AppLogger.info('Initializing face detection', 'web');
 
   try {
-    // Step 0: Load library
-    console.log('[FaceDetection] Step 0: Loading MediaPipe library...');
+    AppLogger.debug('Loading MediaPipe library', 'web');
     await loadMediaPipeLibrary();
 
     if (!FaceDetector || !FilesetResolver) {
       throw new Error('MediaPipe library not loaded! FaceDetector or FilesetResolver is undefined');
     }
 
-    console.log('[FaceDetection] Loading vision task files...');
+    AppLogger.debug('Loading vision task files', 'web');
     const vision = await FilesetResolver.forVisionTasks(
       "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
     );
-    console.log('[FaceDetection] Vision tasks loaded');
 
-    console.log('[FaceDetection] Creating FaceDetector...');
+    AppLogger.debug('Creating FaceDetector', 'web');
     faceDetector = await FaceDetector.createFromOptions(vision, {
       baseOptions: {
         modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite`,
@@ -83,15 +82,12 @@ async function initializeFaceDetection() {
       minDetectionConfidence: 0.5,  // Detection confidence threshold
       minSuppressionThreshold: 0.3   // Non-maximum suppression threshold
     });
-    console.log('[FaceDetection] FaceDetector created successfully');
 
     isDetectorReady = true;
-    console.log('[FaceDetection] ===== INIT COMPLETE =====');
+    AppLogger.info('Face detection initialized', 'web');
     return true;
   } catch (error) {
-    console.error('[FaceDetection] ===== INIT FAILED =====');
-    console.error('[FaceDetection] Initialization failed:', error);
-    console.error('[FaceDetection] Error stack:', error.stack);
+    AppLogger.error('Face detection initialization failed', 'web', error);
     return false;
   }
 }
@@ -100,36 +96,31 @@ async function initializeFaceDetection() {
  * Initialize camera and start detection
  */
 async function initializeCamera() {
-  console.log('[FaceDetection] ===== CAMERA INIT START =====');
+  AppLogger.info('Initializing camera', 'web');
 
   try {
     videoElement = document.getElementById('webcam');
     if (!videoElement) {
       throw new Error('Video element #webcam not found in DOM');
     }
-    console.log('[FaceDetection] Video element found:', videoElement);
 
-    console.log('[FaceDetection] Requesting camera access...');
+    AppLogger.debug('Requesting camera access', 'web');
     const stream = await navigator.mediaDevices.getUserMedia({
       video: { width: { ideal: 1280 }, height: { ideal: 720 } }
     });
-    console.log('[FaceDetection] Camera access granted. Stream:', stream);
 
     videoElement.srcObject = stream;
-    console.log('[FaceDetection] Stream assigned to video element');
+    AppLogger.debug('Camera stream assigned', 'web');
 
     // Wait for video to be ready
     return new Promise((resolve) => {
       videoElement.onloadedmetadata = () => {
-        console.log('[FaceDetection] Video metadata loaded');
-        console.log('[FaceDetection] Video dimensions:', videoElement.videoWidth, 'x', videoElement.videoHeight);
-        console.log('[FaceDetection] ===== CAMERA READY =====');
+        AppLogger.debug(`Video loaded: ${videoElement.videoWidth}x${videoElement.videoHeight}`, 'web');
         resolve(true);
       };
     });
   } catch (error) {
-    console.error('[FaceDetection] ===== CAMERA INIT FAILED =====');
-    console.error('[FaceDetection] Camera error:', error);
+    AppLogger.error('Camera initialization failed', 'web', error);
     throw error;
   }
 }
@@ -161,11 +152,8 @@ async function detectFrame() {
     shouldDispatchCallback = true;
 
     try {
-      console.log('[FaceDetection] Running detection at time:', currentTime);
-
       // Run face detection using VIDEO mode
       const detections = faceDetector.detectForVideo(videoElement, performance.now());
-      console.log('[FaceDetection] Detections:', detections);
 
       // Convert detections to our face format
       if (detections && detections.detections) {
@@ -212,11 +200,7 @@ async function detectFrame() {
 
         // Log dimensions every 30 frames (not every frame to reduce spam)
         if (frameCounter % 30 === 0) {
-          console.log('[FaceDetection] Processing', detections.detections.length, 'faces');
-          console.log('[FaceDetection] Natural resolution:', videoNatWidth, 'x', videoNatHeight);
-          console.log('[FaceDetection] Display resolution:', videoDisplayWidth, 'x', videoDisplayHeight);
-          console.log('[FaceDetection] Display rect:', { top: rect.top, left: rect.left, width: rect.width, height: rect.height });
-          console.log('[FaceDetection] Scale:', scaleX, 'x', scaleY);
+          AppLogger.debug(`Detected ${detections.detections.length} faces, natural: ${videoNatWidth}x${videoNatHeight}, display: ${videoDisplayWidth}x${videoDisplayHeight}`, 'web');
         }
 
         for (const detection of detections.detections) {
@@ -246,24 +230,17 @@ async function detectFrame() {
           // Skip if face is too small after clamping (less than 20x20 or off-screen)
           if (face.width > 20 && face.height > 20) {
             faces.push(face);
-            console.log('[FaceDetection] Scaled face:', face);
           }
         }
       }
     } catch (error) {
-      console.error('[FaceDetection] Detection error:', error);
-      console.error('[FaceDetection] Error stack:', error.stack);
+      AppLogger.error('Detection error', 'web', error);
     }
   }
 
   // CRITICAL: Only update UI when we have processed a new frame
   // This prevents clearing boxes when the video frame hasn't changed
   if (shouldDispatchCallback && onFacesDetectedCallback) {
-    if (faces.length === 0) {
-      console.log('[FaceDetection] Calling callback with EMPTY faces array - should clear boxes');
-    } else {
-      console.log('[FaceDetection] Calling callback with', faces.length, 'detected faces');
-    }
     onFacesDetectedCallback(faces);
   }
 
@@ -277,7 +254,7 @@ async function detectFrame() {
  * Stop face detection
  */
 function stopFaceDetection() {
-  console.log('[FaceDetection] Stopping face detection');
+  AppLogger.info('Stopping face detection', 'web');
   detectionLoop = false;
   onFacesDetectedCallback = null;
   videoElement = null;
@@ -322,7 +299,7 @@ let canvasOffsetX = 0;
 let canvasOffsetY = 0;
 
 function updateCanvasDimensions(width, height, offsetX, offsetY) {
-  console.log('[FaceDetection] updateCanvasDimensions called:', width, 'x', height, 'offset:', offsetX, offsetY);
+  AppLogger.debug(`Canvas dimensions: ${width}x${height} at (${offsetX}, ${offsetY})`, 'web');
   overrideDisplayWidth = Math.round(width);
   overrideDisplayHeight = Math.round(height);
   canvasOffsetX = offsetX || 0;
@@ -333,11 +310,11 @@ function updateCanvasDimensions(width, height, offsetX, offsetY) {
  * Initialize pixelation canvas overlay
  */
 function initializePixelationCanvas() {
-  console.log('[FaceDetection] Initializing pixelation canvas...');
+  AppLogger.debug('Initializing pixelation canvas', 'web');
 
   pixelationCanvas = document.getElementById('pixelationCanvas');
   if (!pixelationCanvas) {
-    console.error('[FaceDetection] Pixelation canvas not found!');
+    AppLogger.error('Pixelation canvas not found', 'web');
     return;
   }
 
@@ -351,15 +328,13 @@ function initializePixelationCanvas() {
 
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
-
-  console.log('[FaceDetection] Pixelation canvas initialized');
 }
 
 /**
  * Initialize blur overlay container
  */
 function initializeBlurOverlay() {
-  console.log('[FaceDetection] Initializing blur overlay container...');
+  AppLogger.debug('Initializing blur overlay container', 'web');
 
   // Create container for blur overlays
   blurOverlayContainer = document.createElement('div');
@@ -380,8 +355,6 @@ function initializeBlurOverlay() {
       updateBlurOverlay();
     }
   });
-
-  console.log('[FaceDetection] Blur overlay container initialized');
 }
 
 /**
@@ -467,7 +440,7 @@ function pixelateRegion(screenX, screenY, screenWidth, screenHeight, pixelSize) 
     );
     pixelationCtx.restore();
   } catch (error) {
-    console.error('[FaceDetection] Error in pixelateRegion:', error);
+    AppLogger.error('Error in pixelateRegion', 'web', error);
   }
 }
 
@@ -630,14 +603,14 @@ function updateBlurOverlay() {
     blurOverlays.push(blurDiv);
   }
 
-  console.log(`[FaceDetection] Updated blur overlay: ${blurOverlays.length} faces, blur: ${blurAmount}px, canvas: ${canvasWidth}x${canvasHeight} @ (${canvasOffsetX},${canvasOffsetY})`);
+  AppLogger.debug(`Blur overlay updated: ${blurOverlays.length} faces, blur: ${blurAmount}px`, 'web');
 }
 
 /**
  * Set pixelation settings from Flutter
  */
 window.setPixelationSettings = function (enabled, level) {
-  console.log('[FaceDetection] Setting pixelation:', enabled, 'level:', level);
+  AppLogger.debug(`Pixelation settings: enabled=${enabled}, level=${level}`, 'web');
   pixelationEnabled = enabled;
   pixelationLevel = Math.max(1, Math.min(100, level));
   // Immediately update the overlays if faces are already detected
@@ -652,27 +625,27 @@ window.setPixelationSettings = function (enabled, level) {
  * This is called from Dart when the app is ready
  */
 async function startApp() {
-  console.log('[FaceDetection] ===== STARTUP SEQUENCE =====');
+  AppLogger.info('Starting face detection application', 'web');
 
   try {
     // Step 0: Initialize pixelation canvas and blur overlay
-    console.log('[FaceDetection] Step 0: Initializing pixelation canvas and blur overlay...');
+    AppLogger.debug('Initializing canvas and overlay', 'web');
     initializePixelationCanvas();
     initializeBlurOverlay();
 
     // Step 1: Initialize MediaPipe
-    console.log('[FaceDetection] Step 1: Initializing MediaPipe...');
+    AppLogger.debug('Initializing MediaPipe', 'web');
     const initSuccess = await initializeFaceDetection();
     if (!initSuccess) {
       throw new Error('MediaPipe initialization failed');
     }
 
     // Step 2: Initialize camera
-    console.log('[FaceDetection] Step 2: Initializing camera...');
+    AppLogger.debug('Initializing camera', 'web');
     await initializeCamera();
 
     // Step 3: Set up callback to dispatch events and update pixelation
-    console.log('[FaceDetection] Step 3: Setting up callback...');
+    AppLogger.debug('Setting up callback', 'web');
     onFacesDetectedCallback = (faces) => {
       // Store faces for blur overlay
       detectedFaces = faces;
@@ -683,11 +656,6 @@ async function startApp() {
       // Update blur overlay
       updateBlurOverlay();
 
-      if (faces.length === 0) {
-        console.log('[FaceDetection] 🗑️ DISPATCHING EVENT WITH EMPTY ARRAY - boxes should clear');
-      } else {
-        console.log('[FaceDetection] Dispatching facesDetected event with', faces.length, 'faces');
-      }
       const event = new CustomEvent('facesDetected', {
         detail: { faces: faces }
       });
@@ -695,17 +663,12 @@ async function startApp() {
     };
 
     // Step 4: Start detection loop
-    console.log('[FaceDetection] Step 4: Starting detection loop...');
+    AppLogger.debug('Starting detection loop', 'web');
     detectionLoop = true;
     detectFrame();
 
-    console.log('[FaceDetection] ===== STARTUP COMPLETE =====');
+    AppLogger.info('Application startup complete', 'web');
   } catch (error) {
-    console.error('[FaceDetection] ===== STARTUP FAILED =====');
-    console.error('[FaceDetection] Error:', error);
-    console.error('[FaceDetection] Stack:', error.stack);
+    AppLogger.error('Application startup failed', 'web', error);
   }
 }
-
-// Wait for Dart to call startApp() when ready
-console.log('[FaceDetection] Waiting for Dart to call startApp()...');

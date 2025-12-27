@@ -1,15 +1,14 @@
 package com.facepixel.app.facedetection
 
-import android.util.Log
 import com.google.android.gms.tasks.Tasks
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetectorOptions
+import com.facepixel.app.AppLogger
 import java.util.concurrent.TimeUnit
 
 class FaceDetector {
-    private val tag = "FaceDetector"
     private val detector = FaceDetection.getClient(
         FaceDetectorOptions.Builder()
             .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
@@ -22,15 +21,7 @@ class FaceDetector {
     fun detectFaces(nv21Bytes: ByteArray, width: Int, height: Int, rotation: Int = 0): List<RectData> {
         return try {
             frameCounter++
-            val expectedNV21Size = (width * height * 1.5).toInt()
-            val imageDims = "${width}x${height}"
-            val imageAspect = String.format("%.3f", width.toDouble() / height.toDouble())
-
-            Log.d(tag, "╔════ FRAME $frameCounter ════╗")
-            Log.d(tag, "║ Image: $imageDims (aspect=$imageAspect)")
-            Log.d(tag, "║ NV21 bytes: ${nv21Bytes.size}/$expectedNV21Size")
-            Log.d(tag, "║ Rotation: $rotation°")
-            Log.d(tag, "╚════════════════════╝")
+            AppLogger.debug("Processing frame $frameCounter: ${width}x${height}, rotation: ${rotation}°", "detection")
 
             // Create InputImage from NV21 bytes directly (more efficient)
             val image = InputImage.fromByteArray(
@@ -45,7 +36,7 @@ class FaceDetector {
             val task = detector.process(image)
             val faces: List<Face> = Tasks.await(task, 5000, TimeUnit.MILLISECONDS)
 
-            Log.d(tag, "→ ML KIT OUTPUT: Detected ${faces.size} faces")
+            AppLogger.debug("Detected ${faces.size} faces", "detection")
 
             val rects = faces.mapNotNull { face: Face ->
                 try {
@@ -56,26 +47,23 @@ class FaceDetector {
                         width = bbox.right - bbox.left,
                         height = bbox.bottom - bbox.top
                     )
-                    Log.d(tag, "  Face[$face]: LEFT=${bbox.left} TOP=${bbox.top} RIGHT=${bbox.right} BOTTOM=${bbox.bottom}")
-                    Log.d(tag, "  -> RectData: x=${rect.x} y=${rect.y} w=${rect.width} h=${rect.height}")
 
                     // Only include faces that are meaningfully visible (not mostly off-screen)
                     // Skip if face is too small (less than 20x20) - prevents lingering boxes at edges
                     if (rect.width >= 20 && rect.height >= 20) {
                         rect
                     } else {
-                        Log.d(tag, "  -> Filtered out: face too small (${rect.width}x${rect.height})")
                         null
                     }
                 } catch (e: Exception) {
-                    Log.e(tag, "Error extracting face bounds: ${e.message}")
+                    AppLogger.error("Error extracting face bounds: ${e.message}", "detection", e)
                     null
                 }
             }
 
             rects
         } catch (e: Exception) {
-            Log.e(tag, "Error detecting faces: ${e.message}", e)
+            AppLogger.error("Error detecting faces: ${e.message}", "detection", e)
             emptyList()
         }
     }

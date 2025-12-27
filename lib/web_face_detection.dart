@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'dart:js_util' as js_util;
 import 'dart:ui_web' as ui_web;
 import 'dart:html' as html;
+import 'logger.dart';
 
 /// Web-specific face detection widget using HTML video element and MediaPipe
 class WebFaceDetectionView extends StatefulWidget {
@@ -38,11 +39,11 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
   void initState() {
     super.initState();
     // Don't initialize camera here - wait for user to click button
-    print('🌐 Web: Waiting for user to enable camera');
+    AppLogger.info('Web view initialized', 'web');
   }
 
   Future<void> _requestCameraAccess() async {
-    print('🌐 Web: User requesting camera access');
+    AppLogger.info('Camera access requested', 'web');
     if (mounted) {
       setState(() {
         _cameraRequested = true;
@@ -110,17 +111,14 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
         'setPixelationSettings',
         [_pixelationEnabled, _pixelationLevel],
       );
-      // ignore: avoid_print
-      print('🌐 Web: Set pixelation: enabled=$_pixelationEnabled, level=$_pixelationLevel');
+      AppLogger.debug('Pixelation settings changed: enabled=$_pixelationEnabled, level=$_pixelationLevel', 'web');
     } catch (e) {
-      // ignore: avoid_print
-      print('🌐 Web: Error setting pixelation: $e');
+      AppLogger.error('Error setting pixelation: $e', 'web', e);
     }
   }
 
   void _startFaceDetection() {
-    // ignore: avoid_print
-    print('🌐 Web: Setting up face detection...');
+    AppLogger.info('Setting up face detection', 'web');
 
     // FIRST: Set up event listener BEFORE starting JS
     html.window.addEventListener('facesDetected', (html.Event event) {
@@ -130,23 +128,19 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
         final faces = detail['faces'] as List;
         _onFacesDetected(faces);
       } else {
-        // ignore: avoid_print
-        print('🌐 Web: Received facesDetected event with null detail');
+        AppLogger.warning('Received facesDetected event with null detail', 'web');
       }
     });
 
-    // ignore: avoid_print
-    print('🌐 Web: Event listener registered');
+    AppLogger.debug('Event listener registered', 'web');
 
     // SECOND: Call startApp() in JavaScript to initialize MediaPipe and camera
     try {
       // Call the startApp() function we defined in face_detection.js
       js_util.callMethod(html.window, 'startApp', []);
-      // ignore: avoid_print
-      print('🌐 Web: Called JavaScript startApp()');
+      AppLogger.info('Face detection engine initialized', 'web');
     } catch (e) {
-      // ignore: avoid_print
-      print('🌐 Web: Error calling startApp(): $e');
+      AppLogger.error('Error initializing face detection: $e', 'web', e);
     }
   }
 
@@ -363,8 +357,7 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                 [_canvasWidth, _canvasHeight, canvasOffset.dx, adjustedCanvasOffsetY],
               );
             } catch (e) {
-              // ignore: avoid_print
-              print('🌐 Web: Error updating canvas dimensions: $e');
+              AppLogger.error('Error updating canvas dimensions: $e', 'web', e);
             }
           });
 
@@ -554,7 +547,7 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                                     });
                                   },
                                   child: Text(
-                                    '🔴 Red: ${_showRedBorder ? 'ON' : 'OFF'}',
+                                    'Red: ${_showRedBorder ? 'ON' : 'OFF'}',
                                     style: TextStyle(
                                       color: _showRedBorder ? Colors.red : Colors.grey,
                                       fontFamily: 'monospace',
@@ -571,7 +564,7 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                                     });
                                   },
                                   child: Text(
-                                    '🔷 Teal: ${_showTealBorder ? 'ON' : 'OFF'}',
+                                    'Teal: ${_showTealBorder ? 'ON' : 'OFF'}',
                                     style: TextStyle(
                                       color: _showTealBorder ? Colors.cyan : Colors.grey,
                                       fontFamily: 'monospace',

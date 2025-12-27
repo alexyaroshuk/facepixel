@@ -3,6 +3,8 @@
  * Alternative to MediaPipe with potentially better performance
  */
 
+// Logger utility required to be loaded before this script
+
 let blazeFaceModel = null;
 let isDetectorReady = false;
 let videoElement = null;
@@ -13,7 +15,7 @@ let onFacesDetectedCallback = null;
  * Initialize BlazeFace Face Detection
  */
 async function initializeFaceDetection() {
-  console.log('[BlazeFace] Initializing TensorFlow.js BlazeFace...');
+  AppLogger.info('Initializing BlazeFace', 'web');
 
   try {
     // Load BlazeFace model
@@ -26,10 +28,10 @@ async function initializeFaceDetection() {
     });
 
     isDetectorReady = true;
-    console.log('[BlazeFace] Initialization complete');
+    AppLogger.info('BlazeFace initialized', 'web');
     return true;
   } catch (error) {
-    console.error('[BlazeFace] Initialization failed:', error);
+    AppLogger.error('BlazeFace initialization failed', 'web', error);
     return false;
   }
 }
@@ -40,11 +42,11 @@ async function initializeFaceDetection() {
  * @param {string} callbackName - Name of the global callback function (optional)
  */
 function startFaceDetection(videoElementId, callbackName) {
-  console.log('[BlazeFace] Starting face detection on video:', videoElementId);
+  AppLogger.info(`Starting face detection on video: ${videoElementId}`, 'web');
 
   videoElement = document.getElementById(videoElementId);
   if (!videoElement) {
-    console.error('[BlazeFace] Video element not found:', videoElementId);
+    AppLogger.error(`Video element not found: ${videoElementId}`, 'web');
     return false;
   }
 
@@ -99,7 +101,7 @@ function startFaceDetection(videoElementId, callbackName) {
           onFacesDetectedCallback(faces);
         }
       } catch (error) {
-        console.error('[BlazeFace] Detection error:', error);
+        AppLogger.error('Detection error', 'web', error);
       }
     }
 
@@ -112,7 +114,7 @@ function startFaceDetection(videoElementId, callbackName) {
   detectionLoop = true;
   detectFrame();
 
-  console.log('[BlazeFace] Detection loop started');
+  AppLogger.debug('Detection loop started', 'web');
   return true;
 }
 
@@ -120,7 +122,7 @@ function startFaceDetection(videoElementId, callbackName) {
  * Stop face detection
  */
 function stopFaceDetection() {
-  console.log('[BlazeFace] Stopping face detection');
+  AppLogger.info('Stopping face detection', 'web');
   detectionLoop = false;
   onFacesDetectedCallback = null;
   videoElement = null;
@@ -153,8 +155,8 @@ function getVideoDimensions(videoElementId) {
 // Auto-initialize when the script loads
 if (typeof blazeface !== 'undefined') {
   initializeFaceDetection().then(() => {
-    console.log('[BlazeFace] Ready for use');
+    AppLogger.info('BlazeFace ready for use', 'web');
   });
 } else {
-  console.error('[BlazeFace] TensorFlow.js BlazeFace library not loaded');
+  AppLogger.error('BlazeFace library not loaded', 'web');
 }

@@ -5,6 +5,13 @@ import MLKitVision
 import AVFoundation
 import CoreMedia
 
+// Professional logging utility
+func AppLog(_ message: String, tag: String = "AppDelegate") {
+  #if DEBUG
+  print("[\(tag)] \(message)")
+  #endif
+}
+
 @main
 @objc class AppDelegate: FlutterAppDelegate {
   private var faceDetector: FaceDetector?
@@ -14,14 +21,12 @@ import CoreMedia
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    NSLog("🍎 AppDelegate: application:didFinishLaunchingWithOptions called")
+    AppLog("Application initialized", tag: "app")
 
     guard let controller = window?.rootViewController as? FlutterViewController else {
-      NSLog("❌ AppDelegate: Failed to get FlutterViewController")
+      AppLog("Failed to get FlutterViewController", tag: "app")
       return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
-
-    NSLog("✅ AppDelegate: Got FlutterViewController")
 
     let faceDetectionChannel = FlutterMethodChannel(
       name: "com.facepixel.app/faceDetection",
@@ -29,30 +34,27 @@ import CoreMedia
     )
 
     faceDetectionChannel.setMethodCallHandler { (call: FlutterMethodCall, result: @escaping FlutterResult) in
-      NSLog("📱 AppDelegate: Method channel called: \(call.method)")
       switch call.method {
       case "initializeFaceDetection":
-        NSLog("🔧 AppDelegate: Initializing face detection")
+        AppLog("Initializing face detection", tag: "detection")
         self.initializeFaceDetection(result: result)
       case "processFrame":
-        NSLog("📷 AppDelegate: Processing frame")
         self.processFrame(call: call, result: result)
       case "cleanupCamera":
-        NSLog("🧹 AppDelegate: Cleaning up camera resources")
+        AppLog("Cleaning up camera resources", tag: "camera")
         self.cleanupCamera(result: result)
       default:
-        NSLog("⚠️ AppDelegate: Unknown method: \(call.method)")
+        AppLog("Unknown method: \(call.method)", tag: "app")
         result(FlutterMethodNotImplemented)
       }
     }
 
     GeneratedPluginRegistrant.register(with: self)
-    NSLog("✅ AppDelegate: Plugins registered successfully")
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
   private func initializeFaceDetection(result: @escaping FlutterResult) {
-    NSLog("🔧 initializeFaceDetection: Starting on main thread")
+    AppLog("Creating face detector", tag: "detection")
     let options = FaceDetectorOptions()
     options.performanceMode = .fast
     options.landmarkMode = .none
@@ -60,35 +62,31 @@ import CoreMedia
     options.minFaceSize = CGFloat(0.01)
 
     faceDetector = FaceDetector.faceDetector(options: options)
-    NSLog("✅ initializeFaceDetection: FaceDetector created successfully")
+    AppLog("Face detector created", tag: "detection")
     result(true)
   }
 
   private func processFrame(call: FlutterMethodCall, result: @escaping FlutterResult) {
-    NSLog("📷 processFrame: Starting")
     guard let args = call.arguments as? [String: Any],
           let frameBytes = args["frameBytes"] as? FlutterStandardTypedData,
           let width = args["width"] as? Int,
           let height = args["height"] as? Int,
           let rotation = args["rotation"] as? Int else {
-      NSLog("❌ processFrame: Failed to parse arguments")
+      AppLog("Failed to parse frame arguments", tag: "processing")
       result(["success": false, "faces": []])
       return
     }
 
     guard let detector = faceDetector else {
-      NSLog("⚠️ processFrame: Face detector not available (may be during camera switch)")
+      AppLog("Face detector not available", tag: "processing")
       result(["success": false, "faces": []])
       return
     }
 
     let imageData = frameBytes.data
-    NSLog("📷 processFrame: Received frame \(width)x\(height), rotation: \(rotation)°, data size: \(imageData.count)")
 
     // Use serial queue to process frames sequentially
     detectionQueue.async { [weak self] in
-      NSLog("📷 processFrame: Running on background thread")
-
       do {
         // FOLLOW ANDROID PATTERN: Keep frame data alive, create image, detect faces
         // Keep frame data in memory - critical for CVPixelBuffer to access it safely
@@ -102,15 +100,13 @@ import CoreMedia
         let bytesPerRow: Int
 
         if imageData.count == expectedBGRASize {
-          NSLog("📷 processFrame: BGRA8888 format, width=\(width) height=\(height)")
           pixelFormat = kCVPixelFormatType_32BGRA
           bytesPerRow = width * 4
         } else if imageData.count >= expectedYUVSize && imageData.count <= expectedYUVSize + 100 {
-          NSLog("📷 processFrame: YUV420 format, width=\(width) height=\(height)")
           pixelFormat = kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
           bytesPerRow = width
         } else {
-          NSLog("❌ processFrame: Unknown format, data size: \(imageData.count), expected BGRA: \(expectedBGRASize), YUV: \(expectedYUVSize)")
+          AppLog("Unknown image format, data size: \(imageData.count)", tag: "processing")
           DispatchQueue.main.async {
             result(["success": false, "faces": []])
           }
@@ -138,21 +134,19 @@ import CoreMedia
         )
 
         guard status == kCVReturnSuccess, let buffer = pixelBuffer else {
-          NSLog("❌ processFrame: Failed to create CVPixelBuffer, status: \(status)")
+          AppLog("Failed to create pixel buffer", tag: "processing")
           DispatchQueue.main.async {
             result(["success": false, "faces": []])
           }
           return
         }
 
-        NSLog("✅ processFrame: CVPixelBuffer created successfully")
-
         // Create CMSampleBuffer from CVPixelBuffer for VisionImage
         var formatDescription: CMVideoFormatDescription?
         CMVideoFormatDescriptionCreateForImageBuffer(allocator: kCFAllocatorDefault, imageBuffer: buffer, formatDescriptionOut: &formatDescription)
 
         guard let formatDesc = formatDescription else {
-          NSLog("❌ processFrame: Failed to create video format description")
+          AppLog("Failed to create video format description", tag: "processing")
           DispatchQueue.main.async {
             result(["success": false, "faces": []])
           }
@@ -164,7 +158,7 @@ import CoreMedia
         CMSampleBufferCreateForImageBuffer(allocator: kCFAllocatorDefault, imageBuffer: buffer, dataReady: true, makeDataReadyCallback: nil, refcon: nil, formatDescription: formatDesc, sampleTiming: &timingInfo, sampleBufferOut: &sampleBuffer)
 
         guard let smplBuffer = sampleBuffer else {
-          NSLog("❌ processFrame: Failed to create sample buffer")
+          AppLog("Failed to create sample buffer", tag: "processing")
           DispatchQueue.main.async {
             result(["success": false, "faces": []])
           }
@@ -173,15 +167,13 @@ import CoreMedia
 
         let visionImage = VisionImage(buffer: smplBuffer)
 
-        NSLog("📍 processFrame: Running SYNCHRONOUS face detection on background thread")
         let faces = try detector.results(in: visionImage)
-        NSLog("✅ processFrame: Face detection completed, found \(faces.count) faces")
+        AppLog("Face detection completed: found \(faces.count) faces", tag: "processing")
 
         var faceArray: [[String: NSNumber]] = []
 
-        for (index, face) in faces.enumerated() {
+        for face in faces {
           let boundingBox = face.frame
-          NSLog("📍 Face \(index): x=\(boundingBox.origin.x) y=\(boundingBox.origin.y) w=\(boundingBox.width) h=\(boundingBox.height)")
 
           // Only include meaningfully visible faces
           if boundingBox.width >= 20 && boundingBox.height >= 20 {
@@ -195,12 +187,11 @@ import CoreMedia
         }
 
         DispatchQueue.main.async {
-          NSLog("📲 processFrame: Returning \(faceArray.count) faces to Flutter")
           result(["success": true, "faces": faceArray])
         }
 
       } catch {
-        NSLog("❌ processFrame: Face detection error - \(error.localizedDescription)")
+        AppLog("Face detection error: \(error.localizedDescription)", tag: "processing")
         DispatchQueue.main.async {
           result(["success": false, "faces": []])
         }
@@ -209,7 +200,7 @@ import CoreMedia
   }
 
   private func cleanupCamera(result: @escaping FlutterResult) {
-    NSLog("🧹 cleanupCamera: Releasing face detector")
+    AppLog("Releasing face detector", tag: "camera")
     self.faceDetector = nil
     result(true)
   }

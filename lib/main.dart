@@ -5,37 +5,37 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
+import 'logger.dart';
 // Conditional import: use web implementation on web, stub on native platforms (Android/iOS)
 import 'web_face_detection.dart'
     if (dart.library.io) 'web_face_detection_stub.dart'
     deferred as web_module;
 
 void main() async {
-  print('🟢 Flutter: main() START');
+  AppLogger.info('Application started', 'main');
   WidgetsFlutterBinding.ensureInitialized();
-  print('🟢 Flutter: WidgetsFlutterBinding ensured');
+  AppLogger.info('WidgetsFlutterBinding initialized', 'main');
 
   // Only enumerate cameras on native platforms (iOS/Android)
   // Web implementation uses MediaPipe directly via JavaScript, doesn't need camera plugin
   late List<CameraDescription> cameras;
   if (kIsWeb) {
     cameras = [];
-    print('🟢 Flutter: Web platform - skipping camera enumeration (uses MediaPipe)');
+    AppLogger.info('Web platform detected, skipping camera enumeration', 'main');
   } else {
     cameras = await availableCameras();
-    print('🟢 Flutter: Found ${cameras.length} cameras');
+    AppLogger.info('Found ${cameras.length} cameras', 'main');
     for (int i = 0; i < cameras.length; i++) {
       final camera = cameras[i];
       final lensDir = camera.lensDirection == CameraLensDirection.front
           ? 'FRONT'
           : 'BACK';
-      print('  - Camera $i: $lensDir');
+      AppLogger.debug('Camera $i: $lensDir', 'main');
     }
   }
 
-  print('🟢 Flutter: Calling runApp()');
+  AppLogger.info('Initializing app', 'main');
   runApp(MyApp(cameras: cameras));
-  print('🟢 Flutter: runApp() returned');
 }
 
 class MyApp extends StatelessWidget {
@@ -211,7 +211,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    print('🔧 Flutter: _MyHomePageState.initState() START');
+    AppLogger.info('State initialized', 'init');
     // Start with front camera if available
     _currentCameraIndex = 0;
     final frontCameraIndex = widget.cameras.indexWhere(
@@ -219,14 +219,14 @@ class _MyHomePageState extends State<MyHomePage> {
     );
     if (frontCameraIndex != -1) {
       _currentCameraIndex = frontCameraIndex;
-      print('🔧 Flutter: Using front camera at index $frontCameraIndex');
+      AppLogger.debug('Using front camera at index $frontCameraIndex', 'init');
     } else {
-      print('🔧 Flutter: No front camera found, using camera at index 0');
+      AppLogger.debug('No front camera found, using camera at index 0', 'init');
     }
 
     // Mark as ready without requesting camera permission yet
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      print('🔧 Flutter: UI ready, waiting for user to enable camera');
+      AppLogger.debug('UI ready, waiting for user to enable camera', 'init');
       if (mounted) {
         setState(() {
           _faceDetectionInitialized = true;
@@ -238,7 +238,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // Safety timeout: if not initialized after 15 seconds, force show app
     Future.delayed(const Duration(seconds: 15), () {
       if (mounted && !_faceDetectionInitialized) {
-        print('📷 Flutter: Face detection initialization timeout - forcing UI to show');
+        AppLogger.warning('Face detection initialization timeout', 'init');
         setState(() {
           _faceDetectionInitialized = true;
           _debugMessage = "Initialized (timeout)";
@@ -248,13 +248,11 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _initializeNativeFaceDetection() async {
-    print('🚀 Flutter: _initializeNativeFaceDetection() START');
+    AppLogger.info('Initializing native face detection', 'faceDetection');
 
     // Web platform is handled by WebFaceDetectionView (deferred module)
     if (kIsWeb) {
-      print(
-        '🌐 Flutter: Running on web - face detection handled by WebFaceDetectionView',
-      );
+      AppLogger.info('Web platform detected, using WebFaceDetectionView', 'faceDetection');
       if (mounted) {
         setState(() {
           _faceDetectionInitialized = true;
@@ -265,13 +263,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // Native platforms (iOS/Android) use ML Kit
     try {
-      print(
-        '🚀 Flutter: Calling platform.invokeMethod(initializeFaceDetection)',
-      );
+      AppLogger.debug('Invoking platform method: initializeFaceDetection', 'faceDetection');
       final result = await platform.invokeMethod('initializeFaceDetection');
-      print('🚀 Flutter: Got result from initializeFaceDetection: $result');
+      AppLogger.debug('Platform method returned: $result', 'faceDetection');
       if (result) {
-        print('✅ Flutter: Face detection initialized successfully');
+        AppLogger.info('Face detection initialized', 'faceDetection');
         if (mounted) {
           setState(() {
             _faceDetectionInitialized = true;
@@ -279,7 +275,7 @@ class _MyHomePageState extends State<MyHomePage> {
           });
         }
       } else {
-        print('❌ Flutter: Face detection initialization returned false');
+        AppLogger.error('Face detection initialization failed', 'faceDetection');
         if (mounted) {
           setState(() {
             _faceDetectionInitialized = true;
@@ -288,7 +284,7 @@ class _MyHomePageState extends State<MyHomePage> {
         }
       }
     } catch (e) {
-      print('❌ Flutter: Exception in _initializeNativeFaceDetection: $e');
+      AppLogger.error('Exception during face detection initialization: $e', 'faceDetection', e);
       if (mounted) {
         setState(() {
           _faceDetectionInitialized = true;
@@ -299,7 +295,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _requestCameraAccess() async {
-    print('🔧 Flutter: User requesting camera access');
+    AppLogger.info('Camera access requested', 'camera');
     if (mounted) {
       setState(() {
         _cameraRequested = true;
@@ -310,9 +306,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _initializeCamera() async {
-    print('📷 Flutter: _initializeCamera() START');
+    AppLogger.info('Initializing camera', 'camera');
     try {
-      print('📷 Flutter: Creating CameraController');
+      AppLogger.debug('Creating CameraController', 'camera');
 
       // Simple platform-specific config like fluttercamtest
       if (kIsWeb) {
@@ -338,9 +334,9 @@ class _MyHomePageState extends State<MyHomePage> {
         );
       }
 
-      print('📷 Flutter: Calling _controller.initialize()');
+      AppLogger.debug('Initializing controller', 'camera');
       await _controller.initialize();
-      print('✅ Flutter: Camera initialized');
+      AppLogger.info('Camera initialized', 'camera');
 
       if (!mounted) {
         return;
@@ -351,7 +347,7 @@ class _MyHomePageState extends State<MyHomePage> {
       if (previewSize != null) {
         _lastImageWidth = previewSize.width.toInt();
         _lastImageHeight = previewSize.height.toInt();
-        print('📷 Flutter: Preview size: ${_lastImageWidth}x${_lastImageHeight}');
+        AppLogger.debug('Preview size: ${_lastImageWidth}x${_lastImageHeight}', 'camera');
       }
 
       setState(() {
@@ -363,7 +359,7 @@ class _MyHomePageState extends State<MyHomePage> {
       // Start image stream AFTER camera is stable
       await _startImageStream();
     } catch (e) {
-      print('❌ Flutter: Camera init error: $e');
+      AppLogger.error('Camera initialization failed: $e', 'camera', e);
 
       // Check if this is a permission error
       final isPermissionError = e.toString().toLowerCase().contains('permission') ||
@@ -382,18 +378,18 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _startImageStream() async {
     if (_isSwitchingCamera) {
-      print('⚠️ Skipping image stream start - camera switching in progress');
+      AppLogger.warning('Skipping image stream start, camera switching', 'camera');
       return;
     }
 
     try {
-      print('📷 Flutter: Starting image stream');
+      AppLogger.debug('Starting image stream', 'camera');
       await _controller.startImageStream((image) {
         Future.microtask(() => _processFrame(image));
       });
-      print('✅ Flutter: Image stream started');
+      AppLogger.info('Image stream started', 'camera');
     } catch (e) {
-      print('❌ Flutter: Error starting image stream: $e');
+      AppLogger.error('Error starting image stream: $e', 'camera', e);
     }
   }
 
@@ -454,18 +450,15 @@ class _MyHomePageState extends State<MyHomePage> {
       // Log rotation info (once per second to avoid spam)
       if (_frameCount % 10 == 0) {
         final cameraInfo = isFrontCamera ? 'FRONT' : 'BACK';
-        // ignore: avoid_print
-        print(
-          '🎥 Flutter: Sending frame: ${image.width}x${image.height}, Rotation: $mlKitRotation°, Camera: $cameraInfo, BytesLength: ${image.planes[0].bytes.length}',
+        AppLogger.debug(
+          'Frame: ${image.width}x${image.height}, Rotation: $mlKitRotation°, Camera: $cameraInfo',
+          'processing',
         );
       }
 
       List<Map<String, dynamic>> facesList = [];
 
       // Use ML Kit via platform channel (MyHomePage is only used on native platforms)
-      print(
-        '📤 Flutter: Calling platform.invokeMethod(processFrame) with width=${image.width}, height=${image.height}',
-      );
       final result = await platform.invokeMethod<Map>('processFrame', {
         'frameBytes': image.planes[0].bytes,
         'width': image.width,
@@ -474,22 +467,19 @@ class _MyHomePageState extends State<MyHomePage> {
         'isFrontCamera': isFrontCamera,
       });
 
-      print('📥 Flutter: Got result from processFrame: $result');
-
       if (result != null) {
         final success = result['success'] as bool;
-        print('📥 Flutter: result[success] = $success');
 
         if (success) {
           facesList = (result['faces'] as List)
               .map((f) => Map<String, dynamic>.from(f as Map))
               .toList();
-          print('📥 Flutter: Found ${facesList.length} faces');
+          AppLogger.debug('Detected ${facesList.length} faces', 'processing');
         } else {
-          print('❌ Flutter: processFrame returned success=false');
+          AppLogger.warning('Face detection returned success=false', 'processing');
         }
       } else {
-        print('❌ Flutter: processFrame returned null result');
+        AppLogger.error('Face detection returned null result', 'processing');
       }
 
       // Convert face data to Face objects
@@ -506,12 +496,6 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             )
             .toList();
-
-        // DEBUG: Log each detected face
-        for (int i = 0; i < faces.length; i++) {
-          final face = faces[i];
-          print('🎯 DART FACE $i: x=${face.x.toInt()} y=${face.y.toInt()} w=${face.width.toInt()} h=${face.height.toInt()}');
-        }
       }
 
       // Always update state, even if no faces are detected (to clear old faces)
@@ -527,12 +511,11 @@ class _MyHomePageState extends State<MyHomePage> {
                 'Faces: ${faces.length} | Image: ${_lastImageWidth}x$_lastImageHeight | Preview: ${w}x$h | FPS: ${_fps.toStringAsFixed(1)} | $platform';
           });
         } catch (e) {
-          print('⚠️ Flutter: Error updating UI with face results: $e');
+          AppLogger.error('Error updating UI with face results: $e', 'processing', e);
         }
       }
     } catch (e) {
-      print('❌ Flutter: EXCEPTION in _processFrame: $e');
-      print('❌ Flutter: Stack trace: ${StackTrace.current}');
+      AppLogger.error('Exception in frame processing: $e', 'processing', e);
       // CRITICAL: Only clear faces if detection truly failed
       // Don't clear on transient errors
       if (mounted && !_isSwitchingCamera) {
@@ -558,20 +541,16 @@ class _MyHomePageState extends State<MyHomePage> {
     });
 
     try {
-      // Exactly like fluttercamtest:
-      // 1. Switch camera index
       _currentCameraIndex = (_currentCameraIndex + 1) % widget.cameras.length;
-      print('🔄 Switched to camera $_currentCameraIndex');
+      AppLogger.info('Switching to camera $_currentCameraIndex', 'camera');
 
-      // 2. Dispose old controller
       await _controller.dispose();
-      print('✅ Controller disposed');
+      AppLogger.debug('Controller disposed', 'camera');
 
-      // 3. Initialize new camera
       await _initializeCamera();
-      print('✅ CAMERA SWITCH SUCCESS');
+      AppLogger.info('Camera switch completed', 'camera');
     } catch (e) {
-      print('❌ CAMERA SWITCH FAILED: $e');
+      AppLogger.error('Camera switch failed: $e', 'camera', e);
       setState(() {
         _debugMessage = "Switch failed: $e";
       });
@@ -586,12 +565,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
     _detectionCanvasSize = videoDimensions;
     _detectionCanvasOffset = videoOffset;
-
-    // Debug logging
-    // ignore: avoid_print
-    print(
-      '📐 CANVAS: size=${videoDimensions.width.toInt()}x${videoDimensions.height.toInt()} @ (${videoOffset.dx.toInt()},${videoOffset.dy.toInt()})',
-    );
   }
 
   /// Transform face coordinates from image space to screen space
@@ -643,11 +616,6 @@ class _MyHomePageState extends State<MyHomePage> {
       left = _detectionCanvasSize.width - left - width;
     }
 
-    // ignore: avoid_print
-    print(
-      '✅ Transform: face(${face.x.toInt()}, ${face.y.toInt()}) → screen(${left.toInt()}, ${top.toInt()}) | rotation=$rotation° | camera=${isFrontCamera ? 'FRONT' : 'BACK'} | effective dims: ${effectiveImageWidth.toInt()}x${effectiveImageHeight.toInt()}',
-    );
-
     return FaceBox(left: left, top: top, width: width, height: height);
   }
 
@@ -659,8 +627,7 @@ class _MyHomePageState extends State<MyHomePage> {
         setState(() {
           _overrideRotation = rotation;
         });
-        // ignore: avoid_print
-        print('🧪 Testing rotation: $rotation°');
+        AppLogger.debug('Testing rotation: $rotation°', 'test');
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: isActive ? Colors.orange : Colors.blue[900],

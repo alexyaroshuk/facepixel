@@ -1,6 +1,5 @@
 package com.facepixel.app
 
-import android.util.Log
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -28,7 +27,7 @@ class MainActivity : FlutterActivity() {
                         initializeFaceDetection()
                         result.success(true)
                     } catch (e: Exception) {
-                        Log.e("MainActivity", "Init failed: ${e.message}", e)
+                        AppLogger.error("Initialization failed: ${e.message}", "init", e)
                         result.error("INIT_ERROR", e.message, null)
                     }
                 }
@@ -44,11 +43,7 @@ class MainActivity : FlutterActivity() {
                         return@setMethodCallHandler
                     }
 
-                    Log.d("MainActivity", "━━━ FRAME RECEIVED FROM FLUTTER ━━━")
-                    Log.d("MainActivity", "  Size: ${width}x${height}")
-                    Log.d("MainActivity", "  Rotation: ${rotation}°")
-                    Log.d("MainActivity", "  Front Camera: $isFrontCamera")
-                    Log.d("MainActivity", "  Bytes: ${frameBytes.size}b (expected ${(width * height * 1.5).toInt()}b)")
+                    AppLogger.debug("Processing frame: ${width}x${height}, rotation: ${rotation}°, camera: ${if (isFrontCamera) "FRONT" else "BACK"}", "processing")
 
                     try {
                         val processingResult = frameProcessor?.processFrame(frameBytes, width, height, rotation)
@@ -70,7 +65,7 @@ class MainActivity : FlutterActivity() {
                         } else {
                             // CRITICAL: Return success=false with empty faces array instead of error
                             // This ensures Dart code can handle it gracefully without exceptions
-                            Log.e("MainActivity", "Frame processor not initialized")
+                            AppLogger.warn("Frame processor not initialized", "processing")
                             result.success(mapOf(
                                 "success" to false,
                                 "faces" to emptyList<Any>(),
@@ -78,7 +73,7 @@ class MainActivity : FlutterActivity() {
                             ))
                         }
                     } catch (e: Exception) {
-                        Log.e("MainActivity", "Frame processing error: ${e.message}", e)
+                        AppLogger.error("Frame processing error: ${e.message}", "processing", e)
                         // CRITICAL: Return success=false with empty faces array instead of error
                         // This ensures Dart code can handle it gracefully without exceptions
                         result.success(mapOf(
@@ -107,9 +102,9 @@ class MainActivity : FlutterActivity() {
             faceDetector = FaceDetector()
             frameProcessor = CameraFrameProcessor(faceDetector!!)
 
-            Log.d("MainActivity", "Face detection initialized successfully with ML Kit")
+            AppLogger.info("Face detection initialized", "init")
         } catch (e: Exception) {
-            Log.e("MainActivity", "Failed to initialize face detection: ${e.message}", e)
+            AppLogger.error("Failed to initialize face detection: ${e.message}", "init", e)
             throw e
         }
     }

@@ -1,12 +1,11 @@
 package com.facepixel.app.facedetection
 
-import android.util.Log
+import com.facepixel.app.AppLogger
 import java.util.concurrent.Executors
 
 class CameraFrameProcessor(
     private val faceDetector: FaceDetector
 ) {
-    private val tag = "FaceProcessor"
     private var pixelationEnabled = false
     private var pixelationLevel = 50
     private var lastProcessingTime = 0L
@@ -20,13 +19,8 @@ class CameraFrameProcessor(
     ): ProcessingResult {
         val startTime = System.currentTimeMillis()
 
-        Log.d(tag, "┌─ PROCESS FRAME START")
-        Log.d(tag, "│ INPUT: ${width}x$height, NV21=${nv21Bytes.size}b, rotation=$rotation°")
-
         return try {
             // Pass NV21 bytes directly to ML Kit (more efficient than bitmap conversion)
-            Log.d(tag, "│ → ML KIT: ${width}x$height")
-
             val result = object : Any() {
                 var faces: List<RectData>? = null
                 var error: String? = null
@@ -35,12 +29,10 @@ class CameraFrameProcessor(
             // Execute on background thread and wait
             val future = backgroundExecutor.submit {
                 try {
-                    Log.d(tag, "ML KIT PROCESSING: Starting detection on NV21 ${width}x${height}, rotation=$rotation")
                     result.faces = faceDetector.detectFaces(nv21Bytes, width, height, rotation)
-                    Log.d(tag, "ML KIT RESULT: Detected ${result.faces?.size ?: 0} faces")
                 } catch (e: Exception) {
                     result.error = e.message
-                    Log.e(tag, "Background face detection error: ${e.message}", e)
+                    AppLogger.error("Face detection error: ${e.message}", "processing", e)
                 }
             }
 
@@ -48,7 +40,7 @@ class CameraFrameProcessor(
             try {
                 future.get(5, java.util.concurrent.TimeUnit.SECONDS)
             } catch (e: Exception) {
-                Log.e(tag, "Face detection timeout or error: ${e.message}")
+                AppLogger.warn("Face detection timeout: ${e.message}", "processing")
                 result.faces = emptyList()
                 result.error = "Timeout"
             }
@@ -58,11 +50,7 @@ class CameraFrameProcessor(
             val processingTime = System.currentTimeMillis() - startTime
             lastProcessingTime = processingTime
 
-            Log.d(tag, "│ ✓ RESULT: ${faces.size} faces in ${processingTime}ms")
-            for ((i, face) in faces.withIndex()) {
-                Log.d(tag, "│   Face[$i]: (${face.x}, ${face.y}) ${face.width}x${face.height}")
-            }
-            Log.d(tag, "└─ PROCESS FRAME END")
+            AppLogger.debug("Processing completed: ${faces.size} faces in ${processingTime}ms", "processing")
 
             ProcessingResult(
                 success = true,
@@ -70,7 +58,7 @@ class CameraFrameProcessor(
                 processingTime = processingTime
             )
         } catch (e: Exception) {
-            Log.e("FaceProcessor", "Error processing frame: ${e.message}", e)
+            AppLogger.error("Error processing frame: ${e.message}", "processing", e)
             ProcessingResult(
                 success = false,
                 faces = emptyList(),
@@ -83,7 +71,7 @@ class CameraFrameProcessor(
     fun setPixelationState(enabled: Boolean, level: Int) {
         pixelationEnabled = enabled
         pixelationLevel = level.coerceIn(1, 100)
-        Log.d("FaceProcessor", "Pixelation: enabled=$enabled, level=$pixelationLevel")
+        AppLogger.debug("Pixelation: enabled=$enabled, level=$pixelationLevel", "processing")
     }
 
     fun getLastProcessingTime() = lastProcessingTime
