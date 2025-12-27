@@ -132,6 +132,9 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _pixelationEnabled = false;
   int _pixelationLevel = 10; // 1-100, lower = more pixels (more privacy)
 
+  // Confidence display settings
+  bool _showConfidence = false;
+
   static const platform = MethodChannel('com.facepixel.app/faceDetection');
 
   /// Calculate correct rotation for ML Kit based on camera frame dimensions
@@ -493,6 +496,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 y: (f['y'] as num).toDouble(),
                 width: (f['width'] as num).toDouble(),
                 height: (f['height'] as num).toDouble(),
+                confidence: (f['confidence'] as num?)?.toDouble() ?? 0.5,
               ),
             )
             .toList();
@@ -882,6 +886,20 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               tooltip: 'Toggle Blur',
             ),
+          // Confidence toggle
+          if (_cameraRequested && !_cameraPermissionDenied)
+            IconButton(
+              icon: Icon(
+                _showConfidence ? Icons.info : Icons.info_outline,
+                color: _showConfidence ? Colors.white : Colors.grey,
+              ),
+              onPressed: () {
+                setState(() {
+                  _showConfidence = !_showConfidence;
+                });
+              },
+              tooltip: 'Toggle Confidence',
+            ),
           // Camera switch button
           if (_cameraRequested && !_cameraPermissionDenied && widget.cameras.length > 1)
             Padding(
@@ -978,15 +996,43 @@ class _MyHomePageState extends State<MyHomePage> {
                       top: _detectionCanvasOffset.dy + box.top,
                       width: box.width,
                       height: box.height,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.black, width: 3),
-                        ),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.white, width: 3),
+                      child: Stack(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.black, width: 3),
+                            ),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.white, width: 3),
+                              ),
+                            ),
                           ),
-                        ),
+                          // Confidence score label
+                          if (_showConfidence)
+                            Positioned(
+                              top: 4,
+                              right: 4,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black87,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  '${(face.confidence * 100).toStringAsFixed(0)}%',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     );
                   }),
@@ -1114,12 +1160,14 @@ class Face {
   final double y;
   final double width;
   final double height;
+  final double confidence;
 
   Face({
     required this.x,
     required this.y,
     required this.width,
     required this.height,
+    this.confidence = 0.5,
   });
 }
 

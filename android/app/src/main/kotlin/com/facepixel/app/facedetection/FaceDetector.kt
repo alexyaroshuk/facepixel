@@ -41,11 +41,18 @@ class FaceDetector {
             val rects = faces.mapNotNull { face: Face ->
                 try {
                     val bbox = face.boundingBox
+
+                    // Estimate confidence based on face size (larger faces are typically more reliable)
+                    val faceWidth = bbox.right - bbox.left
+                    val faceHeight = bbox.bottom - bbox.top
+                    val confidence = estimateFaceConfidence(faceWidth, faceHeight)
+
                     val rect = RectData(
                         x = bbox.left,
                         y = bbox.top,
-                        width = bbox.right - bbox.left,
-                        height = bbox.bottom - bbox.top
+                        width = faceWidth,
+                        height = faceHeight,
+                        confidence = confidence
                     )
 
                     // Only include faces that are meaningfully visible (not mostly off-screen)
@@ -74,6 +81,28 @@ class FaceDetector {
 
     fun setMinFaceSize(width: Int, height: Int) {
         // Not used with ML Kit
+    }
+
+    /// Estimate face confidence based on size
+    /// ML Kit doesn't expose confidence scores, so we estimate based on face dimensions
+    /// Larger faces are typically more reliable (better quality detection)
+    private fun estimateFaceConfidence(width: Int, height: Int): Float {
+        // Base confidence for detected faces
+        val minSize = 50 // pixels
+        val maxSize = 400 // pixels
+
+        val avgSize = (width + height) / 2f
+
+        // Scale confidence from 0.5 to 1.0 based on face size
+        // Small faces (20-50px): lower confidence
+        // Large faces (200px+): higher confidence
+        val sizeConfidence = when {
+            avgSize < minSize -> 0.5f + (avgSize / minSize) * 0.3f
+            avgSize > maxSize -> 0.95f
+            else -> 0.5f + (avgSize / maxSize) * 0.45f
+        }
+
+        return sizeConfidence.coerceIn(0.5f, 1.0f)
     }
 
     fun release() {

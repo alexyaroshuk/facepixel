@@ -53,7 +53,8 @@ class MainActivity : FlutterActivity() {
                                     "x" to rect.x.toDouble(),
                                     "y" to rect.y.toDouble(),
                                     "width" to rect.width.toDouble(),
-                                    "height" to rect.height.toDouble()
+                                    "height" to rect.height.toDouble(),
+                                    "confidence" to rect.confidence.toDouble()
                                 )
                             }
 

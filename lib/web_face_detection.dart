@@ -34,6 +34,7 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
   bool _permissionDenied = false;
   String _permissionErrorMessage = "Camera permission denied";
   bool _cameraRequested = false;  // Track if user has requested camera access
+  bool _showConfidence = false;  // Toggle for displaying confidence scores
 
   @override
   void initState() {
@@ -165,6 +166,7 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
         top: (face['y'] as num).toDouble(),
         width: (face['width'] as num).toDouble(),
         height: (face['height'] as num).toDouble(),
+        confidence: (face['confidence'] as num?)?.toDouble() ?? 0.5,
       ));
     }
 
@@ -417,15 +419,43 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                       top: canvasOffset.dy + (face.top * scaleY),
                       width: face.width * scaleX,
                       height: face.height * scaleY,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.black, width: 3),
-                        ),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.white, width: 3),
+                      child: Stack(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.black, width: 3),
+                            ),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.white, width: 3),
+                              ),
+                            ),
                           ),
-                        ),
+                          // Confidence score label
+                          if (_showConfidence)
+                            Positioned(
+                              top: 4,
+                              right: 4,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black87,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  '${(face.confidence * 100).toStringAsFixed(0)}%',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     );
                   }),
@@ -459,26 +489,52 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                           ),
                         ),
                       ),
-                      // Blur toggle button (right)
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            _pixelationEnabled = !_pixelationEnabled;
-                          });
-                          _applyPixelation();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _pixelationEnabled ? Colors.white : Colors.black87,
-                          foregroundColor: _pixelationEnabled ? Colors.black : Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
+                      // Buttons (right)
+                      Row(
+                        children: [
+                          // Confidence toggle button
+                          ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                _showConfidence = !_showConfidence;
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _showConfidence ? Colors.white : Colors.black87,
+                              foregroundColor: _showConfidence ? Colors.black : Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                            ),
+                            child: const Text(
+                              'Info',
+                              style: TextStyle(fontSize: 14),
+                            ),
                           ),
-                        ),
-                        child: const Text(
-                          'Toggle Blur',
-                          style: TextStyle(fontSize: 14),
-                        ),
+                          const SizedBox(width: 8),
+                          // Blur toggle button
+                          ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                _pixelationEnabled = !_pixelationEnabled;
+                              });
+                              _applyPixelation();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _pixelationEnabled ? Colors.white : Colors.black87,
+                              foregroundColor: _pixelationEnabled ? Colors.black : Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                            ),
+                            child: const Text(
+                              'Blur',
+                              style: TextStyle(fontSize: 14),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -702,11 +758,13 @@ class FaceBox {
   final double top;
   final double width;
   final double height;
+  final double confidence;
 
   FaceBox({
     required this.left,
     required this.top,
     required this.width,
     required this.height,
+    this.confidence = 0.5,
   });
 }

@@ -177,11 +177,15 @@ func AppLog(_ message: String, tag: String = "AppDelegate") {
 
           // Only include meaningfully visible faces
           if boundingBox.width >= 20 && boundingBox.height >= 20 {
+            // Estimate confidence based on face size
+            let confidence = estimateFaceConfidence(width: boundingBox.width, height: boundingBox.height)
+
             faceArray.append([
               "x": NSNumber(value: Float(boundingBox.origin.x)),
               "y": NSNumber(value: Float(boundingBox.origin.y)),
               "width": NSNumber(value: Float(boundingBox.width)),
-              "height": NSNumber(value: Float(boundingBox.height))
+              "height": NSNumber(value: Float(boundingBox.height)),
+              "confidence": NSNumber(value: Float(confidence))
             ])
           }
         }
@@ -203,5 +207,30 @@ func AppLog(_ message: String, tag: String = "AppDelegate") {
     AppLog("Releasing face detector", tag: "camera")
     self.faceDetector = nil
     result(true)
+  }
+
+  /// Estimate face confidence based on size
+  /// ML Kit doesn't expose confidence scores, so we estimate based on face dimensions
+  /// Larger faces are typically more reliable (better quality detection)
+  private func estimateFaceConfidence(width: CGFloat, height: CGFloat) -> Double {
+    let minSize: CGFloat = 50  // pixels
+    let maxSize: CGFloat = 400 // pixels
+
+    let avgSize = (width + height) / 2.0
+
+    // Scale confidence from 0.5 to 1.0 based on face size
+    // Small faces (20-50px): lower confidence
+    // Large faces (200px+): higher confidence
+    let sizeConfidence: Double
+    if avgSize < minSize {
+      sizeConfidence = 0.5 + (Double(avgSize) / Double(minSize)) * 0.3
+    } else if avgSize > maxSize {
+      sizeConfidence = 0.95
+    } else {
+      sizeConfidence = 0.5 + (Double(avgSize) / Double(maxSize)) * 0.45
+    }
+
+    // Clamp to 0.5-1.0 range
+    return min(max(sizeConfidence, 0.5), 1.0)
   }
 }

@@ -206,6 +206,21 @@ async function detectFrame() {
         for (const detection of detections.detections) {
           const box = detection.boundingBox;
 
+          // Extract confidence from MediaPipe detection
+          // MediaPipe Face Detector returns detections but confidence varies by model
+          // Try multiple sources for confidence score
+          let confidence = 0.8;  // Default confidence
+
+          if (detection.categories && detection.categories[0]) {
+            confidence = detection.categories[0].score;
+            AppLogger.debug('Found confidence in categories: ' + confidence, 'web');
+          } else if (detection.score !== undefined) {
+            confidence = detection.score;
+            AppLogger.debug('Found confidence in score: ' + confidence, 'web');
+          } else {
+            AppLogger.debug('No confidence found in detection, using default 0.8', 'web');
+          }
+
           // Store face in NATURAL coordinate space (not display space)
           // This matches what Flutter expects: face coordinates in natural video dimensions
           // Flutter will then scale them: face.left * scaleX where scaleX = canvasWidth / videoNatWidth
@@ -213,7 +228,8 @@ async function detectFrame() {
             x: Math.round(box.originX),  // Use natural coordinates, not scaled
             y: Math.round(box.originY),
             width: Math.round(box.width),
-            height: Math.round(box.height)
+            height: Math.round(box.height),
+            confidence: confidence
           };
 
           // Apply horizontal flip for natural coordinates (video is mirrored with CSS rotateY)
