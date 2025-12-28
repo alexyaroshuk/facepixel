@@ -665,12 +665,12 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                     ),
                   ),
 
-                // Pixelation level slider control
+                // Pixelation level slider control - positioned within video container bounds
                 if (_pixelationEnabled)
                   Positioned(
-                    bottom: 16,
-                    left: 16,
-                    right: 16,
+                    top: canvasOffset.dy + _canvasHeight + 12,
+                    left: canvasOffset.dx,
+                    width: _canvasWidth,
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.black87,
