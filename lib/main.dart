@@ -102,12 +102,13 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   late CameraController _controller;
-  List<Face> _detectedFaces = [];
+  late final ValueNotifier<List<Face>> _detectedFacesNotifier;
+  late final ValueNotifier<String> _debugMessageNotifier;
+  late final ValueNotifier<double> _fpsNotifier;
+
   bool _isProcessing = false;
-  String _debugMessage = "Initializing...";
   int _frameCount = 0;
   DateTime _lastFpsTime = DateTime.now();
-  double _fps = 0;
   DateTime _lastProcessTime = DateTime.now();
   int _currentCameraIndex = 0;
   bool _isSwitchingCamera = false;
@@ -131,6 +132,9 @@ class _MyHomePageState extends State<MyHomePage> {
   // Pixelation settings
   bool _pixelationEnabled = false;
   int _pixelationLevel = 10; // 1-100, lower = more pixels (more privacy)
+
+  // Confidence display settings
+  bool _showConfidence = false;
 
   static const platform = MethodChannel('com.facepixel.app/faceDetection');
 
@@ -211,6 +215,10 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    _detectedFacesNotifier = ValueNotifier([]);
+    _debugMessageNotifier = ValueNotifier("Initializing...");
+    _fpsNotifier = ValueNotifier(0);
+
     AppLogger.info('State initialized', 'init');
     // Start with front camera if available
     _currentCameraIndex = 0;
@@ -230,7 +238,7 @@ class _MyHomePageState extends State<MyHomePage> {
       if (mounted) {
         setState(() {
           _faceDetectionInitialized = true;
-          _debugMessage = "Ready - Tap 'Enable Camera' to start";
+          _debugMessageNotifier.value = "Ready - Tap 'Enable Camera' to start";
         });
       }
     });
@@ -241,7 +249,7 @@ class _MyHomePageState extends State<MyHomePage> {
         AppLogger.warning('Face detection initialization timeout', 'init');
         setState(() {
           _faceDetectionInitialized = true;
-          _debugMessage = "Initialized (timeout)";
+          _debugMessageNotifier.value = "Initialized (timeout)";
         });
       }
     });
@@ -271,7 +279,7 @@ class _MyHomePageState extends State<MyHomePage> {
         if (mounted) {
           setState(() {
             _faceDetectionInitialized = true;
-            _debugMessage = "Ready (ML Kit)";
+            _debugMessageNotifier.value = "Ready (ML Kit)";
           });
         }
       } else {
@@ -279,7 +287,7 @@ class _MyHomePageState extends State<MyHomePage> {
         if (mounted) {
           setState(() {
             _faceDetectionInitialized = true;
-            _debugMessage = "Init failed: returned false";
+            _debugMessageNotifier.value = "Init failed: returned false";
           });
         }
       }
@@ -288,7 +296,7 @@ class _MyHomePageState extends State<MyHomePage> {
       if (mounted) {
         setState(() {
           _faceDetectionInitialized = true;
-          _debugMessage = "Init failed: $e";
+          _debugMessageNotifier.value = "Init failed: $e";
         });
       }
     }
@@ -366,7 +374,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 e.toString().toLowerCase().contains('denied');
 
       setState(() {
-        _debugMessage = "Camera error: $e";
+        _debugMessageNotifier.value = "Camera error: $e";
         _isSwitchingCamera = false;
         _controllerInitialized = false;
         if (isPermissionError) {
@@ -423,18 +431,14 @@ class _MyHomePageState extends State<MyHomePage> {
     _frameCount++;
 
     try {
-      // Calculate FPS
+      // Calculate FPS - update notifier instead of setState
       if (now.difference(_lastFpsTime).inMilliseconds > 1000) {
-        if (mounted) {
-          setState(() {
-            _fps =
-                _frameCount /
-                now.difference(_lastFpsTime).inMilliseconds *
-                1000;
-            _frameCount = 0;
-            _lastFpsTime = now;
-          });
-        }
+        _fpsNotifier.value =
+            _frameCount /
+            now.difference(_lastFpsTime).inMilliseconds *
+            1000;
+        _frameCount = 0;
+        _lastFpsTime = now;
       }
 
       // Update image dimensions
@@ -493,23 +497,23 @@ class _MyHomePageState extends State<MyHomePage> {
                 y: (f['y'] as num).toDouble(),
                 width: (f['width'] as num).toDouble(),
                 height: (f['height'] as num).toDouble(),
+                confidence: (f['confidence'] as num?)?.toDouble() ?? 0.5,
               ),
             )
             .toList();
       }
 
-      // Always update state, even if no faces are detected (to clear old faces)
+      // Update face detection results without setState - prevents full widget rebuild
       if (mounted && !_isSwitchingCamera) {
         try {
+          _detectedFacesNotifier.value = faces;
           final previewSize = _controller.value.previewSize;
-          setState(() {
-            _detectedFaces = faces;
-            final w = previewSize?.width.toInt() ?? 0;
-            final h = previewSize?.height.toInt() ?? 0;
-            final platform = kIsWeb ? 'Web' : 'Native';
-            _debugMessage =
-                'Faces: ${faces.length} | Image: ${_lastImageWidth}x$_lastImageHeight | Preview: ${w}x$h | FPS: ${_fps.toStringAsFixed(1)} | $platform';
-          });
+          final w = previewSize?.width.toInt() ?? 0;
+          final h = previewSize?.height.toInt() ?? 0;
+          final platform = kIsWeb ? 'Web' : 'Native';
+          final fps = _fpsNotifier.value;
+          _debugMessageNotifier.value =
+              'Faces: ${faces.length} | Image: ${_lastImageWidth}x$_lastImageHeight | Preview: ${w}x$h | FPS: ${fps.toStringAsFixed(1)} | $platform';
         } catch (e) {
           AppLogger.error('Error updating UI with face results: $e', 'processing', e);
         }
@@ -519,13 +523,7 @@ class _MyHomePageState extends State<MyHomePage> {
       // CRITICAL: Only clear faces if detection truly failed
       // Don't clear on transient errors
       if (mounted && !_isSwitchingCamera) {
-        try {
-          setState(() {
-            _debugMessage = 'Error: $e';
-          });
-        } catch (_) {
-          // Ignore setState errors during cleanup
-        }
+        _debugMessageNotifier.value = 'Error: $e';
       }
     } finally {
       _isProcessing = false;
@@ -537,8 +535,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
     setState(() {
       _isSwitchingCamera = true;
-      _detectedFaces = [];
     });
+    _detectedFacesNotifier.value = [];
 
     try {
       _currentCameraIndex = (_currentCameraIndex + 1) % widget.cameras.length;
@@ -552,7 +550,7 @@ class _MyHomePageState extends State<MyHomePage> {
     } catch (e) {
       AppLogger.error('Camera switch failed: $e', 'camera', e);
       setState(() {
-        _debugMessage = "Switch failed: $e";
+        _debugMessageNotifier.value = "Switch failed: $e";
       });
     }
   }
@@ -646,6 +644,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void dispose() {
+    _detectedFacesNotifier.dispose();
+    _debugMessageNotifier.dispose();
+    _fpsNotifier.dispose();
     if (_controllerInitialized) {
       _controller.dispose();
     }
@@ -882,6 +883,20 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               tooltip: 'Toggle Blur',
             ),
+          // Confidence toggle
+          if (_cameraRequested && !_cameraPermissionDenied)
+            IconButton(
+              icon: Icon(
+                _showConfidence ? Icons.info : Icons.info_outline,
+                color: _showConfidence ? Colors.white : Colors.grey,
+              ),
+              onPressed: () {
+                setState(() {
+                  _showConfidence = !_showConfidence;
+                });
+              },
+              tooltip: 'Toggle Confidence',
+            ),
           // Camera switch button
           if (_cameraRequested && !_cameraPermissionDenied && widget.cameras.length > 1)
             Padding(
@@ -938,84 +953,50 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: CameraPreview(_controller),
                 ),
 
-                // Face count above video stream
+                // Face count above video stream - listens to face updates
                 Positioned(
                   top: videoOffset.dy - 40,
                   left: videoOffset.dx,
                   right:
                       videoOffset.dx +
                       (bodySize.width - videoOffset.dx - videoDimensions.width),
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black87,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        'Faces: ${_detectedFaces.length}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                  child: ValueListenableBuilder<List<Face>>(
+                    valueListenable: _detectedFacesNotifier,
+                    builder: (context, detectedFaces, _) {
+                      return Center(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black87,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            'Faces: ${detectedFaces.length}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 ),
 
-                // Face detection boxes - only show when blur is disabled (for reference)
-                if (!_pixelationEnabled &&
-                    _detectedFaces.isNotEmpty &&
-                    _detectionCanvasSize != Size.zero)
-                  ..._detectedFaces.map((face) {
-                    final box = _transformFaceCoordinates(face);
-                    return Positioned(
-                      left: _detectionCanvasOffset.dx + box.left,
-                      top: _detectionCanvasOffset.dy + box.top,
-                      width: box.width,
-                      height: box.height,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.white70, width: 1),
-                        ),
-                      ),
-                    );
-                  }),
-
-                // Backdrop blur overlay for detected faces
-                if (_pixelationEnabled &&
-                    _detectedFaces.isNotEmpty &&
-                    _detectionCanvasSize != Size.zero)
-                  ..._detectedFaces.map((face) {
-                    final box = _transformFaceCoordinates(face);
-                    // Calculate blur sigma from blur level (1-100)
-                    // Level 1 = minimal blur, Level 100 = heavy blur
-                    final blurSigma = (_pixelationLevel / 2).toDouble();
-
-                    return Positioned(
-                      left: _detectionCanvasOffset.dx + box.left,
-                      top: _detectionCanvasOffset.dy + box.top,
-                      width: box.width,
-                      height: box.height,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(box.width * 0.15),
-                        child: BackdropFilter(
-                          filter: ui.ImageFilter.blur(
-                            sigmaX: blurSigma,
-                            sigmaY: blurSigma,
-                          ),
-                          child: Container(
-                            // Transparent container to apply the blur
-                            color: Colors.transparent,
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
+                // Face overlay layer - handles both detection boxes and blur
+                _FaceOverlayLayer(
+                  detectedFacesNotifier: _detectedFacesNotifier,
+                  detectionCanvasOffset: _detectionCanvasOffset,
+                  detectionCanvasSize: _detectionCanvasSize,
+                  pixelationEnabled: _pixelationEnabled,
+                  pixelationLevel: _pixelationLevel,
+                  showConfidence: _showConfidence,
+                  transformFaceCoordinates: _transformFaceCoordinates,
+                ),
 
 
                 // Blur level slider control
@@ -1104,17 +1085,150 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
+/// Optimized overlay widget that listens to face detection changes
+/// This widget rebuilds independently without rebuilding the entire page
+class _FaceOverlayLayer extends StatelessWidget {
+  final ValueNotifier<List<Face>> detectedFacesNotifier;
+  final Offset detectionCanvasOffset;
+  final Size detectionCanvasSize;
+  final bool pixelationEnabled;
+  final int pixelationLevel;
+  final bool showConfidence;
+  final Function(Face) transformFaceCoordinates;
+
+  const _FaceOverlayLayer({
+    required this.detectedFacesNotifier,
+    required this.detectionCanvasOffset,
+    required this.detectionCanvasSize,
+    required this.pixelationEnabled,
+    required this.pixelationLevel,
+    required this.showConfidence,
+    required this.transformFaceCoordinates,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<List<Face>>(
+      valueListenable: detectedFacesNotifier,
+      builder: (context, detectedFaces, child) {
+        if (detectedFaces.isEmpty || detectionCanvasSize == Size.zero) {
+          return const SizedBox.expand();
+        }
+
+        final widgets = <Widget>[];
+
+        if (!pixelationEnabled && detectedFaces.isNotEmpty) {
+          // Face detection boxes
+          for (final face in detectedFaces) {
+            final box = transformFaceCoordinates(face) as FaceBox;
+
+            // Face box
+            widgets.add(
+              Positioned(
+                left: detectionCanvasOffset.dx + box.left,
+                top: detectionCanvasOffset.dy + box.top,
+                width: box.width,
+                height: box.height,
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black, width: 1),
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.white, width: 1),
+                    ),
+                  ),
+                ),
+              ),
+            );
+
+            // Confidence label above box, aligned right
+            if (showConfidence) {
+              widgets.add(
+                Positioned(
+                  right: detectionCanvasOffset.dx + (detectionCanvasSize.width - (box.left + box.width)),
+                  bottom: detectionCanvasOffset.dy + detectionCanvasSize.height - box.top + 4,
+                  child: Text(
+                    '${(face.confidence * 100).toStringAsFixed(0)}%',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      foreground: Paint()
+                        ..strokeWidth = 3
+                        ..color = Colors.black
+                        ..style = PaintingStyle.stroke,
+                    ),
+                  ),
+                ),
+              );
+            }
+
+            // Confidence label text on top (white)
+            if (showConfidence) {
+              widgets.add(
+                Positioned(
+                  right: detectionCanvasOffset.dx + (detectionCanvasSize.width - (box.left + box.width)),
+                  bottom: detectionCanvasOffset.dy + detectionCanvasSize.height - box.top + 4,
+                  child: Text(
+                    '${(face.confidence * 100).toStringAsFixed(0)}%',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              );
+            }
+          }
+        } else if (pixelationEnabled && detectedFaces.isNotEmpty) {
+          // Backdrop blur overlay
+          for (final face in detectedFaces) {
+            final box = transformFaceCoordinates(face) as FaceBox;
+            final blurSigma = (pixelationLevel / 2).toDouble();
+
+            widgets.add(
+              Positioned(
+                left: detectionCanvasOffset.dx + box.left,
+                top: detectionCanvasOffset.dy + box.top,
+                width: box.width,
+                height: box.height,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(box.width * 0.15),
+                  child: BackdropFilter(
+                    filter: ui.ImageFilter.blur(
+                      sigmaX: blurSigma,
+                      sigmaY: blurSigma,
+                    ),
+                    child: Container(
+                      color: Colors.transparent,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
+        }
+
+        return Stack(children: widgets);
+      },
+    );
+  }
+}
+
 class Face {
   final double x;
   final double y;
   final double width;
   final double height;
+  final double confidence;
 
   Face({
     required this.x,
     required this.y,
     required this.width,
     required this.height,
+    this.confidence = 0.5,
   });
 }
 

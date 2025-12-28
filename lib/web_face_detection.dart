@@ -34,6 +34,7 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
   bool _permissionDenied = false;
   String _permissionErrorMessage = "Camera permission denied";
   bool _cameraRequested = false;  // Track if user has requested camera access
+  bool _showConfidence = false;  // Toggle for displaying confidence scores
 
   @override
   void initState() {
@@ -165,6 +166,7 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
         top: (face['y'] as num).toDouble(),
         width: (face['width'] as num).toDouble(),
         height: (face['height'] as num).toDouble(),
+        confidence: (face['confidence'] as num?)?.toDouble() ?? 0.5,
       ));
     }
 
@@ -406,24 +408,80 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                   ),
 
                 // Face detection boxes - only show when blur is disabled (for reference)
-                if (!_pixelationEnabled && _videoSize != Size.zero)
+                if (!_pixelationEnabled && _videoSize != Size.zero) ...[
                   ..._detectedFaces.map((face) {
                     // Scale boxes to fixed canvas size
                     final scaleX = _canvasWidth / _videoSize.width;
                     final scaleY = _canvasHeight / _videoSize.height;
 
+                    final boxLeft = canvasOffset.dx + (face.left * scaleX);
+                    final boxTop = canvasOffset.dy + (face.top * scaleY);
+                    final boxWidth = face.width * scaleX;
+                    final boxHeight = face.height * scaleY;
+
                     return Positioned(
-                      left: canvasOffset.dx + (face.left * scaleX),
-                      top: canvasOffset.dy + (face.top * scaleY),
-                      width: face.width * scaleX,
-                      height: face.height * scaleY,
+                      left: boxLeft,
+                      top: boxTop,
+                      width: boxWidth,
+                      height: boxHeight,
                       child: Container(
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.white70, width: 1),
+                          border: Border.all(color: Colors.black, width: 1),
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.white, width: 1),
+                          ),
                         ),
                       ),
                     );
                   }),
+                  // Confidence labels above boxes with stroke effect
+                  if (_showConfidence)
+                    ..._detectedFaces.map((face) {
+                      final scaleX = _canvasWidth / _videoSize.width;
+                      final scaleY = _canvasHeight / _videoSize.height;
+
+                      final boxLeft = canvasOffset.dx + (face.left * scaleX);
+                      final boxTop = canvasOffset.dy + (face.top * scaleY);
+                      final boxWidth = face.width * scaleX;
+                      final confidenceText = '${(face.confidence * 100).toStringAsFixed(0)}%';
+
+                      return Stack(
+                        children: [
+                          // Black stroke
+                          Positioned(
+                            left: boxLeft + boxWidth - 40,
+                            top: boxTop - 20,
+                            child: Text(
+                              confidenceText,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                foreground: Paint()
+                                  ..strokeWidth = 3
+                                  ..color = Colors.black
+                                  ..style = PaintingStyle.stroke,
+                              ),
+                            ),
+                          ),
+                          // White text on top
+                          Positioned(
+                            left: boxLeft + boxWidth - 40,
+                            top: boxTop - 20,
+                            child: Text(
+                              confidenceText,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }),
+                ],
 
                 // Backdrop blur overlay is handled by JavaScript (CSS backdrop-filter)
                 // See web/face_detection.js updateBlurOverlay() function
@@ -454,26 +512,52 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                           ),
                         ),
                       ),
-                      // Blur toggle button (right)
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            _pixelationEnabled = !_pixelationEnabled;
-                          });
-                          _applyPixelation();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _pixelationEnabled ? Colors.white : Colors.black87,
-                          foregroundColor: _pixelationEnabled ? Colors.black : Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
+                      // Buttons (right)
+                      Row(
+                        children: [
+                          // Confidence toggle button
+                          ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                _showConfidence = !_showConfidence;
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _showConfidence ? Colors.white : Colors.black87,
+                              foregroundColor: _showConfidence ? Colors.black : Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                            ),
+                            child: const Text(
+                              'Info',
+                              style: TextStyle(fontSize: 14),
+                            ),
                           ),
-                        ),
-                        child: const Text(
-                          'Toggle Blur',
-                          style: TextStyle(fontSize: 14),
-                        ),
+                          const SizedBox(width: 8),
+                          // Blur toggle button
+                          ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                _pixelationEnabled = !_pixelationEnabled;
+                              });
+                              _applyPixelation();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _pixelationEnabled ? Colors.white : Colors.black87,
+                              foregroundColor: _pixelationEnabled ? Colors.black : Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                            ),
+                            child: const Text(
+                              'Blur',
+                              style: TextStyle(fontSize: 14),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -697,11 +781,13 @@ class FaceBox {
   final double top;
   final double width;
   final double height;
+  final double confidence;
 
   FaceBox({
     required this.left,
     required this.top,
     required this.width,
     required this.height,
+    this.confidence = 0.5,
   });
 }

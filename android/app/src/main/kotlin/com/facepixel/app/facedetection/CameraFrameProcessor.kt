@@ -2,6 +2,7 @@ package com.facepixel.app.facedetection
 
 import com.facepixel.app.AppLogger
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicReference
 
 class CameraFrameProcessor(
     private val faceDetector: FaceDetector
@@ -11,61 +12,74 @@ class CameraFrameProcessor(
     private var lastProcessingTime = 0L
     private val backgroundExecutor = Executors.newSingleThreadExecutor()
 
+    // Store latest result atomically to avoid blocking
+    private val latestResultRef = AtomicReference<ProcessingResult>(
+        ProcessingResult(success = true, faces = emptyList(), processingTime = 0L)
+    )
+
+    // Track if detection is currently running to skip frames
+    private val isDetecting = AtomicReference(false)
+    private var frameDropCount = 0
+    private var frameProcessCount = 0
+
     fun processFrame(
         nv21Bytes: ByteArray,
         width: Int,
         height: Int,
         rotation: Int = 0
     ): ProcessingResult {
-        val startTime = System.currentTimeMillis()
-
-        return try {
-            // Pass NV21 bytes directly to ML Kit (more efficient than bitmap conversion)
-            val result = object : Any() {
-                var faces: List<RectData>? = null
-                var error: String? = null
-            }
-
-            // Execute on background thread and wait
-            val future = backgroundExecutor.submit {
-                try {
-                    result.faces = faceDetector.detectFaces(nv21Bytes, width, height, rotation)
-                } catch (e: Exception) {
-                    result.error = e.message
-                    AppLogger.error("Face detection error: ${e.message}", "processing", e)
-                }
-            }
-
-            // Wait for completion (with timeout)
-            try {
-                future.get(5, java.util.concurrent.TimeUnit.SECONDS)
-            } catch (e: Exception) {
-                AppLogger.warn("Face detection timeout: ${e.message}", "processing")
-                result.faces = emptyList()
-                result.error = "Timeout"
-            }
-
-            val faces = result.faces ?: emptyList()
-
-            val processingTime = System.currentTimeMillis() - startTime
-            lastProcessingTime = processingTime
-
-            AppLogger.debug("Processing completed: ${faces.size} faces in ${processingTime}ms", "processing")
-
-            ProcessingResult(
-                success = true,
-                faces = faces,
-                processingTime = processingTime
-            )
-        } catch (e: Exception) {
-            AppLogger.error("Error processing frame: ${e.message}", "processing", e)
-            ProcessingResult(
-                success = false,
-                faces = emptyList(),
-                processingTime = System.currentTimeMillis() - startTime,
-                error = e.message ?: "Unknown error"
-            )
+        // CRITICAL OPTIMIZATION: Skip frame if detection is still running
+        // This prevents main thread from blocking and allows new frames to be processed
+        if (isDetecting.getAndSet(true)) {
+            frameDropCount++
+            // Return immediately with cached result - don't block!
+            return latestResultRef.get()
         }
+
+        frameProcessCount++
+
+        // Submit detection to background thread without waiting
+        backgroundExecutor.submit {
+            try {
+                val startTime = System.currentTimeMillis()
+
+                // Detect faces on background thread
+                val faces = faceDetector.detectFaces(nv21Bytes, width, height, rotation)
+
+                val processingTime = System.currentTimeMillis() - startTime
+                lastProcessingTime = processingTime
+
+                AppLogger.debug(
+                    "Detected ${faces.size} faces in ${processingTime}ms (dropped: $frameDropCount, processed: $frameProcessCount)",
+                    "processing"
+                )
+
+                // Store result atomically for next call
+                latestResultRef.set(
+                    ProcessingResult(
+                        success = true,
+                        faces = faces,
+                        processingTime = processingTime
+                    )
+                )
+            } catch (e: Exception) {
+                AppLogger.error("Face detection error: ${e.message}", "processing", e)
+                latestResultRef.set(
+                    ProcessingResult(
+                        success = false,
+                        faces = emptyList(),
+                        processingTime = 0L,
+                        error = e.message
+                    )
+                )
+            } finally {
+                // Mark detection as complete - allows next frame to process
+                isDetecting.set(false)
+            }
+        }
+
+        // Return cached result immediately without blocking
+        return latestResultRef.get()
     }
 
     fun setPixelationState(enabled: Boolean, level: Int) {

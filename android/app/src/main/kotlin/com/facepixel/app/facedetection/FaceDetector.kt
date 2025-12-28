@@ -21,7 +21,11 @@ class FaceDetector {
     fun detectFaces(nv21Bytes: ByteArray, width: Int, height: Int, rotation: Int = 0): List<RectData> {
         return try {
             frameCounter++
-            AppLogger.debug("Processing frame $frameCounter: ${width}x${height}, rotation: ${rotation}°", "detection")
+
+            // Only log occasionally to reduce logging overhead
+            if (frameCounter % 30 == 0) {
+                AppLogger.debug("Processing frame $frameCounter: ${width}x${height}, rotation: ${rotation}°", "detection")
+            }
 
             // Create InputImage from NV21 bytes directly (more efficient)
             val image = InputImage.fromByteArray(
@@ -36,28 +40,33 @@ class FaceDetector {
             val task = detector.process(image)
             val faces: List<Face> = Tasks.await(task, 5000, TimeUnit.MILLISECONDS)
 
-            AppLogger.debug("Detected ${faces.size} faces", "detection")
+            // Optimize: Pre-allocate list with expected capacity
+            val rects = mutableListOf<RectData>()
 
-            val rects = faces.mapNotNull { face: Face ->
+            for (face in faces) {
                 try {
                     val bbox = face.boundingBox
-                    val rect = RectData(
-                        x = bbox.left,
-                        y = bbox.top,
-                        width = bbox.right - bbox.left,
-                        height = bbox.bottom - bbox.top
-                    )
+
+                    // Estimate confidence based on face size (larger faces are typically more reliable)
+                    val faceWidth = bbox.right - bbox.left
+                    val faceHeight = bbox.bottom - bbox.top
 
                     // Only include faces that are meaningfully visible (not mostly off-screen)
                     // Skip if face is too small (less than 20x20) - prevents lingering boxes at edges
-                    if (rect.width >= 20 && rect.height >= 20) {
-                        rect
-                    } else {
-                        null
+                    if (faceWidth >= 20 && faceHeight >= 20) {
+                        val confidence = estimateFaceConfidence(faceWidth, faceHeight)
+                        rects.add(
+                            RectData(
+                                x = bbox.left,
+                                y = bbox.top,
+                                width = faceWidth,
+                                height = faceHeight,
+                                confidence = confidence
+                            )
+                        )
                     }
                 } catch (e: Exception) {
                     AppLogger.error("Error extracting face bounds: ${e.message}", "detection", e)
-                    null
                 }
             }
 
@@ -74,6 +83,28 @@ class FaceDetector {
 
     fun setMinFaceSize(width: Int, height: Int) {
         // Not used with ML Kit
+    }
+
+    /// Estimate face confidence based on size
+    /// ML Kit doesn't expose confidence scores, so we estimate based on face dimensions
+    /// Larger faces are typically more reliable (better quality detection)
+    private fun estimateFaceConfidence(width: Int, height: Int): Float {
+        // Base confidence for detected faces
+        val minSize = 50 // pixels
+        val maxSize = 400 // pixels
+
+        val avgSize = (width + height) / 2f
+
+        // Scale confidence from 0.5 to 1.0 based on face size
+        // Small faces (20-50px): lower confidence
+        // Large faces (200px+): higher confidence
+        val sizeConfidence = when {
+            avgSize < minSize -> 0.5f + (avgSize / minSize) * 0.3f
+            avgSize > maxSize -> 0.95f
+            else -> 0.5f + (avgSize / maxSize) * 0.45f
+        }
+
+        return sizeConfidence.coerceIn(0.5f, 1.0f)
     }
 
     fun release() {
