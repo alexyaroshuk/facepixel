@@ -187,187 +187,202 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
 
   @override
   Widget build(BuildContext context) {
-    // Show permission denied screen
-    if (_permissionDenied) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Face Pixelation'),
-          backgroundColor: Colors.black,
-          foregroundColor: Colors.white,
-          elevation: 0,
-        ),
-        body: Container(
-          color: const Color(0xFF1A1A1A),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.lock_outline,
-                  size: 64,
-                  color: Colors.white,
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Camera Access Denied',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32),
-                  child: Text(
-                    _permissionErrorMessage,
-                    style: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 14,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 32),
-                  child: Text(
-                    'Then refresh the page to try again.',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 12,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
+     // Show permission denied screen
+     if (_permissionDenied) {
+       return Scaffold(
+         appBar: AppBar(
+           title: const Text('Face Pixelation'),
+         ),
+         body: Container(
+           decoration: BoxDecoration(
+             gradient: LinearGradient(
+               begin: Alignment.topCenter,
+               end: Alignment.bottomCenter,
+               colors: [
+                 const Color(0xFF0A0E27),
+                 const Color(0xFF1A1F3A),
+                 const Color(0xFF0A0E27),
+               ],
+             ),
+           ),
+           child: Center(
+             child: Column(
+               mainAxisAlignment: MainAxisAlignment.center,
+               children: [
+                 Container(
+                   padding: const EdgeInsets.all(24),
+                   decoration: BoxDecoration(
+                     shape: BoxShape.circle,
+                     border: Border.all(
+                       color: const Color(0xFF00D9FF),
+                       width: 2,
+                     ),
+                   ),
+                   child: const Icon(
+                     Icons.lock_outline,
+                     size: 64,
+                     color: Color(0xFF00D9FF),
+                   ),
+                 ),
+                 const SizedBox(height: 32),
+                 const Text(
+                   'Camera Access Denied',
+                   style: TextStyle(
+                     color: Colors.white,
+                     fontSize: 22,
+                     fontWeight: FontWeight.bold,
+                   ),
+                   textAlign: TextAlign.center,
+                 ),
+                 const SizedBox(height: 16),
+                 Padding(
+                   padding: const EdgeInsets.symmetric(horizontal: 32),
+                   child: Text(
+                     _permissionErrorMessage,
+                     style: const TextStyle(
+                       color: Colors.grey,
+                       fontSize: 14,
+                     ),
+                     textAlign: TextAlign.center,
+                   ),
+                 ),
+                 const SizedBox(height: 12),
+                 const Padding(
+                   padding: EdgeInsets.symmetric(horizontal: 32),
+                   child: Text(
+                     'Then refresh the page to try again.',
+                     style: TextStyle(
+                       color: Colors.grey,
+                       fontSize: 12,
+                     ),
+                     textAlign: TextAlign.center,
+                   ),
+                 ),
+               ],
+             ),
+           ),
+         ),
+       );
+     }
 
     // Note: If _cameraRequested is true, we skip the welcome screen
     // and build the main video scaffold below (which includes HtmlElementView)
     // This allows the permission prompt to appear. The loading overlay is shown
     // in the main scaffold's Stack when _videoSize == Size.zero
 
-    // Show welcome screen if camera hasn't been requested yet
-    if (!_cameraRequested) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Face Pixelation'),
-          backgroundColor: Colors.black,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          actions: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
-                onPressed: _requestCameraAccess,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                ),
-                child: const Text('Enable Camera'),
-              ),
-            ),
-          ],
-        ),
-        body: Container(
-          color: const Color(0xFF1A1A1A),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.videocam,
-                  size: 64,
-                  color: Colors.white,
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Face Pixelation',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 32),
-                  child: Text(
-                    'Real-time face detection and pixelation for privacy',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 14,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                const SizedBox(height: 40),
-                ElevatedButton(
-                  onPressed: _requestCameraAccess,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                      vertical: 16,
-                    ),
-                  ),
-                  child: const Text('Enable Camera'),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
+     // Show welcome screen if camera hasn't been requested yet
+     if (!_cameraRequested) {
+       return Scaffold(
+         appBar: AppBar(
+           title: const Text('Face Pixelation'),
+           actions: [
+             Padding(
+               padding: const EdgeInsets.all(8.0),
+               child: ElevatedButton(
+                 onPressed: _requestCameraAccess,
+                 child: const Text('Enable Camera'),
+               ),
+             ),
+           ],
+         ),
+         body: Container(
+           decoration: BoxDecoration(
+             gradient: LinearGradient(
+               begin: Alignment.topCenter,
+               end: Alignment.bottomCenter,
+               colors: [
+                 const Color(0xFF0A0E27),
+                 const Color(0xFF1A1F3A),
+                 const Color(0xFF0A0E27),
+               ],
+             ),
+           ),
+           child: Center(
+             child: Column(
+               mainAxisAlignment: MainAxisAlignment.center,
+               children: [
+                 Container(
+                   padding: const EdgeInsets.all(24),
+                   decoration: BoxDecoration(
+                     shape: BoxShape.circle,
+                     border: Border.all(
+                       color: const Color(0xFF00D9FF),
+                       width: 2,
+                     ),
+                   ),
+                   child: const Icon(
+                     Icons.videocam,
+                     size: 64,
+                     color: Color(0xFF00D9FF),
+                   ),
+                 ),
+                 const SizedBox(height: 32),
+                 const Text(
+                   'Face Pixelation',
+                   style: TextStyle(
+                     color: Colors.white,
+                     fontSize: 28,
+                     fontWeight: FontWeight.bold,
+                   ),
+                 ),
+                 const SizedBox(height: 12),
+                 const Padding(
+                   padding: EdgeInsets.symmetric(horizontal: 32),
+                   child: Text(
+                     'Real-time face detection and pixelation for privacy',
+                     style: TextStyle(
+                       color: Colors.grey,
+                       fontSize: 14,
+                     ),
+                     textAlign: TextAlign.center,
+                   ),
+                 ),
+                 const SizedBox(height: 48),
+                 ElevatedButton(
+                   onPressed: _requestCameraAccess,
+                   child: const Text('Enable Camera'),
+                 ),
+               ],
+             ),
+           ),
+         ),
+       );
+     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Face Pixelation'),
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: Builder(
-        builder: (context) {
-          final screenSize = MediaQuery.of(context).size;
-          final canvasOffset = _calculateCanvasOffset(screenSize);
+     return Scaffold(
+       appBar: AppBar(
+         title: const Text('Face Pixelation'),
+       ),
+       body: Builder(
+         builder: (context) {
+           final screenSize = MediaQuery.of(context).size;
+           final canvasOffset = _calculateCanvasOffset(screenSize);
 
-          // Account for AppBar height when passing to JavaScript
-          // MediaQuery.of(context).size returns body size (below AppBar)
-          // But JavaScript uses position: fixed which is viewport-relative (includes AppBar)
-          final appBarHeight = AppBar().preferredSize.height;
-          final statusBarHeight = MediaQuery.of(context).padding.top;
-          final adjustedCanvasOffsetY = canvasOffset.dy + appBarHeight + statusBarHeight;
+           // Account for AppBar height when passing to JavaScript
+           // MediaQuery.of(context).size returns body size (below AppBar)
+           // But JavaScript uses position: fixed which is viewport-relative (includes AppBar)
+           final appBarHeight = AppBar().preferredSize.height;
+           final statusBarHeight = MediaQuery.of(context).padding.top;
+           final adjustedCanvasOffsetY = canvasOffset.dy + appBarHeight + statusBarHeight;
 
-          // Sync canvas dimensions and offset with JavaScript (fixed dimensions)
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            try {
-              js_util.callMethod(
-                html.window,
-                'updateCanvasDimensions',
-                [_canvasWidth, _canvasHeight, canvasOffset.dx, adjustedCanvasOffsetY],
-              );
-            } catch (e) {
-              AppLogger.error('Error updating canvas dimensions: $e', 'web', e);
-            }
-          });
+           // Sync canvas dimensions and offset with JavaScript (fixed dimensions)
+           WidgetsBinding.instance.addPostFrameCallback((_) {
+             try {
+               js_util.callMethod(
+                 html.window,
+                 'updateCanvasDimensions',
+                 [_canvasWidth, _canvasHeight, canvasOffset.dx, adjustedCanvasOffsetY],
+               );
+             } catch (e) {
+               AppLogger.error('Error updating canvas dimensions: $e', 'web', e);
+             }
+           });
 
-          return Container(
-            width: screenSize.width,
-            height: screenSize.height,
-            color: const Color(0xFF1A1A1A),
-            child: Stack(
+           return Container(
+             width: screenSize.width,
+             height: screenSize.height,
+             color: const Color(0xFF0A0E27),
+             child: Stack(
               children: [
                 // Red border - video stream area (for debugging)
                 if (_showRedBorder)
@@ -419,22 +434,17 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                     final boxWidth = face.width * scaleX;
                     final boxHeight = face.height * scaleY;
 
-                    return Positioned(
-                      left: boxLeft,
-                      top: boxTop,
-                      width: boxWidth,
-                      height: boxHeight,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.black, width: 1),
-                        ),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.white, width: 1),
-                          ),
-                        ),
-                      ),
-                    );
+                     return Positioned(
+                       left: boxLeft,
+                       top: boxTop,
+                       width: boxWidth,
+                       height: boxHeight,
+                       child: Container(
+                         decoration: BoxDecoration(
+                           border: Border.all(color: const Color(0xFF00D9FF), width: 2),
+                         ),
+                       ),
+                     );
                   }),
                   // Confidence labels above boxes with stroke effect
                   if (_showConfidence)
@@ -447,134 +457,151 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                       final boxWidth = face.width * scaleX;
                       final confidenceText = '${(face.confidence * 100).toStringAsFixed(0)}%';
 
-                      return Stack(
-                        children: [
-                          // Black stroke
-                          Positioned(
-                            left: boxLeft + boxWidth - 40,
-                            top: boxTop - 20,
-                            child: Text(
-                              confidenceText,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                foreground: Paint()
-                                  ..strokeWidth = 3
-                                  ..color = Colors.black
-                                  ..style = PaintingStyle.stroke,
-                              ),
-                            ),
-                          ),
-                          // White text on top
-                          Positioned(
-                            left: boxLeft + boxWidth - 40,
-                            top: boxTop - 20,
-                            child: Text(
-                              confidenceText,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
+                       return Stack(
+                         children: [
+                           // Dark background stroke
+                           Positioned(
+                             left: boxLeft + boxWidth - 40,
+                             top: boxTop - 20,
+                             child: Text(
+                               confidenceText,
+                               style: TextStyle(
+                                 fontSize: 16,
+                                 fontWeight: FontWeight.bold,
+                                 foreground: Paint()
+                                   ..strokeWidth = 3
+                                   ..color = const Color(0xFF0A0E27)
+                                   ..style = PaintingStyle.stroke,
+                               ),
+                             ),
+                           ),
+                           // Cyan text on top
+                           Positioned(
+                             left: boxLeft + boxWidth - 40,
+                             top: boxTop - 20,
+                             child: Text(
+                               confidenceText,
+                               style: const TextStyle(
+                                 color: Color(0xFF00D9FF),
+                                 fontSize: 16,
+                                 fontWeight: FontWeight.bold,
+                               ),
+                             ),
+                           ),
+                         ],
+                       );
                     }),
                 ],
 
                 // Backdrop blur overlay is handled by JavaScript (CSS backdrop-filter)
                 // See web/face_detection.js updateBlurOverlay() function
 
-                // Control bar above video stream
-                Positioned(
-                  top: canvasOffset.dy - 50,
-                  left: canvasOffset.dx,
-                  width: _canvasWidth,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Faces count (left)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black87,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          'Faces: ${_detectedFaces.length}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                      // Buttons (right)
-                      Row(
-                        children: [
-                          // Confidence toggle button
-                          ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                _showConfidence = !_showConfidence;
-                              });
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _showConfidence ? Colors.white : Colors.black87,
-                              foregroundColor: _showConfidence ? Colors.black : Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                            ),
-                            child: const Text(
-                              'Info',
-                              style: TextStyle(fontSize: 14),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          // Blur toggle button
-                          ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                _pixelationEnabled = !_pixelationEnabled;
-                              });
-                              _applyPixelation();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _pixelationEnabled ? Colors.white : Colors.black87,
-                              foregroundColor: _pixelationEnabled ? Colors.black : Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                            ),
-                            child: const Text(
-                              'Blur',
-                              style: TextStyle(fontSize: 14),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+                 // Control bar above video stream
+                 Positioned(
+                   top: canvasOffset.dy - 50,
+                   left: canvasOffset.dx,
+                   width: _canvasWidth,
+                   child: Row(
+                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                     children: [
+                       // Faces count (left)
+                       Container(
+                         padding: const EdgeInsets.symmetric(
+                           horizontal: 16,
+                           vertical: 8,
+                         ),
+                         decoration: BoxDecoration(
+                           color: const Color(0xFF1A1F3A),
+                           borderRadius: BorderRadius.circular(20),
+                           border: Border.all(
+                             color: const Color(0xFF00D9FF),
+                             width: 1.5,
+                           ),
+                         ),
+                         child: Text(
+                           'Faces: ${_detectedFaces.length}',
+                           style: const TextStyle(
+                             color: Color(0xFF00D9FF),
+                             fontSize: 14,
+                             fontWeight: FontWeight.bold,
+                           ),
+                         ),
+                       ),
+                       // Buttons (right)
+                       Row(
+                         children: [
+                           // Confidence toggle button
+                           ElevatedButton(
+                             onPressed: () {
+                               setState(() {
+                                 _showConfidence = !_showConfidence;
+                               });
+                             },
+                             style: ElevatedButton.styleFrom(
+                               backgroundColor: _showConfidence ? const Color(0xFF00D9FF) : const Color(0xFF1A1F3A),
+                               foregroundColor: _showConfidence ? const Color(0xFF0A0E27) : const Color(0xFF00D9FF),
+                               padding: const EdgeInsets.symmetric(
+                                 horizontal: 12,
+                                 vertical: 8,
+                               ),
+                               side: const BorderSide(
+                                 color: Color(0xFF00D9FF),
+                                 width: 1,
+                               ),
+                             ),
+                             child: const Text(
+                               'Info',
+                               style: TextStyle(fontSize: 14),
+                             ),
+                           ),
+                           const SizedBox(width: 8),
+                           // Blur toggle button
+                           ElevatedButton(
+                             onPressed: () {
+                               setState(() {
+                                 _pixelationEnabled = !_pixelationEnabled;
+                               });
+                               _applyPixelation();
+                             },
+                             style: ElevatedButton.styleFrom(
+                               backgroundColor: _pixelationEnabled ? const Color(0xFF00D9FF) : const Color(0xFF1A1F3A),
+                               foregroundColor: _pixelationEnabled ? const Color(0xFF0A0E27) : const Color(0xFF00D9FF),
+                               padding: const EdgeInsets.symmetric(
+                                 horizontal: 12,
+                                 vertical: 8,
+                               ),
+                               side: const BorderSide(
+                                 color: Color(0xFF00D9FF),
+                                 width: 1,
+                               ),
+                             ),
+                             child: const Text(
+                               'Blur',
+                               style: TextStyle(fontSize: 14),
+                             ),
+                           ),
+                         ],
+                       ),
+                     ],
+                   ),
+                 ),
 
-                // Debug overlay
-                if (_showDebugUI)
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    right: 8,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black87,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.all(8),
+                 // Debug overlay
+                 if (_showDebugUI)
+                   Positioned(
+                     top: 8,
+                     left: 8,
+                     right: 8,
+                     child: Container(
+                       decoration: BoxDecoration(
+                         color: const Color(0xFF1A1F3A),
+                         borderRadius: BorderRadius.circular(8),
+                         border: Border.all(
+                           color: const Color(0xFF00D9FF),
+                           width: 1,
+                         ),
+                       ),
+                       padding: const EdgeInsets.all(8),
                       child: SingleChildScrollView(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -665,58 +692,63 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                     ),
                   ),
 
-                // Pixelation level slider control - positioned within video container bounds
-                if (_pixelationEnabled)
-                  Positioned(
-                    top: canvasOffset.dy + _canvasHeight + 12,
-                    left: canvasOffset.dx,
-                    width: _canvasWidth,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black87,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.privacy_tip, color: Colors.white),
-                              const SizedBox(width: 8),
-                              const Text(
-                                'Blur Strength',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const Spacer(),
-                              Text(
-                                _pixelationLevel.toString(),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Slider(
-                            value: _pixelationLevel.toDouble(),
-                            min: 1,
-                            max: 100,
-                            divisions: 99,
-                            label: _pixelationLevel.toString(),
-                            activeColor: Colors.white,
-                            inactiveColor: Colors.grey[800],
-                            onChanged: (value) {
-                              setState(() {
-                                _pixelationLevel = value.toInt();
-                              });
-                              _applyPixelation();
-                            },
-                          ),
+                 // Pixelation level slider control - positioned within video container bounds
+                 if (_pixelationEnabled)
+                   Positioned(
+                     top: canvasOffset.dy + _canvasHeight + 12,
+                     left: canvasOffset.dx,
+                     width: _canvasWidth,
+                     child: Container(
+                       decoration: BoxDecoration(
+                         color: const Color(0xFF1A1F3A),
+                         borderRadius: BorderRadius.circular(12),
+                         border: Border.all(
+                           color: const Color(0xFF00D9FF),
+                           width: 1.5,
+                         ),
+                       ),
+                       padding: const EdgeInsets.all(16),
+                       child: Column(
+                         mainAxisSize: MainAxisSize.min,
+                         children: [
+                           Row(
+                             children: [
+                               const Icon(Icons.privacy_tip, color: Color(0xFF00D9FF)),
+                               const SizedBox(width: 12),
+                               const Text(
+                                 'Blur Strength',
+                                 style: TextStyle(
+                                   color: Colors.white,
+                                   fontWeight: FontWeight.bold,
+                                   fontSize: 14,
+                                 ),
+                               ),
+                               const Spacer(),
+                               Text(
+                                 _pixelationLevel.toString(),
+                                 style: const TextStyle(
+                                   color: Color(0xFF00D9FF),
+                                   fontWeight: FontWeight.bold,
+                                 ),
+                               ),
+                             ],
+                           ),
+                           const SizedBox(height: 12),
+                           Slider(
+                             value: _pixelationLevel.toDouble(),
+                             min: 1,
+                             max: 100,
+                             divisions: 99,
+                             label: _pixelationLevel.toString(),
+                             activeColor: const Color(0xFF00D9FF),
+                             inactiveColor: const Color(0xFF2A3050),
+                             onChanged: (value) {
+                               setState(() {
+                                 _pixelationLevel = value.toInt();
+                               });
+                               _applyPixelation();
+                             },
+                           ),
                           Padding(
                             padding: const EdgeInsets.only(top: 4),
                             child: Row(
@@ -744,29 +776,29 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                     ),
                   ),
 
-                // Loading overlay while camera is initializing
-                if (_cameraRequested && _videoSize == Size.zero)
-                  Container(
-                    color: Colors.black.withValues(alpha: 0.6),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                          SizedBox(height: 24),
-                          Text(
-                            'Requesting camera access...',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                 // Loading overlay while camera is initializing
+                 if (_cameraRequested && _videoSize == Size.zero)
+                   Container(
+                     color: const Color(0xFF0A0E27).withValues(alpha: 0.8),
+                     child: Center(
+                       child: Column(
+                         mainAxisAlignment: MainAxisAlignment.center,
+                         children: const [
+                           CircularProgressIndicator(
+                             valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00D9FF)),
+                           ),
+                           SizedBox(height: 24),
+                           Text(
+                             'Requesting camera access...',
+                             style: TextStyle(
+                               color: Colors.white,
+                               fontSize: 16,
+                             ),
+                           ),
+                         ],
+                       ),
+                     ),
+                   ),
               ],
             ),
           );

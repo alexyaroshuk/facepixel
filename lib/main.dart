@@ -48,8 +48,34 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Face Pixelation',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF00D9FF),
+          brightness: Brightness.dark,
+        ),
+        scaffoldBackgroundColor: const Color(0xFF0A0E27),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF1A1F3A),
+          foregroundColor: Color(0xFF00D9FF),
+          elevation: 0,
+          centerTitle: true,
+        ),
+        sliderTheme: SliderThemeData(
+          activeTrackColor: const Color(0xFF00D9FF),
+          inactiveTrackColor: const Color(0xFF2A3050),
+          thumbColor: const Color(0xFF00D9FF),
+          overlayColor: const Color(0xFF00D9FF).withValues(alpha: 0.3),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF00D9FF),
+            foregroundColor: const Color(0xFF0A0E27),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
       ),
       home: kIsWeb ? const _WebPlaceholder() : MyHomePage(cameras: cameras),
     );
@@ -656,267 +682,273 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     // Show permission denied screen if camera access was denied (check this first before accessing _controller)
-    if (_cameraPermissionDenied) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Face Pixelation'),
-          backgroundColor: Colors.black,
-          foregroundColor: Colors.white,
-          elevation: 0,
-        ),
-        body: Container(
-          color: const Color(0xFF1A1A1A),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.lock_outline,
-                  size: 64,
-                  color: Colors.white,
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Camera Access Denied',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 32),
-                  child: Text(
-                    'This app requires camera access to detect and pixelate faces. Please enable camera permissions in your device settings.',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 14,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                const SizedBox(height: 32),
-                ElevatedButton(
-                  onPressed: () {
-                    // Retry camera initialization
-                    setState(() {
-                      _cameraPermissionDenied = false;
-                      _cameraRequested = false;
-                    });
-                    _requestCameraAccess();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                      vertical: 12,
-                    ),
-                  ),
-                  child: const Text('Try Again'),
-                ),
-              ],
-            ),
-          ),
-        ),
+     if (_cameraPermissionDenied) {
+       return Scaffold(
+         appBar: AppBar(
+           title: const Text('Face Pixelation'),
+         ),
+         body: Container(
+           decoration: BoxDecoration(
+             gradient: LinearGradient(
+               begin: Alignment.topCenter,
+               end: Alignment.bottomCenter,
+               colors: [
+                 const Color(0xFF0A0E27),
+                 const Color(0xFF1A1F3A),
+                 const Color(0xFF0A0E27),
+               ],
+             ),
+           ),
+           child: Center(
+             child: Column(
+               mainAxisAlignment: MainAxisAlignment.center,
+               children: [
+                 Container(
+                   padding: const EdgeInsets.all(24),
+                   decoration: BoxDecoration(
+                     shape: BoxShape.circle,
+                     border: Border.all(
+                       color: const Color(0xFF00D9FF),
+                       width: 2,
+                     ),
+                   ),
+                   child: const Icon(
+                     Icons.lock_outline,
+                     size: 64,
+                     color: Color(0xFF00D9FF),
+                   ),
+                 ),
+                 const SizedBox(height: 32),
+                 const Text(
+                   'Camera Access Denied',
+                   style: TextStyle(
+                     color: Colors.white,
+                     fontSize: 22,
+                     fontWeight: FontWeight.bold,
+                   ),
+                   textAlign: TextAlign.center,
+                 ),
+                 const SizedBox(height: 16),
+                 const Padding(
+                   padding: EdgeInsets.symmetric(horizontal: 32),
+                   child: Text(
+                     'This app requires camera access to detect and pixelate faces. Please enable camera permissions in your device settings.',
+                     style: TextStyle(
+                       color: Colors.grey,
+                       fontSize: 14,
+                     ),
+                     textAlign: TextAlign.center,
+                   ),
+                 ),
+                 const SizedBox(height: 40),
+                 ElevatedButton(
+                   onPressed: () {
+                     // Retry camera initialization
+                     setState(() {
+                       _cameraPermissionDenied = false;
+                       _cameraRequested = false;
+                     });
+                     _requestCameraAccess();
+                   },
+                   child: const Text('Try Again'),
+                 ),
+               ],
+             ),
+           ),
+         ),
+       );
+     }
+
+     // If camera requested but not yet initialized, show loading
+     if (_cameraRequested && (!_controllerInitialized || (_controllerInitialized && !_controller.value.isInitialized) || _isSwitchingCamera)) {
+       return Scaffold(
+         appBar: AppBar(
+           title: const Text('Face Pixelation'),
+         ),
+         body: Center(
+           child: CircularProgressIndicator(
+             valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF00D9FF)),
+           ),
+         ),
+       );
+     }
+
+     // Show loading overlay while face detection initializes (after camera is requested)
+     if (_cameraRequested && !_faceDetectionInitialized) {
+       return Scaffold(
+         appBar: AppBar(
+           title: const Text('Face Pixelation'),
+         ),
+         body: Stack(
+           children: [
+             // Show camera preview in background
+             Container(
+               color: const Color(0xFF0A0E27),
+               child: Center(
+                 child: CameraPreview(_controller),
+               ),
+             ),
+             // Loading overlay
+             Container(
+               color: const Color(0xFF0A0E27).withValues(alpha: 0.8),
+               child: Center(
+                 child: Column(
+                   mainAxisAlignment: MainAxisAlignment.center,
+                   children: const [
+                     CircularProgressIndicator(
+                       valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00D9FF)),
+                     ),
+                     SizedBox(height: 24),
+                     Text(
+                       'Initializing face detection...',
+                       style: TextStyle(
+                         color: Colors.white,
+                         fontSize: 16,
+                       ),
+                     ),
+                   ],
+                 ),
+               ),
+             ),
+           ],
+         ),
       );
     }
 
-    // If camera requested but not yet initialized, show loading
-    if (_cameraRequested && (!_controllerInitialized || (_controllerInitialized && !_controller.value.isInitialized) || _isSwitchingCamera)) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Face Pixelation'),
-          backgroundColor: Colors.black,
-          foregroundColor: Colors.white,
-          elevation: 0,
-        ),
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
+     // If camera not requested yet, show welcome screen
+     if (!_cameraRequested) {
+       return Scaffold(
+         appBar: AppBar(
+           title: const Text('Face Pixelation'),
+           actions: [
+             Padding(
+               padding: const EdgeInsets.all(8.0),
+               child: ElevatedButton(
+                 onPressed: _requestCameraAccess,
+                 child: const Text('Enable Camera'),
+               ),
+             ),
+           ],
+         ),
+         body: Container(
+           decoration: BoxDecoration(
+             gradient: LinearGradient(
+               begin: Alignment.topCenter,
+               end: Alignment.bottomCenter,
+               colors: [
+                 const Color(0xFF0A0E27),
+                 const Color(0xFF1A1F3A),
+                 const Color(0xFF0A0E27),
+               ],
+             ),
+           ),
+           child: Center(
+             child: Column(
+               mainAxisAlignment: MainAxisAlignment.center,
+               children: [
+                 Container(
+                   padding: const EdgeInsets.all(24),
+                   decoration: BoxDecoration(
+                     shape: BoxShape.circle,
+                     border: Border.all(
+                       color: const Color(0xFF00D9FF),
+                       width: 2,
+                     ),
+                   ),
+                   child: const Icon(
+                     Icons.videocam,
+                     size: 64,
+                     color: Color(0xFF00D9FF),
+                   ),
+                 ),
+                 const SizedBox(height: 32),
+                 const Text(
+                   'Face Pixelation',
+                   style: TextStyle(
+                     color: Colors.white,
+                     fontSize: 28,
+                     fontWeight: FontWeight.bold,
+                   ),
+                 ),
+                 const SizedBox(height: 12),
+                 const Padding(
+                   padding: EdgeInsets.symmetric(horizontal: 32),
+                   child: Text(
+                     'Real-time face detection and pixelation for privacy',
+                     style: TextStyle(
+                       color: Colors.grey,
+                       fontSize: 14,
+                     ),
+                     textAlign: TextAlign.center,
+                   ),
+                 ),
+                 const SizedBox(height: 48),
+                 ElevatedButton(
+                   onPressed: _requestCameraAccess,
+                   child: const Text('Enable Camera'),
+                 ),
+               ],
+             ),
+           ),
+         ),
+       );
+     }
 
-    // Show loading overlay while face detection initializes (after camera is requested)
-    if (_cameraRequested && !_faceDetectionInitialized) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Face Pixelation'),
-          backgroundColor: Colors.black,
-          foregroundColor: Colors.white,
-          elevation: 0,
-        ),
-        body: Stack(
-          children: [
-            // Show camera preview in background
-            Container(
-              color: const Color(0xFF1A1A1A),
-              child: Center(
-                child: CameraPreview(_controller),
-              ),
-            ),
-            // Loading overlay
-            Container(
-              color: Colors.black.withValues(alpha: 0.6),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                    SizedBox(height: 24),
-                    Text(
-                      'Initializing face detection...',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    // If camera not requested yet, show welcome screen
-    if (!_cameraRequested) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Face Pixelation'),
-          backgroundColor: Colors.black,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          actions: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
-                onPressed: _requestCameraAccess,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                ),
-                child: const Text('Enable Camera'),
-              ),
-            ),
-          ],
-        ),
-        body: Container(
-          color: const Color(0xFF1A1A1A),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.videocam,
-                  size: 64,
-                  color: Colors.white,
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Face Pixelation',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 32),
-                  child: Text(
-                    'Real-time face detection and pixelation for privacy',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 14,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                const SizedBox(height: 40),
-                ElevatedButton(
-                  onPressed: _requestCameraAccess,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                      vertical: 16,
-                    ),
-                  ),
-                  child: const Text('Enable Camera'),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Face Pixelation'),
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          // Pixelation toggle (only show after camera is working)
-          if (_cameraRequested && !_cameraPermissionDenied)
-            IconButton(
-              icon: Icon(
-                _pixelationEnabled ? Icons.privacy_tip : Icons.privacy_tip_outlined,
-                color: _pixelationEnabled ? Colors.white : Colors.grey,
-              ),
-              onPressed: () {
-                setState(() {
-                  _pixelationEnabled = !_pixelationEnabled;
-                });
-              },
-              tooltip: 'Toggle Blur',
-            ),
-          // Confidence toggle
-          if (_cameraRequested && !_cameraPermissionDenied)
-            IconButton(
-              icon: Icon(
-                _showConfidence ? Icons.info : Icons.info_outline,
-                color: _showConfidence ? Colors.white : Colors.grey,
-              ),
-              onPressed: () {
-                setState(() {
-                  _showConfidence = !_showConfidence;
-                });
-              },
-              tooltip: 'Toggle Confidence',
-            ),
-          // Camera switch button
-          if (_cameraRequested && !_cameraPermissionDenied && widget.cameras.length > 1)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Center(
-                child: _isSwitchingCamera
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : IconButton(
-                        icon: const Icon(Icons.flip_camera_ios),
-                        onPressed: _switchCamera,
-                        tooltip: 'Switch Camera',
-                      ),
-              ),
-            ),
-        ],
-      ),
+     return Scaffold(
+       appBar: AppBar(
+         title: const Text('Face Pixelation'),
+         actions: [
+           // Pixelation toggle (only show after camera is working)
+           if (_cameraRequested && !_cameraPermissionDenied)
+             IconButton(
+               icon: Icon(
+                 _pixelationEnabled ? Icons.privacy_tip : Icons.privacy_tip_outlined,
+                 color: _pixelationEnabled ? const Color(0xFF00D9FF) : Colors.grey,
+               ),
+               onPressed: () {
+                 setState(() {
+                   _pixelationEnabled = !_pixelationEnabled;
+                 });
+               },
+               tooltip: 'Toggle Blur',
+             ),
+           // Confidence toggle
+           if (_cameraRequested && !_cameraPermissionDenied)
+             IconButton(
+               icon: Icon(
+                 _showConfidence ? Icons.info : Icons.info_outline,
+                 color: _showConfidence ? const Color(0xFF00D9FF) : Colors.grey,
+               ),
+               onPressed: () {
+                 setState(() {
+                   _showConfidence = !_showConfidence;
+                 });
+               },
+               tooltip: 'Toggle Confidence',
+             ),
+           // Camera switch button
+           if (_cameraRequested && !_cameraPermissionDenied && widget.cameras.length > 1)
+             Padding(
+               padding: const EdgeInsets.all(8.0),
+               child: Center(
+                 child: _isSwitchingCamera
+                     ? const SizedBox(
+                         width: 24,
+                         height: 24,
+                         child: CircularProgressIndicator(
+                           strokeWidth: 2,
+                           valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00D9FF)),
+                         ),
+                       )
+                     : IconButton(
+                         icon: const Icon(Icons.flip_camera_ios, color: Color(0xFF00D9FF)),
+                         onPressed: _switchCamera,
+                         tooltip: 'Switch Camera',
+                       ),
+               ),
+             ),
+         ],
+       ),
       body: Builder(
         builder: (context) {
           // Get actual screen size from MediaQuery
@@ -938,11 +970,11 @@ class _MyHomePageState extends State<MyHomePage> {
           final videoDimensions = _calculateVideoDimensions(bodySize);
           final videoOffset = _calculateVideoOffset(videoDimensions, bodySize);
 
-          return Container(
-            width: bodySize.width,
-            height: bodySize.height,
-            color: const Color(0xFF1A1A1A),
-            child: Stack(
+           return Container(
+             width: bodySize.width,
+             height: bodySize.height,
+             color: const Color(0xFF0A0E27),
+             child: Stack(
               children: [
                 // CENTERED VIDEO PREVIEW - Preserves aspect ratio
                 Positioned(
@@ -963,26 +995,30 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: ValueListenableBuilder<List<Face>>(
                     valueListenable: _detectedFacesNotifier,
                     builder: (context, detectedFaces, _) {
-                      return Center(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black87,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            'Faces: ${detectedFaces.length}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      );
+                       return Center(
+                         child: Container(
+                           padding: const EdgeInsets.symmetric(
+                             horizontal: 16,
+                             vertical: 8,
+                           ),
+                           decoration: BoxDecoration(
+                             color: const Color(0xFF1A1F3A),
+                             borderRadius: BorderRadius.circular(20),
+                             border: Border.all(
+                               color: const Color(0xFF00D9FF),
+                               width: 1.5,
+                             ),
+                           ),
+                           child: Text(
+                             'Faces: ${detectedFaces.length}',
+                             style: const TextStyle(
+                               color: Color(0xFF00D9FF),
+                               fontSize: 16,
+                               fontWeight: FontWeight.bold,
+                             ),
+                           ),
+                         ),
+                       );
                     },
                   ),
                 ),
@@ -1000,54 +1036,59 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
                 // Blur level slider control
-                if (_pixelationEnabled)
-                  Positioned(
-                    bottom: 16,
-                    left: 16,
-                    right: 16,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black87,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.privacy_tip, color: Colors.white),
-                              const SizedBox(width: 8),
-                              const Text(
-                                'Blur Strength',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const Spacer(),
-                              Text(
-                                _pixelationLevel.toString(),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Slider(
-                            value: _pixelationLevel.toDouble(),
-                            min: 1,
-                            max: 100,
-                            divisions: 99,
-                            label: _pixelationLevel.toString(),
-                            activeColor: Colors.white,
-                            inactiveColor: Colors.grey[800],
-                            onChanged: (value) {
-                              setState(() {
-                                _pixelationLevel = value.toInt();
-                              });
+                 if (_pixelationEnabled)
+                   Positioned(
+                     bottom: 16,
+                     left: 16,
+                     right: 16,
+                     child: Container(
+                       decoration: BoxDecoration(
+                         color: const Color(0xFF1A1F3A),
+                         borderRadius: BorderRadius.circular(12),
+                         border: Border.all(
+                           color: const Color(0xFF00D9FF),
+                           width: 1.5,
+                         ),
+                       ),
+                       padding: const EdgeInsets.all(16),
+                       child: Column(
+                         mainAxisSize: MainAxisSize.min,
+                         children: [
+                           Row(
+                             children: [
+                               const Icon(Icons.privacy_tip, color: Color(0xFF00D9FF)),
+                               const SizedBox(width: 12),
+                               const Text(
+                                 'Blur Strength',
+                                 style: TextStyle(
+                                   color: Colors.white,
+                                   fontWeight: FontWeight.bold,
+                                   fontSize: 14,
+                                 ),
+                               ),
+                               const Spacer(),
+                               Text(
+                                 _pixelationLevel.toString(),
+                                 style: const TextStyle(
+                                   color: Color(0xFF00D9FF),
+                                   fontWeight: FontWeight.bold,
+                                 ),
+                               ),
+                             ],
+                           ),
+                           const SizedBox(height: 12),
+                           Slider(
+                             value: _pixelationLevel.toDouble(),
+                             min: 1,
+                             max: 100,
+                             divisions: 99,
+                             label: _pixelationLevel.toString(),
+                             activeColor: const Color(0xFF00D9FF),
+                             inactiveColor: const Color(0xFF2A3050),
+                             onChanged: (value) {
+                               setState(() {
+                                 _pixelationLevel = value.toInt();
+                               });
                             },
                           ),
                           Padding(
