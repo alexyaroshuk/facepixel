@@ -36,7 +36,7 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
   bool _permissionDenied = false;
   String _permissionErrorMessage = "Camera permission denied";
   bool _cameraRequested = false;  // Track if user has requested camera access
-  bool _showConfidence = false;  // Toggle for displaying confidence scores
+  bool _showConfidence = true;  // Toggle for displaying confidence scores
 
   @override
   void initState() {

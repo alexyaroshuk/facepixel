@@ -134,7 +134,7 @@ class _MyHomePageState extends State<MyHomePage> {
   int _pixelationLevel = 10; // 1-100, lower = more pixels (more privacy)
 
   // Confidence display settings
-  bool _showConfidence = false;
+  bool _showConfidence = true;
 
   static const platform = MethodChannel('com.facepixel.app/faceDetection');
 
@@ -1144,12 +1144,15 @@ class _FaceOverlayLayer extends StatelessWidget {
 
             // Confidence label above box, aligned right
             if (showConfidence) {
+              final confidenceText = '${(face.confidence * 100).toStringAsFixed(0)}%';
+
+              // Black stroke (outline)
               widgets.add(
                 Positioned(
-                  right: detectionCanvasOffset.dx + (detectionCanvasSize.width - (box.left + box.width)),
-                  bottom: detectionCanvasOffset.dy + detectionCanvasSize.height - box.top + 4,
+                  left: detectionCanvasOffset.dx + box.left + box.width - 40,
+                  top: detectionCanvasOffset.dy + box.top - 20,
                   child: Text(
-                    '${(face.confidence * 100).toStringAsFixed(0)}%',
+                    confidenceText,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -1161,16 +1164,14 @@ class _FaceOverlayLayer extends StatelessWidget {
                   ),
                 ),
               );
-            }
 
-            // Confidence label text on top (white)
-            if (showConfidence) {
+              // White text on top
               widgets.add(
                 Positioned(
-                  right: detectionCanvasOffset.dx + (detectionCanvasSize.width - (box.left + box.width)),
-                  bottom: detectionCanvasOffset.dy + detectionCanvasSize.height - box.top + 4,
+                  left: detectionCanvasOffset.dx + box.left + box.width - 40,
+                  top: detectionCanvasOffset.dy + box.top - 20,
                   child: Text(
-                    '${(face.confidence * 100).toStringAsFixed(0)}%',
+                    confidenceText,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
