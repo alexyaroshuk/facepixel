@@ -17,8 +17,10 @@ class WebFaceDetectionView extends StatefulWidget {
 
 class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
   static const String _videoViewType = 'face-detection-video';
-  static const double _canvasWidth = 640.0;  // Fixed canvas width
-  static const double _canvasHeight = 480.0; // Fixed canvas height (4:3 aspect ratio)
+  // Maximum canvas dimensions (will shrink to fit smaller screens)
+  static const double _maxCanvasWidth = 640.0;
+  static const double _maxCanvasHeight = 480.0;
+  static const double _aspectRatio = 4.0 / 3.0;
 
   List<FaceBox> _detectedFaces = [];
   String _debugMessage = "Initializing...";
@@ -178,11 +180,47 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
   }
 
 
-  /// Calculate canvas offset to center fixed-size canvas in available space
-  Offset _calculateCanvasOffset(Size screenSize) {
-    final offsetX = (screenSize.width - _canvasWidth) / 2;
-    final offsetY = (screenSize.height - _canvasHeight) / 2;
-    return Offset(offsetX, offsetY);
+  /// Calculate canvas size that fits within screen while maintaining aspect ratio
+  /// Uses max 640x480 but shrinks proportionally for smaller screens
+  Size _calculateCanvasSize(Size screenSize) {
+    // Reserve space for control bar (50px) above and slider (130px) below when enabled
+    const double controlBarHeight = 50.0;
+    final double sliderHeight = _pixelationEnabled ? 130.0 : 20.0;
+    const double padding = 16.0;
+    
+    final double availableWidth = screenSize.width - (padding * 2);
+    final double availableHeight = screenSize.height - controlBarHeight - sliderHeight;
+    
+    // Start with max dimensions
+    double canvasWidth = _maxCanvasWidth;
+    double canvasHeight = _maxCanvasHeight;
+    
+    // Shrink to fit available width if needed
+    if (canvasWidth > availableWidth) {
+      canvasWidth = availableWidth;
+      canvasHeight = canvasWidth / _aspectRatio;
+    }
+    
+    // Shrink to fit available height if needed
+    if (canvasHeight > availableHeight) {
+      canvasHeight = availableHeight;
+      canvasWidth = canvasHeight * _aspectRatio;
+    }
+    
+    // Ensure positive dimensions
+    canvasWidth = canvasWidth.clamp(100.0, _maxCanvasWidth);
+    canvasHeight = canvasHeight.clamp(75.0, _maxCanvasHeight);
+    
+    return Size(canvasWidth, canvasHeight);
+  }
+
+  /// Calculate canvas offset to center canvas in available space
+  Offset _calculateCanvasOffset(Size screenSize, Size canvasSize) {
+    // Control bar is above, so offset from top accounts for it
+    const double controlBarHeight = 50.0;
+    final double offsetX = (screenSize.width - canvasSize.width) / 2;
+    final double offsetY = controlBarHeight + ((screenSize.height - controlBarHeight - canvasSize.height) / 2) - 40;
+    return Offset(offsetX.clamp(0.0, screenSize.width), offsetY.clamp(controlBarHeight, screenSize.height));
   }
 
   @override
@@ -341,22 +379,23 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
       body: Builder(
         builder: (context) {
           final screenSize = MediaQuery.of(context).size;
-          final canvasOffset = _calculateCanvasOffset(screenSize);
+          final canvasSize = _calculateCanvasSize(screenSize);
+          final canvasOffset = _calculateCanvasOffset(screenSize, canvasSize);
+          final canvasWidth = canvasSize.width;
+          final canvasHeight = canvasSize.height;
 
           // Account for AppBar height when passing to JavaScript
-          // MediaQuery.of(context).size returns body size (below AppBar)
-          // But JavaScript uses position: fixed which is viewport-relative (includes AppBar)
           final appBarHeight = AppBar().preferredSize.height;
           final statusBarHeight = MediaQuery.of(context).padding.top;
           final adjustedCanvasOffsetY = canvasOffset.dy + appBarHeight + statusBarHeight;
 
-          // Sync canvas dimensions and offset with JavaScript (fixed dimensions)
+          // Sync canvas dimensions and offset with JavaScript
           WidgetsBinding.instance.addPostFrameCallback((_) {
             try {
               js_util.callMethod(
                 html.window,
                 'updateCanvasDimensions',
-                [_canvasWidth, _canvasHeight, canvasOffset.dx, adjustedCanvasOffsetY],
+                [canvasWidth, canvasHeight, canvasOffset.dx, adjustedCanvasOffsetY],
               );
             } catch (e) {
               AppLogger.error('Error updating canvas dimensions: $e', 'web', e);
@@ -374,8 +413,8 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                   Positioned(
                     left: canvasOffset.dx,
                     top: canvasOffset.dy,
-                    width: _canvasWidth,
-                    height: _canvasHeight,
+                    width: canvasWidth,
+                    height: canvasHeight,
                     child: Container(
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.red, width: 5),
@@ -387,8 +426,8 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                 Positioned(
                   left: canvasOffset.dx,
                   top: canvasOffset.dy,
-                  width: _canvasWidth,
-                  height: _canvasHeight,
+                  width: canvasWidth,
+                  height: canvasHeight,
                   child: HtmlElementView(viewType: _videoViewType),
                 ),
 
@@ -397,8 +436,8 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                   Positioned(
                     left: canvasOffset.dx,
                     top: canvasOffset.dy,
-                    width: _canvasWidth,
-                    height: _canvasHeight,
+                    width: canvasWidth,
+                    height: canvasHeight,
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.teal.withValues(alpha: 0.1),
@@ -407,12 +446,11 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                     ),
                   ),
 
-                // Face detection boxes - only show when blur is disabled (for reference)
+                // Face detection boxes - only show when blur is disabled
                 if (!_pixelationEnabled && _videoSize != Size.zero) ...[
                   ..._detectedFaces.map((face) {
-                    // Scale boxes to fixed canvas size
-                    final scaleX = _canvasWidth / _videoSize.width;
-                    final scaleY = _canvasHeight / _videoSize.height;
+                    final scaleX = canvasWidth / _videoSize.width;
+                    final scaleY = canvasHeight / _videoSize.height;
 
                     final boxLeft = canvasOffset.dx + (face.left * scaleX);
                     final boxTop = canvasOffset.dy + (face.top * scaleY);
@@ -436,11 +474,11 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                       ),
                     );
                   }),
-                  // Confidence labels above boxes with stroke effect
+                  // Confidence labels
                   if (_showConfidence)
                     ..._detectedFaces.map((face) {
-                      final scaleX = _canvasWidth / _videoSize.width;
-                      final scaleY = _canvasHeight / _videoSize.height;
+                      final scaleX = canvasWidth / _videoSize.width;
+                      final scaleY = canvasHeight / _videoSize.height;
 
                       final boxLeft = canvasOffset.dx + (face.left * scaleX);
                       final boxTop = canvasOffset.dy + (face.top * scaleY);
@@ -449,7 +487,6 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
 
                       return Stack(
                         children: [
-                          // Black stroke
                           Positioned(
                             left: boxLeft + boxWidth - 40,
                             top: boxTop - 20,
@@ -465,7 +502,6 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                               ),
                             ),
                           ),
-                          // White text on top
                           Positioned(
                             left: boxLeft + boxWidth - 40,
                             top: boxTop - 20,
@@ -483,79 +519,50 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                     }),
                 ],
 
-                // Backdrop blur overlay is handled by JavaScript (CSS backdrop-filter)
-                // See web/face_detection.js updateBlurOverlay() function
-
                 // Control bar above video stream
                 Positioned(
                   top: canvasOffset.dy - 50,
                   left: canvasOffset.dx,
-                  width: _canvasWidth,
+                  width: canvasWidth,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Faces count (left)
+                      // Faces count
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
                           color: Colors.black87,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           'Faces: ${_detectedFaces.length}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                          ),
+                          style: const TextStyle(color: Colors.white, fontSize: 14),
                         ),
                       ),
-                      // Buttons (right)
+                      // Buttons
                       Row(
                         children: [
-                          // Confidence toggle button
                           ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                _showConfidence = !_showConfidence;
-                              });
-                            },
+                            onPressed: () => setState(() => _showConfidence = !_showConfidence),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: _showConfidence ? Colors.white : Colors.black87,
                               foregroundColor: _showConfidence ? Colors.black : Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             ),
-                            child: const Text(
-                              'Info',
-                              style: TextStyle(fontSize: 14),
-                            ),
+                            child: const Text('Info', style: TextStyle(fontSize: 14)),
                           ),
                           const SizedBox(width: 8),
-                          // Blur toggle button
                           ElevatedButton(
                             onPressed: () {
-                              setState(() {
-                                _pixelationEnabled = !_pixelationEnabled;
-                              });
+                              setState(() => _pixelationEnabled = !_pixelationEnabled);
                               _applyPixelation();
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: _pixelationEnabled ? Colors.white : Colors.black87,
                               foregroundColor: _pixelationEnabled ? Colors.black : Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             ),
-                            child: const Text(
-                              'Blur',
-                              style: TextStyle(fontSize: 14),
-                            ),
+                            child: const Text('Blur', style: TextStyle(fontSize: 14)),
                           ),
                         ],
                       ),
@@ -575,102 +582,26 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       padding: const EdgeInsets.all(8),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              _debugMessage,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontFamily: 'monospace',
-                                fontSize: 11,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Screen: ${screenSize.width.toInt()}x${screenSize.height.toInt()}',
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontFamily: 'monospace',
-                                fontSize: 11,
-                              ),
-                            ),
-                            Text(
-                              'Video size: ${_videoSize.width.toInt()}x${_videoSize.height.toInt()}',
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontFamily: 'monospace',
-                                fontSize: 11,
-                              ),
-                            ),
-                            Text(
-                              'Canvas (fixed): ${_canvasWidth.toInt()}x${_canvasHeight.toInt()}',
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontFamily: 'monospace',
-                                fontSize: 11,
-                              ),
-                            ),
-                            Text(
-                              'Canvas offset: (${canvasOffset.dx.toInt()}, ${canvasOffset.dy.toInt()})',
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontFamily: 'monospace',
-                                fontSize: 11,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _showRedBorder = !_showRedBorder;
-                                    });
-                                  },
-                                  child: Text(
-                                    'Red: ${_showRedBorder ? 'ON' : 'OFF'}',
-                                    style: TextStyle(
-                                      color: _showRedBorder ? Colors.red : Colors.grey,
-                                      fontFamily: 'monospace',
-                                      fontSize: 10,
-                                      fontWeight: _showRedBorder ? FontWeight.bold : FontWeight.normal,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _showTealBorder = !_showTealBorder;
-                                    });
-                                  },
-                                  child: Text(
-                                    'Teal: ${_showTealBorder ? 'ON' : 'OFF'}',
-                                    style: TextStyle(
-                                      color: _showTealBorder ? Colors.cyan : Colors.grey,
-                                      fontFamily: 'monospace',
-                                      fontSize: 10,
-                                      fontWeight: _showTealBorder ? FontWeight.bold : FontWeight.normal,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(_debugMessage, style: const TextStyle(color: Colors.white, fontFamily: 'monospace', fontSize: 11)),
+                          const SizedBox(height: 4),
+                          Text('Screen: ${screenSize.width.toInt()}x${screenSize.height.toInt()}', style: const TextStyle(color: Colors.grey, fontFamily: 'monospace', fontSize: 11)),
+                          Text('Video: ${_videoSize.width.toInt()}x${_videoSize.height.toInt()}', style: const TextStyle(color: Colors.grey, fontFamily: 'monospace', fontSize: 11)),
+                          Text('Canvas: ${canvasWidth.toInt()}x${canvasHeight.toInt()}', style: const TextStyle(color: Colors.grey, fontFamily: 'monospace', fontSize: 11)),
+                        ],
                       ),
                     ),
                   ),
 
-                // Pixelation level slider control - positioned within video container bounds
+                // Blur slider control
                 if (_pixelationEnabled)
                   Positioned(
-                    top: canvasOffset.dy + _canvasHeight + 12,
+                    top: canvasOffset.dy + canvasHeight + 12,
                     left: canvasOffset.dx,
-                    width: _canvasWidth,
+                    width: canvasWidth,
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.black87,
@@ -684,21 +615,9 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                             children: [
                               const Icon(Icons.privacy_tip, color: Colors.white),
                               const SizedBox(width: 8),
-                              const Text(
-                                'Blur Strength',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                              const Text('Blur Strength', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                               const Spacer(),
-                              Text(
-                                _pixelationLevel.toString(),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                              Text(_pixelationLevel.toString(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                             ],
                           ),
                           const SizedBox(height: 8),
@@ -707,62 +626,29 @@ class _WebFaceDetectionViewState extends State<WebFaceDetectionView> {
                             min: 1,
                             max: 100,
                             divisions: 99,
-                            label: _pixelationLevel.toString(),
                             activeColor: Colors.white,
                             inactiveColor: Colors.grey[800],
                             onChanged: (value) {
-                              setState(() {
-                                _pixelationLevel = value.toInt();
-                              });
+                              setState(() => _pixelationLevel = value.toInt());
                               _applyPixelation();
                             },
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: const [
-                                Text(
-                                  'Subtle (1)',
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 10,
-                                  ),
-                                ),
-                                Text(
-                                  'Strong (100)',
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 10,
-                                  ),
-                                ),
-                              ],
-                            ),
                           ),
                         ],
                       ),
                     ),
                   ),
 
-                // Loading overlay while camera is initializing
+                // Loading overlay
                 if (_cameraRequested && _videoSize == Size.zero)
                   Container(
                     color: Colors.black.withValues(alpha: 0.6),
-                    child: Center(
+                    child: const Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
+                        children: [
+                          CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
                           SizedBox(height: 24),
-                          Text(
-                            'Requesting camera access...',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                            ),
-                          ),
+                          Text('Requesting camera access...', style: TextStyle(color: Colors.white, fontSize: 16)),
                         ],
                       ),
                     ),
